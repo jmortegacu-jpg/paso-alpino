@@ -1,0 +1,28 @@
+# Configuración del sitio de Paso Alpino en Netlify.
+# No hace falta compilar nada: el juego es un solo archivo y el contador es una función.
+[build]
+  publish = "."
+  functions = "netlify/functions"
+  command = "echo 'Paso Alpino listo'"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/panel"
+  to = "/panel.html"
+  status = 200
+
+# Que los navegadores siempre busquen la última versión del juego.
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/version.json"
+  [headers.values]
+    Cache-Control = "no-store"
