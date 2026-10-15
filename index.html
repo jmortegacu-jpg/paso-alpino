@@ -4,7 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0f15">
-<meta name="description" content="Paso Alpino: carreras 3D de montaña de OrtegaCorp. Juegue solo o con amigos en línea.">
+<meta name="description" content="Paso Alpino: carreras 3D de montaña de OrtegaCorp. Gratis en el celular o la computadora; juegue solo o con sus amigos en línea.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Paso Alpino">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Paso Alpino">
+<meta property="og:title" content="Paso Alpino · Carreras 3D de montaña">
+<meta property="og:description" content="Gratis en el celular o la computadora. Nitro, derrapes, retos y carreras en línea con sus amigos.">
+<meta property="og:image" content="__SITE_URL__/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="__SITE_URL__/">
+<meta name="twitter:card" content="summary_large_image">
 <style>:root{padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:dark}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -217,6 +232,15 @@ summary{cursor:pointer;font-weight:600;font-size:13px;letter-spacing:.12em;text-
 #upd span{min-width:0;flex:1 1 auto;line-height:1.3}
 #upd .primary{flex:none}
 #upd .primary{font-size:15px;padding:8px 14px}
+/* sharing */
+.reto{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:12px 14px;border-radius:10px;border:1px solid rgba(95,214,164,.45);background:rgba(95,214,164,.08)}
+.retotxt{display:grid;gap:4px;min-width:0;flex:1 1 220px}.retotxt p{margin:0;font-size:15px;line-height:1.4}
+.reto .label{color:var(--ok)}
+.wr{color:var(--amber);margin:2px 0 0}
+#retoTime{font-family:var(--f-num);font-weight:500;font-size:16px;font-variant-numeric:tabular-nums;color:var(--ok)}#retoTime.over{color:var(--red)}
+.sharerow .share{flex:1 1 160px}
+.card.sharecard{max-width:440px}
+#shareImg{display:block;width:100%;max-width:100%;border-radius:10px;border:1px solid var(--line)}
 /* online */
 .field{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--text)}
 select.field option{color:#111}
@@ -245,6 +269,7 @@ select.field option{color:#111}
   <div class="posline"><span id="pos">–</span><span id="posOf">/ 6</span></div>
   <div class="row2"><span class="label">Vuelta</span><b id="lapNum">1/3</b></div>
   <div id="lapTime">0:00.000</div>
+  <div class="row2" id="retoRow" hidden><span class="label">Reto</span><b id="retoTime"></b></div>
   <div class="row2"><span class="label">Mejor</span><b id="bestTime">–:––.–––</b></div>
   <canvas id="map" aria-label="Mapa del circuito"></canvas>
 </div>
@@ -297,10 +322,16 @@ select.field option{color:#111}
       <span class="startotal" id="starTotal" title="Estrellas ganadas">★ 0</span>
       <span class="note" id="loading">Preparando la pista…</span>
       <span class="livenote" id="liveNote" hidden></span>
+      <button class="ghost" id="installBtn" type="button" hidden>Instalar app</button>
+    </div>
+    <div class="reto" id="retoBox" hidden>
+      <div class="retotxt"><span class="label">Reto recibido</span><p id="retoTxt"></p></div>
+      <div class="actions"><button class="primary" id="retoGo" type="button">Aceptar reto</button><button class="linkbtn" id="retoX" type="button">Quitar</button></div>
     </div>
     <div class="sec">
       <div class="label">Pista</div>
       <div class="tracks" id="trackList"></div>
+      <p class="note wr" id="wrLine" hidden></p>
     </div>
     <div class="sec">
       <div class="label">Rivales</div>
@@ -348,9 +379,15 @@ select.field option{color:#111}
         <div class="note">En automático usted solo dirige, frena y usa el nitro.</div>
       </div>
       <div class="sec" style="margin-top:12px">
+        <label class="label" for="pilotName">Su nombre de piloto</label>
+        <input id="pilotName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false">
+        <div class="note">Así aparece en el ranking mundial, en los retos y en las carreras en línea.</div>
+      </div>
+      <div class="sec" style="margin-top:12px">
         <div class="label">Pantalla y control</div>
         <div class="actions"><button class="ghost" id="fsBtn" type="button" hidden>Pantalla completa</button><button class="ghost" id="gyroBtn" type="button">Giro: <span id="gyroName">Apagado</span></button></div>
         <div class="note">«Giro» permite manejar inclinando el teléfono.</div>
+        <div class="note" id="iosTip" hidden>Para tenerlo como app en el iPhone: toque Compartir y luego «Agregar a inicio».</div>
       </div>
       <div class="sec" style="margin-top:12px">
         <div class="label">Calidad gráfica</div>
@@ -362,6 +399,17 @@ select.field option{color:#111}
   </div>
 </div>
 
+<!-- share card -->
+<div id="shareSheet" class="sheet" hidden>
+  <div class="card glass sharecard">
+    <h2 id="shareTitle">Su tarjeta</h2>
+    <div id="shareImgWrap"><img id="shareImg" alt="Tarjeta con el resultado de su carrera"></div>
+    <textarea id="shareTxt" class="field" rows="3" readonly hidden aria-label="Texto para compartir"></textarea>
+    <p class="note" id="shareNote">Mantenga presionada la imagen para guardarla o compartirla.</p>
+    <div class="actions"><button class="ghost" id="shareClose" type="button">Volver</button></div>
+  </div>
+</div>
+
 <!-- credits -->
 <div id="credits" class="sheet" hidden>
   <div class="card glass credits">
@@ -369,8 +417,8 @@ select.field option{color:#111}
     <h2>OrtegaCorp</h2>
     <ul class="names">
       <li>Jose Manuel Ortega Acuña</li>
-      <li>Paula Solis Godínez</li>
-      <li>Daniela Ortega Solis</li>
+      <li>Paula Solís Godínez</li>
+      <li>Daniela Ortega Solís</li>
       <li>Gael Ortega Solís</li>
     </ul>
     <p class="note">Paso Alpino · 2026</p>
@@ -440,8 +488,10 @@ select.field option{color:#111}
       <div><span class="label">Mejor vuelta</span><b class="best" id="resBest"></b></div>
     </div>
     <div class="sec" id="resStandSec"><div class="label">Clasificación</div><ol class="standings" id="resStand"></ol></div>
+    <div class="sec" id="rkSec" hidden><div class="label plain">Ranking mundial · <span id="rkTitle"></span></div><ol class="standings" id="rkList"></ol><p class="note" id="rkNote"></p></div>
     <div class="sec"><div class="label">Vueltas</div><div class="laps" id="resLaps"></div></div>
     <p id="resRecord" class="note"></p>
+    <div class="actions sharerow"><button class="ghost share" id="resShare" type="button">Compartir resultado</button><button class="ghost share" id="resChallenge" type="button">Retar a un amigo</button></div>
     <div class="actions"><button class="primary" id="resAgain" type="button">Repetir</button><button class="ghost" id="resNext" type="button">Siguiente pista</button><button class="ghost" id="resMenu" type="button">Menú</button><button class="primary" id="resLobby" type="button" hidden>Volver a la sala</button></div>
   </div>
 </div>
@@ -757,7 +807,7 @@ addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.ke
   if(mode!=='menu'&&['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
   if((k===' '||k==='shift')&&!e.repeat&&mode==='race')fireNitro();
   if(k==='c'&&mode!=='menu')cycleCam();if(k==='m')toggleSound();if(k==='n')toggleMusic();if(k==='r'&&mode==='race')respawn();
-  if(k==='escape'){if(!$('credits').hidden){$('creditsClose').click();return;}if(!$('editor').hidden)closeEditor();else if(!$('online').hidden&&!net.inRace){$('online').hidden=true;$('intro').hidden=false;}else if(mode!=='menu')menuPress();else if(paused&&!$('intro').hidden)resumeRace();}});
+  if(k==='escape'){if(!$('credits').hidden){$('creditsClose').click();return;}if(!$('shareSheet').hidden){$('shareClose').click();return;}if(!$('editor').hidden)closeEditor();else if(!$('online').hidden&&!net.inRace){$('online').hidden=true;$('intro').hidden=false;}else if(mode!=='menu')menuPress();else if(paused&&!$('intro').hidden)resumeRace();}});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;touch={l:0,r:0,g:0,b:0};});
 function bindHold(id,key){const el=$(id);
@@ -1035,6 +1085,7 @@ function finishRace(rec){
   else if(active.length){const nx=COLORS.find(c=>c.stars>totalStars());if(nx)note+='Le faltan '+(nx.stars-totalStars())+' ★ para el color «'+nx.n+'».';}
   $('resRecord').textContent=note;
   $('resAgain').hidden=$('resNext').hidden=$('resMenu').hidden=ol;$('resLobby').hidden=!ol;
+  viralAfterFinish();
   const c=$('count');c.hidden=false;c.className='go';c.textContent=place===1?'¡GANÓ!':'META';
   if(place&&place<=3||!ops.length)fanfare();else beep(660,.3,.12,'triangle');
   setTimeout(()=>{if(mode==='done'){c.hidden=true;camMode=2;$('camName').textContent=camNames[2];$('toast').classList.remove('show');$('results').hidden=false;(ol?$('resLobby'):$('resAgain')).focus();}},1700);}
@@ -1096,7 +1147,7 @@ function frame(){
     $('speed').textContent=Math.round(Math.abs(kmh));const gEl=$('gear');gEl.textContent=gi.g;gEl.classList.toggle('r',gi.g==='R');
     const lit=Math.round((gi.g==='N'?(out.throttle?.35:.08):.12+gi.f*.88)*24);segs.forEach((s,k)=>s.classList.toggle('lit',k<lit));
     nitroHUD();
-    $('lapTime').textContent=fmt(lap.t);
+    $('lapTime').textContent=fmt(lap.t);retoHUD();
     const opsN=opponents().length;$('lap').classList.toggle('solo',!opsN);
     if(opsN&&mode!=='menu'){const pos=standings().indexOf(me)+1;const pe=$('pos');$('posOf').textContent='/ '+(opsN+1);
       if(pos!==lastPos){if(lastPos&&mode==='race'){pe.className=pos<lastPos?'up':'down';posFlashT=.8;}lastPos=pos;pe.textContent=ord(pos);}
@@ -1137,14 +1188,14 @@ function renderTrackList(){const box=$('trackList');box.textContent='';const lis
         customs=customs.filter(c=>c.id!==def.id);store.set('paso-alpino-pistas',customs);store.set(bestKey(def.id),null);
         if(cfg.track===def.id){cfg.track='alpino';saveCfg();}renderTrackList();toast('Pista borrada.');});
       b.appendChild(del);}
-    const pick=()=>{if(cfg.track!==def.id)dropPause();cfg.track=def.id;saveCfg();renderTrackList();};
+    const pick=()=>{if(cfg.track!==def.id)dropPause();cfg.track=def.id;saveCfg();renderTrackList();renderWR();};
     b.addEventListener('click',pick);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}});
     box.appendChild(b);requestAnimationFrame(()=>drawPreview(cv,def,def.id===cfg.track));});
   const add=document.createElement('button');add.type='button';add.className='tcard add';add.innerHTML='<span>+</span>Crear pista';add.addEventListener('click',openEditor);box.appendChild(add);
   $('starTotal').textContent='★ '+totalStars();}
 function segControl(id,items,current,onPick){const box=$(id);box.textContent='';items.forEach(([val,label,aria])=>{const b=document.createElement('button');b.type='button';b.textContent=label;
   if(aria)b.setAttribute('aria-label',aria);b.setAttribute('aria-pressed',val===current);b.addEventListener('click',()=>onPick(val));box.appendChild(b);});}
-function renderLaps(){segControl('lapSeg',[1,2,3,5,10].map(n=>[n,String(n),n+(n===1?' vuelta':' vueltas')]),cfg.laps,v=>{cfg.laps=v;saveCfg();renderLaps();setLapHUD();dropPause();});}
+function renderLaps(){segControl('lapSeg',[1,2,3,5,10].map(n=>[n,String(n),n+(n===1?' vuelta':' vueltas')]),cfg.laps,v=>{cfg.laps=v;saveCfg();renderLaps();setLapHUD();dropPause();renderWR();});}
 function renderDiff(){segControl('diffSeg',Object.entries(DIFFS).map(([k,d])=>[k,d.name]),cfg.diff,v=>{cfg.diff=v;saveCfg();renderDiff();dropPause();});
   $('diffNote').textContent=cfg.diff==='solo'?'Contrarreloj: usted contra el reloj, sin estrellas.':'Compita contra 5 rivales. Gane estrellas: 1 por terminar, 2 por el podio, 3 por ganar.';}
 function renderGas(){segControl('gasSeg',[[true,'Automático'],[false,'Manual']],!!cfg.autoGas,v=>{cfg.autoGas=v;saveCfg();document.body.classList.toggle('autogas',v);renderGas();});}
@@ -1154,7 +1205,7 @@ function renderSwatches(){const box=$('swatches');box.textContent='';const ts=to
     b.addEventListener('click',()=>{if(locked){toast('Consiga '+col.stars+' estrellas en total para desbloquear «'+col.n+'». Lleva '+ts+'.');return;}cfg.color=i;applyPaint();saveCfg();renderSwatches();});box.appendChild(b);});
   $('colorName').textContent=COLORS[cfg.color].n;}
 function renderQuality(){segControl('qSeg',Object.entries(QUAL).map(([k,q])=>[k,q.name]),quality,k=>{quality=k;cfg.quality=k;dyn=1;applyPR();applyShadows();resize();saveCfg();renderQuality();});}
-function renderMenu(){renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();}
+function renderMenu(){renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();}
 function saveCfg(){store.set('paso-alpino-config',cfg);}
 let paused=null;
 function updateResume(){$('resume').hidden=!paused;const g=$('go');g.textContent=paused?'Reiniciar':'Arrancar';g.className=paused?'ghost':'primary';}
@@ -1467,13 +1518,14 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261015-231831';
+const BUILD='20261015-233520';
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
 function showLive(){const t=liveCount>0?(liveCount===1?'1 persona con el juego abierto ahora':liveCount+' personas con el juego abierto ahora'):'';
   for(const id of['liveNote','olLive']){const el=$(id);el.hidden=!t;el.textContent=t;}}
+let vid=null;
 if(hosted){
-  let vid=store.get('paso-alpino-vid',null);if(typeof vid!=='string'||!/^[a-z0-9]{8,24}$/.test(vid)){vid=(Math.random().toString(36).slice(2,10)+Date.now().toString(36)).slice(0,24);store.set('paso-alpino-vid',vid);}
+  vid=store.get('paso-alpino-vid',null);if(typeof vid!=='string'||!/^[a-z0-9]{8,24}$/.test(vid)){vid=(Math.random().toString(36).slice(2,10)+Date.now().toString(36)).slice(0,24);store.set('paso-alpino-vid',vid);}
   let first=true;
   const ping=()=>{if(document.hidden)return;
     fetch('/api/visita',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:vid,nueva:first,jugando:(mode==='race'||mode==='count')?1:0,enLinea:net.inRace?1:0,sala:net.code||''})})
@@ -1485,6 +1537,103 @@ if(hosted){
     setInterval(()=>{$('upd').hidden=!(updReady&&mode!=='race'&&mode!=='count');},1500);}
 }
 $('updBtn').addEventListener('click',()=>location.reload());
+
+/* ---------- sharing: challenge links, result card, world ranking, install as app ---------- */
+const ARTIFACT_URL='https://claude.ai/artifact/JHeTbDG78nSRMjB8L9RbPM';
+const SITE_URL_RAW='__SITE_URL__';
+function siteUrl(){if(!SITE_URL_RAW.startsWith('__'))return SITE_URL_RAW.replace(/\/$/,'')+'/';if(hosted)return location.origin+location.pathname;if(inArtifact)return ARTIFACT_URL;return '';}
+const asciiName=n=>String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]/g,'').slice(0,12)||'Piloto';
+const isPreset=id=>PRESETS.some(p=>p.id===id);
+let challenge=null,lastRank=null;
+{const m=/^#reto-(alpino|lago|cumbre)-(1|2|3|5|10)-(\d{4,8})-([A-Za-z0-9]{1,12})$/.exec(location.hash||'');
+  if(m)challenge={track:m[1],laps:+m[2],ms:+m[3],name:m[4]};}
+const lapsTxt=n=>n+(n===1?' vuelta':' vueltas');
+function renderChallenge(){const box=$('retoBox');if(!challenge){box.hidden=true;return;}const t=PRESETS.find(p=>p.id===challenge.track);
+  $('retoTxt').textContent=challenge.name+' lo reta: termine '+t.name+' ('+lapsTxt(challenge.laps)+') en menos de '+fmt(challenge.ms/1000)+'.';box.hidden=false;}
+const challengeOn=()=>!!challenge&&!!raceDef&&raceDef.id===challenge.track&&raceLaps===challenge.laps&&!net.inRace;
+$('retoGo').addEventListener('click',()=>{if(!challenge)return;cfg.track=challenge.track;cfg.laps=challenge.laps;saveCfg();renderMenu();ensureAudio();startRace();});
+$('retoX').addEventListener('click',()=>{challenge=null;try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}renderChallenge();});
+function retoHUD(){const on=challengeOn()&&mode!=='menu';$('retoRow').hidden=!on;if(!on)return;const b=$('retoTime'),over=lap.total*1000>challenge.ms;
+  if(b.dataset.ms!==String(challenge.ms)){b.dataset.ms=challenge.ms;b.textContent=fmt(challenge.ms/1000);}b.classList.toggle('over',over);}
+
+async function shareOut(text,url,file){
+  const canNative=!inArtifact&&typeof navigator.share==='function';
+  if(canNative){const data={title:'Paso Alpino',text};if(url)data.url=url;
+    if(file&&navigator.canShare&&navigator.canShare({files:[file]}))data.files=[file];
+    if(!file||data.files){try{await navigator.share(data);return true;}catch(e){if(e&&e.name==='AbortError')return true;}}}
+  if(file)return false;
+  const full=text+(url?' '+url:'');
+  try{await navigator.clipboard.writeText(full);toast('Copiado. Péguelo en WhatsApp o donde quiera.');}
+  catch(e){const f=$('olShareText');openShareText(full);}
+  return true;}
+function openShareText(t){$('shareImgWrap').hidden=true;$('shareTxt').hidden=false;$('shareTxt').value=t;$('shareTitle').textContent='Copie y comparta';$('shareNote').textContent='Seleccione el texto y cópielo.';
+  $('results').hidden=true;$('shareSheet').hidden=false;$('shareTxt').focus();$('shareTxt').select();}
+function challengeLink(){if(!raceDef||!isPreset(raceDef.id))return '';const base=siteUrl();if(!base)return '';
+  return base+'#reto-'+raceDef.id+'-'+raceLaps+'-'+Math.round(lap.total*1000)+'-'+asciiName(cfg.name);}
+$('resChallenge').addEventListener('click',()=>{const url=challengeLink();if(!url){toast('Los retos funcionan con las pistas del juego, no con pistas propias.');return;}
+  shareOut('Hice '+fmt(lap.total)+' en '+raceDef.name+' ('+lapsTxt(raceLaps)+') en Paso Alpino. ¿Me supera?',url);});
+
+// result card: a portrait image with the scene behind the result, sized for stories and chats
+async function makeCard(){
+  try{await document.fonts.ready;}catch(e){}
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  renderer.render(scene,camera);const src=renderer.domElement,sa=src.width/src.height,ta=W/1000;
+  let sw=src.width,sh=src.height,sx=0,sy=0;if(sa>ta){sw=sh*ta;sx=(src.width-sw)/2;}else{sh=sw/ta;sy=(src.height-sh)/2;}
+  g.fillStyle='#0a0f15';g.fillRect(0,0,W,H);try{g.drawImage(src,sx,sy,sw,sh,0,0,W,1000);}catch(e){}
+  let gr=g.createLinearGradient(0,520,0,1000);gr.addColorStop(0,'rgba(10,15,21,0)');gr.addColorStop(1,'rgba(10,15,21,1)');g.fillStyle=gr;g.fillRect(0,500,W,500);
+  gr=g.createLinearGradient(0,0,0,260);gr.addColorStop(0,'rgba(10,15,21,.75)');gr.addColorStop(1,'rgba(10,15,21,0)');g.fillStyle=gr;g.fillRect(0,0,W,260);
+  const F='"Saira Condensed","Arial Narrow",sans-serif',U='"Barlow Semi Condensed","Arial Narrow",sans-serif';
+  g.textBaseline='alphabetic';g.fillStyle='#ffb24a';g.font='600 34px '+U;g.fillText('CARRERAS DE MONTAÑA',72,110);
+  g.fillStyle='#eef2f5';g.font='800 120px '+F;g.fillText('PASO ALPINO',66,220);
+  const ops=opponents(),place=ops.length?standings().indexOf(me)+1:0;
+  g.fillStyle=place===1?'#ffb24a':'#eef2f5';g.font='800 210px '+F;g.fillText(place?ord(place):'META',66,1030);
+  if(place){g.fillStyle='#9eacb8';g.font='600 40px '+U;g.fillText('LUGAR DE '+(ops.length+1),72+g.measureText('').width,1080);}
+  g.fillStyle='#eef2f5';g.font='700 88px '+F;g.fillText(fmt(lap.total),66,1190);
+  g.fillStyle='#9eacb8';g.font='500 40px '+U;g.fillText(raceDef.name+' · '+lapsTxt(raceLaps)+(lastRank&&lastRank.pos?' · puesto '+lastRank.pos+' mundial':''),72,1250);
+  g.fillStyle='#5fd6a4';g.font='700 40px '+U;const link=(siteUrl()||'').replace(/^https?:\/\//,'').replace(/\/$/,'');g.fillText('¿Me supera?'+(link?'  '+link:''),72,1312);
+  g.fillStyle='rgba(236,242,247,.5)';g.font='600 30px '+U;g.textAlign='right';g.fillText('OrtegaCorp',W-60,1312);g.textAlign='left';
+  return await new Promise(res=>cv.toBlob(res,'image/png'));}
+$('resShare').addEventListener('click',async()=>{
+  const btn=$('resShare');btn.disabled=true;
+  try{const blob=await makeCard();if(!blob)throw 0;const file=new File([blob],'paso-alpino.png',{type:'image/png'});
+    const ok=await shareOut('Mi carrera en Paso Alpino: '+fmt(lap.total)+' en '+raceDef.name+'. ¿Me supera?',challengeLink()||siteUrl(),file);
+    if(!ok){const img=$('shareImg');if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);const u=URL.createObjectURL(blob);img.src=u;img.dataset.url=u;
+      $('shareImgWrap').hidden=false;$('shareTxt').hidden=true;$('shareTitle').textContent='Su tarjeta';$('shareNote').textContent='Mantenga presionada la imagen para guardarla o compartirla.';
+      $('results').hidden=true;$('shareSheet').hidden=false;$('shareClose').focus();}}
+  catch(e){toast('No se pudo crear la imagen en este navegador.');}finally{btn.disabled=false;}});
+$('shareClose').addEventListener('click',()=>{$('shareSheet').hidden=true;$('results').hidden=false;});
+
+// world ranking per preset track and lap count (only on the game's own website)
+const rkCache=new Map();
+async function rkTop(track,laps){const k=track+'-'+laps,c=rkCache.get(k);if(c&&Date.now()-c.t<60000)return c.d;
+  const r=await fetch('/api/ranking?pista='+track+'&vueltas='+laps,{cache:'no-store'});const d=r.ok?await r.json():null;rkCache.set(k,{t:Date.now(),d});return d;}
+function rkRender(d,myPos){const ol=$('rkList');ol.textContent='';(d.top||[]).forEach((e,k)=>{const li=document.createElement('li');if(k+1===myPos)li.className='me';
+    const a=document.createElement('span');a.textContent=ord(k+1);const b=document.createElement('span'),dot=document.createElement('i');dot.className='dot';dot.style.background=hexOk(e.c);
+    b.append(dot,document.createTextNode(cleanName(e.n)||'Piloto'));const c=document.createElement('span');c.textContent=fmt((+e.t||0)/1000);li.append(a,b,c);ol.appendChild(li);});}
+async function rkAfterRace(){
+  $('rkSec').hidden=true;lastRank=null;if(!hosted||!vid||!raceDef||!isPreset(raceDef.id))return;
+  $('rkTitle').textContent=raceDef.name+' · '+lapsTxt(raceLaps);
+  try{const r=await fetch('/api/ranking',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({pista:raceDef.id,vueltas:raceLaps,t:Math.round(lap.total*1000),n:cleanName(cfg.name)||'Piloto',c:COLORS[cfg.color].c,id:vid})});
+    const d=r.ok?await r.json():null;if(!d||!d.ok)return;lastRank=d;rkCache.delete(raceDef.id+'-'+raceLaps);
+    rkRender(d,d.pos);$('rkNote').textContent=(d.pos?'Usted está en el puesto '+d.pos+' de '+d.total+'. ':'')+(d.improved?'¡Mejoró su marca!':'Su mejor marca sigue siendo '+fmt(d.best/1000)+'.')+' Aparece como «'+(cleanName(cfg.name)||'Piloto')+'»; cambie su nombre en Ajustes.';
+    $('rkSec').hidden=false;}catch(e){}}
+async function renderWR(){const el=$('wrLine');if(!hosted||!isPreset(cfg.track)){el.hidden=true;return;}
+  try{const d=await rkTop(cfg.track,cfg.laps);const e=d&&d.top&&d.top[0];if(!e){el.hidden=false;el.textContent='Nadie ha marcado récord mundial aquí con '+lapsTxt(cfg.laps)+'. ¡Sea el primero!';return;}
+    el.hidden=false;el.textContent='Récord mundial con '+lapsTxt(cfg.laps)+': '+fmt(e.t/1000)+' · '+(cleanName(e.n)||'Piloto');}catch(e){el.hidden=true;}}
+
+function viralAfterFinish(){
+  if(challengeOn()){const ms=Math.round(lap.total*1000),d=Math.abs(ms-challenge.ms)/1000;
+    $('resRecord').textContent+=(ms<challenge.ms?' ¡Superó el reto de '+challenge.name+' por '+d.toFixed(1).replace('.',',')+' s!':' Le faltaron '+d.toFixed(1).replace('.',',')+' s para superar a '+challenge.name+'.');}
+  $('resChallenge').hidden=!isPreset(raceDef.id);rkAfterRace();}
+
+// install as an app (Android/desktop prompt; iPhone gets a one-line tip)
+let deferredInstall=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('installBtn').hidden=false;});
+$('installBtn').addEventListener('click',async()=>{if(!deferredInstall)return;deferredInstall.prompt();try{await deferredInstall.userChoice;}catch(e){}deferredInstall=null;$('installBtn').hidden=true;});
+addEventListener('appinstalled',()=>{$('installBtn').hidden=true;toast('Paso Alpino quedó instalado como app.');});
+if(hosted&&/iPhone|iPad|iPod/.test(navigator.userAgent)&&!navigator.standalone)$('iosTip').hidden=false;
+$('pilotName').value=cfg.name;$('pilotName').addEventListener('input',e=>{cfg.name=cleanName(e.target.value)||cfg.name;saveCfg();$('olName').value=cfg.name;});
 
 /* ---------- boot ---------- */
 renderMenu();setLapHUD();

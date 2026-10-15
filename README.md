@@ -9,6 +9,9 @@ Juego de carreras 3D de montaña de **OrtegaCorp**. Se juega en el navegador de 
 | `index.html` | El juego completo |
 | `panel.html` | Panel en vivo: personas conectadas, visitas de hoy y totales (abrir en `/panel`) |
 | `netlify/functions/visitas.mjs` | Contador de visitas (función de Netlify, guarda los datos en Netlify Blobs) |
+| `netlify/functions/ranking.mjs` | Ranking mundial por pista y cantidad de vueltas |
+| `manifest.webmanifest`, `icon-*.png` | Para instalar el juego como app en el celular |
+| `og.png` | Imagen de vista previa al compartir el enlace (WhatsApp, Facebook) |
 | `version.json` | Versión publicada; el juego la revisa cada minuto y ofrece «Actualizar» cuando cambia |
 | `netlify.toml` | Configuración del sitio |
 | `herramientas/preparar.py` | Copia una versión nueva del juego al sitio |

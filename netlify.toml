@@ -3,7 +3,8 @@
 [build]
   publish = "."
   functions = "netlify/functions"
-  command = "echo 'Paso Alpino listo'"
+  # Pone la dirección real del sitio en el juego (vista previa de WhatsApp y enlaces de reto).
+  command = "sed -i \"s#__SITE_URL__#${URL}#g\" index.html && echo 'Paso Alpino listo'"
 
 [functions]
   node_bundler = "esbuild"
