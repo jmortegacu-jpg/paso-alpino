@@ -42,6 +42,13 @@ h1{margin:4px 0 0;font-family:var(--f-num);font-weight:800;font-size:clamp(34px,
 .c-amber b{color:var(--amber)}.c-blue b{color:var(--nitro)}
 .chart{overflow-x:auto}
 #days{display:block;width:100%;min-width:420px;height:180px}
+.who{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.who li{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:15px}
+.who li b{font-family:var(--f-num);font-weight:700;font-size:17px;letter-spacing:.02em}
+.who li small{font-size:12px;color:var(--muted)}
+.who li i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.who li.j i{background:var(--amber)}.who li.l i{background:var(--nitro)}
+.who li.empty{background:none;border:0;padding:0;color:var(--muted)}
 footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
 footer a{color:var(--muted)}
 @media (max-width:520px){.hero{grid-template-columns:1fr}#spark{width:100%}}
@@ -70,6 +77,11 @@ footer a{color:var(--muted)}
     <div class="tile c-blue"><div class="label">Salas</div><b id="salas">–</b><small>salas abiertas</small></div>
     <div class="tile"><div class="label">Visitas hoy</div><b id="hoy">–</b><small>hora de Costa Rica</small></div>
     <div class="tile"><div class="label">Visitas totales</div><b id="total">–</b><small>desde que se publicó</small></div>
+  </section>
+
+  <section class="tile">
+    <div class="label">Quiénes están conectados</div>
+    <ul class="who" id="who"><li class="empty">Nadie por ahora.</li></ul>
   </section>
 
   <section class="tile chart">
@@ -105,6 +117,10 @@ async function load(){
   try{const r=await fetch('/api/estadisticas',{cache:'no-store'});if(!r.ok)throw new Error(r.status);const d=await r.json();
     $('ahora').textContent=d.ahora;$('ahoraTxt').textContent=d.ahora===1?'persona con el juego abierto':'personas con el juego abierto';
     for(const k of['jugando','enLinea','salas','hoy','total'])$(k).textContent=(d[k]??0).toLocaleString('es-CR');
+    const who=$('who');who.textContent='';const q=d.quienes||[];
+    if(!q.length){const li=document.createElement('li');li.className='empty';li.textContent='Nadie por ahora.';who.appendChild(li);}
+    q.forEach(v=>{const li=document.createElement('li');li.className=v.l?'l':v.j?'j':'';const dot=document.createElement('i');const b=document.createElement('b');b.textContent=v.n||'Sin nombre';
+      const sm=document.createElement('small');sm.textContent=v.l?('en línea'+(v.s?' · sala '+v.s:'')):v.j?'corriendo':'en el menú';li.append(dot,b,sm);who.appendChild(li);});
     hist.push(d.ahora);if(hist.length>60)hist.shift();drawSpark();drawDays(d.dias);
     lastOk=Date.now();setStatus('live','En vivo');
   }catch(e){setStatus('bad',lastOk?'Sin conexión con el contador; reintentando…':'El contador todavía no responde. ¿Ya se publicó el sitio en Netlify?');}}

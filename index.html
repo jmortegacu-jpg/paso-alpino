@@ -70,6 +70,13 @@ button{font:inherit;color:inherit}
 .row2 b{font-family:var(--f-num);font-weight:500;font-size:16px;font-variant-numeric:tabular-nums}
 #bestTime{color:var(--amber)}
 #map{width:160px;height:118px;margin-top:6px;display:block}
+.tower{list-style:none;margin:6px 0 0;padding:6px 0 0;border-top:1px solid var(--line);display:grid;gap:3px;font-family:var(--f-num);font-size:15px;max-width:180px}
+.tower li{display:flex;align-items:center;gap:7px;min-width:0}
+.tower li b{width:1.1em;text-align:right;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.tower li i{width:8px;height:8px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.3)}
+.tower li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tower li.me{color:var(--amber)}.tower li.me b{color:var(--amber)}
+.field.need{border-color:var(--amber);box-shadow:0 0 0 2px rgba(255,178,74,.35)}
 
 /* top-right */
 #menu{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 14px);display:flex;flex-direction:column;gap:6px;align-items:flex-end}
@@ -142,7 +149,7 @@ body.coarse #cluster{width:min(260px,calc(100% - 200px));min-width:200px}
 @media (max-height:500px){#map{display:none}#lap{padding:8px 12px;min-width:0}#lapTime{font-size:22px}.chip{padding:6px 10px;font-size:11px}.chip kbd{display:none}#cluster{padding:8px 12px}#speed{font-size:40px}}
 body.coarse #speed{font-size:44px}
 body.coarse #gear{font-size:30px;width:36px;height:36px}
-@media (max-width:560px){#map{width:112px;height:84px}#lapTime{font-size:24px}#lap{min-width:0}.chip kbd{display:none}.chip{font-size:11px;padding:7px 10px}}
+@media (max-width:560px){#lap.has-tower #map{display:none}.tower{font-size:14px;max-width:150px}#map{width:112px;height:84px}#lapTime{font-size:24px}#lap{min-width:0}.chip kbd{display:none}.chip{font-size:11px;padding:7px 10px}}
 
 /* sheets (menu, editor, results) */
 .sheet{position:fixed;inset:0;overflow:auto;padding-block:calc(env(safe-area-inset-top,0px) + 20px) calc(env(safe-area-inset-bottom,0px) + 20px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:linear-gradient(180deg,rgba(8,12,18,.2),rgba(8,12,18,.78) 70%);display:flex;box-sizing:border-box}
@@ -271,6 +278,7 @@ select.field option{color:#111}
   <div id="lapTime">0:00.000</div>
   <div class="row2" id="retoRow" hidden><span class="label">Reto</span><b id="retoTime"></b></div>
   <div class="row2"><span class="label">Mejor</span><b id="bestTime">–:––.–––</b></div>
+  <ol class="tower" id="tower" hidden aria-label="Posiciones en vivo"></ol>
   <canvas id="map" aria-label="Mapa del circuito"></canvas>
 </div>
 
@@ -380,7 +388,7 @@ select.field option{color:#111}
       </div>
       <div class="sec" style="margin-top:12px">
         <label class="label" for="pilotName">Su nombre de piloto</label>
-        <input id="pilotName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false">
+        <input id="pilotName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false" placeholder="Escriba su nombre">
         <div class="note">Así aparece en el ranking mundial, en los retos y en las carreras en línea.</div>
       </div>
       <div class="sec" style="margin-top:12px">
@@ -451,7 +459,7 @@ select.field option{color:#111}
     <h2>Corra con sus amigos</h2>
     <div class="sec">
       <label class="label" for="olName">Su nombre en la pista</label>
-      <input id="olName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false">
+      <input id="olName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false" placeholder="Escriba su nombre">
     </div>
     <div id="olSetup" class="sec">
       <div class="actions"><button class="primary" id="olCreate" type="button">Crear sala</button></div>
@@ -1090,6 +1098,15 @@ function finishRace(rec){
   if(place&&place<=3||!ops.length)fanfare();else beep(660,.3,.12,'triangle');
   setTimeout(()=>{if(mode==='done'){c.hidden=true;camMode=2;$('camName').textContent=camNames[2];$('toast').classList.remove('show');$('results').hidden=false;(ol?$('resLobby'):$('resAgain')).focus();}},1700);}
 
+// live standings with names (shown whenever there is someone to race against)
+let towerKey='',towerT=0;
+function towerHUD(dt){towerT-=dt;if(towerT>0)return;towerT=.25;
+  const el=$('tower'),ops=mode!=='menu'?opponents():[];const on=ops.length>0;el.hidden=!on;$('lap').classList.toggle('has-tower',on);if(!on){towerKey='';return;}
+  const list=standings().slice(0,6),nm=o=>o.isMe?((net.inRace&&cfg.nameSet?cleanName(cfg.name):'')||'Usted'):(o.name||'Piloto');
+  const key=list.map(o=>nm(o)+(o.isMe?'*':'')+(o.c||'')).join('|');if(key===towerKey)return;towerKey=key;el.textContent='';
+  list.forEach((o,k)=>{const li=document.createElement('li');if(o.isMe)li.className='me';const a=document.createElement('b');a.textContent=k+1;
+    const d=document.createElement('i');d.style.background=o.isMe?paint.color.getStyle():o.c;const n=document.createElement('span');n.textContent=nm(o);li.append(a,d,n);el.appendChild(li);});}
+
 /* ---------- camera ---------- */
 const camPos=new THREE.Vector3(),camLook=new THREE.Vector3();let camInit=false;
 function updateCamera(dt){
@@ -1147,7 +1164,7 @@ function frame(){
     $('speed').textContent=Math.round(Math.abs(kmh));const gEl=$('gear');gEl.textContent=gi.g;gEl.classList.toggle('r',gi.g==='R');
     const lit=Math.round((gi.g==='N'?(out.throttle?.35:.08):.12+gi.f*.88)*24);segs.forEach((s,k)=>s.classList.toggle('lit',k<lit));
     nitroHUD();
-    $('lapTime').textContent=fmt(lap.t);retoHUD();
+    $('lapTime').textContent=fmt(lap.t);retoHUD();towerHUD(dt);
     const opsN=opponents().length;$('lap').classList.toggle('solo',!opsN);
     if(opsN&&mode!=='menu'){const pos=standings().indexOf(me)+1;const pe=$('pos');$('posOf').textContent='/ '+(opsN+1);
       if(pos!==lastPos){if(lastPos&&mode==='race'){pe.className=pos<lastPos?'up':'down';posFlashT=.8;}lastPos=pos;pe.textContent=ord(pos);}
@@ -1308,6 +1325,8 @@ const inArtifact=!!(window.claude&&typeof window.claude.use==='function');
 const net={tr:null,code:'',host:false,inRace:false,rid:0,seen:0,list:[],hostGoneT:0,ph:'lobby',hr:0,trk:null,laps:3,slots:{},busy:false,fullErr:false,leaveArm:0};
 const remotes=new Map(),remotePool=[];
 if(!cfg.name)cfg.name='Piloto '+(10+Math.floor(Math.random()*90));
+if(cfg.nameSet===undefined)cfg.nameSet=!/^Piloto \d{2}$/.test(cfg.name);
+function needName(){if(cfg.nameSet&&cleanName(cfg.name))return false;olStatus('Primero escriba su nombre: así lo verán los demás en la pista.',true);const f=$('olName');f.classList.add('need');f.focus();return true;}
 const cleanName=s=>String(s??'').replace(/[\u0000-\u001f\u007f-\u009f\u00ad\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/g,'').trim().slice(0,14);
 const isNum=n=>typeof n==='number'&&isFinite(n);
 const hexOk=c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)?c:'#8a929b';
@@ -1367,6 +1386,7 @@ const WHY={noroom:'Dentro de Claude, para jugar en línea cada jugador debe inic
 const whyText=e=>WHY[e&&e.why]||'No se pudo conectar con el servidor de salas. Revise su internet o intente más tarde.';
 
 async function netCreate(){
+  if(needName())return;
   if(net.busy||net.tr)return;net.busy=true;olStatus('Creando sala…');
   try{let tr=null,code='';
     for(let k=0;k<4&&!tr;k++){code=newCode();try{tr=inArtifact?await roomTransport(code):await p2pTransport(code,true);}catch(e){if(e.why!=='unavailable-id')throw e;}}
@@ -1374,6 +1394,7 @@ async function netCreate(){
     Object.assign(net,{tr,code,host:true,ph:'lobby',hr:0,inRace:false,seen:0,hostGoneT:0,fullErr:false});olStatus('');netTick();renderLobby();
   }catch(e){olStatus(whyText(e),true);}finally{net.busy=false;renderLobby();}}
 async function netJoin(raw){
+  if(needName())return;
   const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
   if(code.length!==4){olStatus('El código tiene 4 letras o números.',true);return;}
   if(net.busy||net.tr)return;net.busy=true;olStatus('Entrando a la sala '+code+'…');
@@ -1467,7 +1488,7 @@ function syncRemotes(dt){
 
 // --- lobby UI
 function olStatus(t,bad){const el=$('olStatus');el.textContent=t||'';el.classList.toggle('bad',!!bad);}
-function openOnline(){$('intro').hidden=true;$('results').hidden=true;$('online').hidden=false;$('olName').value=cfg.name;renderLobby();
+function openOnline(){$('intro').hidden=true;$('results').hidden=true;$('online').hidden=false;$('olName').value=cfg.nameSet?cfg.name:'';renderLobby();
   (net.tr?(net.host?$('olStart'):$('olLeave')):$('olCreate')).focus();}
 function updateOnlineBtn(){$('onlineBtn').textContent=net.tr?'Sala '+net.code:'En línea';}
 function renderLobby(){
@@ -1497,7 +1518,7 @@ $('olCreate').addEventListener('click',()=>{ensureAudio();netCreate();});
 $('olJoin').addEventListener('click',()=>{ensureAudio();netJoin($('olCode').value);});
 $('olCode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();netJoin($('olCode').value);}});
 $('olCode').addEventListener('input',e=>{const v=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(v!==e.target.value)e.target.value=v;});
-$('olName').addEventListener('input',e=>{cfg.name=cleanName(e.target.value)||cfg.name;saveCfg();});
+$('olName').addEventListener('input',e=>{const n=cleanName(e.target.value);if(n){cfg.name=n;cfg.nameSet=true;e.target.classList.remove('need');if($('olStatus').textContent.startsWith('Primero escriba'))olStatus('');}else cfg.nameSet=false;saveCfg();$('pilotName').value=cfg.nameSet?cfg.name:'';});
 $('olLeave').addEventListener('click',()=>{netLeave();olStatus('Salió de la sala.');});
 $('olStart').addEventListener('click',()=>{ensureAudio();hostStart();});
 $('olTrk').addEventListener('change',e=>{cfg.track=e.target.value;saveCfg();renderLobby();});
@@ -1518,7 +1539,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261015-233520';
+const BUILD='20261016-001620';
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
 function showLive(){const t=liveCount>0?(liveCount===1?'1 persona con el juego abierto ahora':liveCount+' personas con el juego abierto ahora'):'';
@@ -1528,7 +1549,7 @@ if(hosted){
   vid=store.get('paso-alpino-vid',null);if(typeof vid!=='string'||!/^[a-z0-9]{8,24}$/.test(vid)){vid=(Math.random().toString(36).slice(2,10)+Date.now().toString(36)).slice(0,24);store.set('paso-alpino-vid',vid);}
   let first=true;
   const ping=()=>{if(document.hidden)return;
-    fetch('/api/visita',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:vid,nueva:first,jugando:(mode==='race'||mode==='count')?1:0,enLinea:net.inRace?1:0,sala:net.code||''})})
+    fetch('/api/visita',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:vid,n:cleanName(cfg.name),nueva:first,jugando:(mode==='race'||mode==='count')?1:0,enLinea:net.inRace?1:0,sala:net.code||''})})
       .then(r=>r.ok?r.json():null).then(d=>{if(d&&d.ok){first=false;liveCount=d.ahora;showLive();}}).catch(()=>{});};
   setTimeout(ping,1500);setInterval(ping,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)ping();});
   if(BUILD!=='__'+'BUILD__'){
@@ -1633,7 +1654,7 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;
 $('installBtn').addEventListener('click',async()=>{if(!deferredInstall)return;deferredInstall.prompt();try{await deferredInstall.userChoice;}catch(e){}deferredInstall=null;$('installBtn').hidden=true;});
 addEventListener('appinstalled',()=>{$('installBtn').hidden=true;toast('Paso Alpino quedó instalado como app.');});
 if(hosted&&/iPhone|iPad|iPod/.test(navigator.userAgent)&&!navigator.standalone)$('iosTip').hidden=false;
-$('pilotName').value=cfg.name;$('pilotName').addEventListener('input',e=>{cfg.name=cleanName(e.target.value)||cfg.name;saveCfg();$('olName').value=cfg.name;});
+$('pilotName').value=cfg.nameSet?cfg.name:'';$('pilotName').addEventListener('input',e=>{const n=cleanName(e.target.value);if(n){cfg.name=n;cfg.nameSet=true;}else cfg.nameSet=false;saveCfg();$('olName').value=cfg.nameSet?cfg.name:'';});
 
 /* ---------- boot ---------- */
 renderMenu();setLapHUD();

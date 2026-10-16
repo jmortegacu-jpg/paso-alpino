@@ -13,7 +13,11 @@ function resumen(online, stats, now) {
   const act = Object.values(online).filter(v => v && now - v.t < ONLINE_MS);
   const salas = new Set(act.filter(v => v.s).map(v => v.s));
   const out = { ahora: act.length, jugando: act.filter(v => v.j).length, enLinea: act.filter(v => v.l).length, salas: salas.size };
-  if (stats) { out.hoy = (stats.dias && stats.dias[hoyCR(now)]) || 0; out.total = stats.total || 0; out.dias = stats.dias || {}; }
+  if (stats) {
+    out.hoy = (stats.dias && stats.dias[hoyCR(now)]) || 0; out.total = stats.total || 0; out.dias = stats.dias || {};
+    // quién está conectado (solo el apodo que cada jugador escribió y qué está haciendo)
+    out.quienes = act.sort((a, b) => (b.l - a.l) || (b.j - a.j) || (b.t - a.t)).slice(0, 60).map(v => ({ n: v.n || "", j: v.j, l: v.l, s: v.s }));
+  }
   return out;
 }
 
@@ -26,7 +30,8 @@ export async function handle(req, store, now = Date.now()) {
     if (id.length < 8) return json({ ok: false }, 400);
     const online = (await store.get("online", { type: "json" })) || {};
     for (const k of Object.keys(online)) if (!online[k] || now - online[k].t > ONLINE_MS * 4) delete online[k];
-    online[id] = { t: now, j: b.jugando ? 1 : 0, l: b.enLinea ? 1 : 0, s: typeof b.sala === "string" ? b.sala.replace(/[^A-Z0-9]/g, "").slice(0, 4) : "" };
+    const apodo = typeof b.n === "string" ? b.n.replace(/[^\p{L}\p{N} ._'-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 14) : "";
+    online[id] = { t: now, n: apodo, j: b.jugando ? 1 : 0, l: b.enLinea ? 1 : 0, s: typeof b.sala === "string" ? b.sala.replace(/[^A-Z0-9]/g, "").slice(0, 4) : "" };
     await store.setJSON("online", online);
     if (b.nueva) {
       const st = (await store.get("stats", { type: "json" })) || { total: 0, dias: {} };
