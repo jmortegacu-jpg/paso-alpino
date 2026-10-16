@@ -231,6 +231,7 @@ summary{cursor:pointer;font-weight:600;font-size:13px;letter-spacing:.12em;text-
 .menufoot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:4px;font-size:12px;color:rgba(158,172,184,.7);letter-spacing:.04em}
 .linkbtn{background:none;border:0;padding:4px 2px;cursor:pointer;font-size:12px;color:rgba(158,172,184,.85);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(158,172,184,.35)}
 .linkbtn:hover{color:var(--text)}
+#siteTip a{color:var(--amber)}
 .card.credits{max-width:380px;text-align:center;justify-items:center}
 .names{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-family:var(--f-num);font-size:20px;letter-spacing:.02em}
 .livenote{font-size:13px;color:var(--ok);letter-spacing:.02em;margin:0}
@@ -330,6 +331,7 @@ select.field option{color:#111}
       <button class="ghost" id="onlineBtn" type="button">En línea</button>
       <span class="startotal" id="starTotal" title="Estrellas ganadas">★ 0</span>
       <span class="note" id="loading">Preparando la pista…</span>
+      <span class="note" id="siteTip" hidden>Para verlo en pantalla completa e instalarlo, juegue en <a href="https://peakdrift.netlify.app/" target="_blank" rel="noopener">peakdrift.netlify.app</a>.</span>
       <span class="note" id="iosMenuTip" hidden>Para jugar en pantalla completa en el iPhone: toque Compartir y luego «Agregar a inicio».</span>
       <span class="livenote" id="liveNote" hidden></span>
       <button class="ghost" id="installBtn" type="button" hidden>Instalar app</button>
@@ -1575,7 +1577,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261016-005653';
+const BUILD='20261016-010154';
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
 function showLive(){const t=liveCount>0?(liveCount===1?'1 persona con el juego abierto ahora':liveCount+' personas con el juego abierto ahora'):'';
@@ -1597,8 +1599,8 @@ $('updBtn').addEventListener('click',()=>location.reload());
 
 /* ---------- sharing: challenge links, result card, world ranking, install as app ---------- */
 const ARTIFACT_URL='https://claude.ai/artifact/JHeTbDG78nSRMjB8L9RbPM';
-const SITE_URL_RAW='__SITE_URL__';
-function siteUrl(){if(!SITE_URL_RAW.startsWith('__'))return SITE_URL_RAW.replace(/\/$/,'')+'/';if(hosted)return location.origin+location.pathname;if(inArtifact)return ARTIFACT_URL;return '';}
+const SITE_URL_RAW='__SITE_URL__',PUBLIC_SITE='https://peakdrift.netlify.app/';
+function siteUrl(){if(!SITE_URL_RAW.startsWith('__'))return SITE_URL_RAW.replace(/\/$/,'')+'/';if(hosted)return location.origin+location.pathname;return PUBLIC_SITE;}
 const asciiName=n=>String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]/g,'').slice(0,12)||'Piloto';
 const isPreset=id=>PRESETS.some(p=>p.id===id);
 let challenge=null,lastRank=null;
@@ -1686,8 +1688,13 @@ function viralAfterFinish(){
 
 // install as an app (Android/desktop prompt; iPhone gets a one-line tip)
 let deferredInstall=null;
+// Samsung Internet builds its own app package with an outdated Android target, and Android 14+ blocks it
+// ("Se bloqueó la app no segura"). Chrome builds a current one, so Samsung players install from Chrome.
+function viaChrome(){return hosted&&/SamsungBrowser/i.test(navigator.userAgent)&&/Android/i.test(navigator.userAgent)&&!standalone;}
+function chromeIntent(){const u=new URL(location.href);return 'intent://'+u.host+u.pathname+u.search+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent('https://play.google.com/store/apps/details?id=com.android.chrome')+';end';}
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('installBtn').hidden=false;});
-$('installBtn').addEventListener('click',async()=>{if(!deferredInstall)return;deferredInstall.prompt();try{await deferredInstall.userChoice;}catch(e){}deferredInstall=null;$('installBtn').hidden=true;});
+$('installBtn').addEventListener('click',async()=>{if(viaChrome()){toast('Se abrirá en Chrome. Ahí toque «Instalar app». (Samsung Internet arma una versión antigua que Android bloquea.)',6000);setTimeout(()=>{location.href=chromeIntent();},700);return;}
+  if(!deferredInstall)return;deferredInstall.prompt();try{await deferredInstall.userChoice;}catch(e){}deferredInstall=null;$('installBtn').hidden=true;});
 addEventListener('appinstalled',()=>{$('installBtn').hidden=true;toast('Paso Alpino quedó instalado como app.');});
 if(hosted&&/iPhone|iPad|iPod/.test(navigator.userAgent)&&!navigator.standalone)$('iosTip').hidden=false;
 $('pilotName').value=cfg.nameSet?cfg.name:'';$('pilotName').addEventListener('input',e=>{const n=cleanName(e.target.value);if(n){cfg.name=n;cfg.nameSet=true;}else cfg.nameSet=false;saveCfg();$('olName').value=cfg.nameSet?cfg.name:'';});
@@ -1709,6 +1716,9 @@ function renderFs(){$('fsAutoSec').hidden=!canAutoFs;if(!canAutoFs)return;
   segControl('fsSeg',[[true,'Sí'],[false,'No']],!!cfg.autoFs,v=>{cfg.autoFs=v;saveCfg();renderFs();});}
 renderFs();
 if(isIOS&&!standalone&&hosted)$('iosMenuTip').hidden=false;
+if(viaChrome()){$('installBtn').hidden=false;$('installBtn').textContent='Instalar app (con Chrome)';}
+if(hosted&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(inArtifact)$('siteTip').hidden=false;
 function rotateTip(){if(!coarse||tips.rotate||innerHeight<=innerWidth)return;tips.rotate=1;store.set('paso-alpino-consejos',tips);
   toast('Consejo: gire el teléfono. En horizontal se ve mucha más pista.',5000);}
 
