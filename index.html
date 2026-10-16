@@ -262,6 +262,7 @@ select.field option{color:#111}
 .players li small{margin-left:auto;font-family:var(--f-ui);font-size:12px;color:var(--muted);letter-spacing:.06em;white-space:nowrap}
 .players li.me{background:rgba(255,178,74,.12)}
 .players .dot{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.3)}
+.roomname{font-family:var(--f-num);font-weight:800;font-size:28px;letter-spacing:.02em;line-height:1.05;color:var(--text)}
 .olstatus{margin:0;font-size:14px;line-height:1.4;color:var(--muted)}.olstatus.bad{color:#ffc9c4}.olstatus:empty{display:none}
 .ghost:disabled,.primary:disabled{opacity:.45;cursor:not-allowed}
 @media (prefers-reduced-motion:reduce){#alert,#toast{transition:none}#pop.show{animation:popfade 1.3s linear forwards}#speedfx{animation:none}.resstars span.on{animation:none}}
@@ -329,6 +330,7 @@ select.field option{color:#111}
       <button class="ghost" id="onlineBtn" type="button">En línea</button>
       <span class="startotal" id="starTotal" title="Estrellas ganadas">★ 0</span>
       <span class="note" id="loading">Preparando la pista…</span>
+      <span class="note" id="iosMenuTip" hidden>Para jugar en pantalla completa en el iPhone: toque Compartir y luego «Agregar a inicio».</span>
       <span class="livenote" id="liveNote" hidden></span>
       <button class="ghost" id="installBtn" type="button" hidden>Instalar app</button>
     </div>
@@ -390,6 +392,11 @@ select.field option{color:#111}
         <label class="label" for="pilotName">Su nombre de piloto</label>
         <input id="pilotName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false" placeholder="Escriba su nombre">
         <div class="note">Así aparece en el ranking mundial, en los retos y en las carreras en línea.</div>
+      </div>
+      <div class="sec" id="fsAutoSec" style="margin-top:12px" hidden>
+        <div class="label">Pantalla completa y horizontal al arrancar</div>
+        <div class="seg" id="fsSeg"></div>
+        <div class="note">En el celular, la pista se ve mucho más grande sin las barras del navegador.</div>
       </div>
       <div class="sec" style="margin-top:12px">
         <div class="label">Pantalla y control</div>
@@ -458,18 +465,22 @@ select.field option{color:#111}
     <div class="eyebrow">Carrera en línea · hasta 6 jugadores</div>
     <h2>Corra con sus amigos</h2>
     <div class="sec">
-      <label class="label" for="olName">Su nombre en la pista</label>
+      <label class="label" for="olName">Su nombre o alias</label>
       <input id="olName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false" placeholder="Escriba su nombre">
     </div>
     <div id="olSetup" class="sec">
+      <label class="label" for="olRoomName">Nombre de la sala (opcional)</label>
+      <input id="olRoomName" class="field" type="text" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Por ejemplo: Familia Ortega">
       <div class="actions"><button class="primary" id="olCreate" type="button">Crear sala</button></div>
       <div class="label" style="margin-top:6px">¿Le pasaron un código?</div>
       <div class="joinrow"><input id="olCode" class="field code" type="text" maxlength="4" placeholder="K7QX" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Código de la sala"><button class="ghost" id="olJoin" type="button">Unirse</button></div>
       <p class="note" id="olModeNote"></p>
     </div>
     <div id="olLobby" class="sec" hidden>
+      <div class="roomname" id="olRoomShow" hidden></div>
       <div class="codebox"><div><span class="label">Código de la sala</span><b id="olCodeShow">----</b></div><button class="ghost" id="olCopy" type="button">Invitar</button></div>
       <textarea id="olShareText" class="field" rows="2" readonly hidden aria-label="Texto de invitación"></textarea>
+      <div class="sec" id="olTableSec" hidden><div class="label plain">Tabla de la sala · puntos acumulados</div><ol class="standings" id="olTable"></ol><div class="note">10 puntos al primero, 8 al segundo, 6 al tercero, 5, 4 y 3.</div></div>
       <div class="label plain">Jugadores (<span id="olCount">1</span>/6)</div>
       <ul class="players" id="olPlayers"></ul>
       <div id="olHostCtl" class="sec">
@@ -496,6 +507,7 @@ select.field option{color:#111}
       <div><span class="label">Mejor vuelta</span><b class="best" id="resBest"></b></div>
     </div>
     <div class="sec" id="resStandSec"><div class="label">Clasificación</div><ol class="standings" id="resStand"></ol></div>
+    <div class="sec" id="resTableSec" hidden><div class="label plain">Tabla de la sala · puntos acumulados</div><ol class="standings" id="resTable"></ol></div>
     <div class="sec" id="rkSec" hidden><div class="label plain">Ranking mundial · <span id="rkTitle"></span></div><ol class="standings" id="rkList"></ol><p class="note" id="rkNote"></p></div>
     <div class="sec"><div class="label">Vueltas</div><div class="laps" id="resLaps"></div></div>
     <p id="resRecord" class="note"></p>
@@ -1080,7 +1092,7 @@ function finishRace(rec){
   let stars=0,unlocked=[];
   if(!ol&&active.length){stars=place===1?3:place<=3?2:1;const before=totalStars();if(stars>(+starMap[id]||0)){starMap[id]=stars;store.set('paso-alpino-estrellas',starMap);}
     const after=totalStars();unlocked=COLORS.filter(c=>c.stars>before&&c.stars<=after);}
-  $('resTrack').textContent=raceDef.name+' · '+raceLaps+(raceLaps===1?' vuelta':' vueltas')+' · '+(ol?'En línea, sala '+net.code:DIFFS[cfg.diff].name);
+  $('resTrack').textContent=raceDef.name+' · '+raceLaps+(raceLaps===1?' vuelta':' vueltas')+' · '+(ol?'En línea · '+(roomTitle()||'sala '+net.code):DIFFS[cfg.diff].name);
   $('resTitle').textContent=!ops.length?'¡Carrera terminada!':place===1?'¡Ganó la carrera!':place<=3?'¡Podio! '+ord(place)+' lugar':'Llegó en '+ord(place)+' lugar';
   const st=$('resStars');st.hidden=ol||!active.length;st.textContent='';for(let k=0;k<3;k++){const s=document.createElement('span');s.textContent='★';if(k<stars){s.className='on';s.style.animationDelay=(.5+k*.25)+'s';}st.appendChild(s);}
   const best=Math.min(...lap.list);$('resTotal').textContent=fmt(lap.total);$('resBest').textContent=fmt(best);
@@ -1092,7 +1104,7 @@ function finishRace(rec){
   else if(unlocked.length)note+='¡Desbloqueó el color «'+unlocked.map(c=>c.n).join('», «')+'»!';
   else if(active.length){const nx=COLORS.find(c=>c.stars>totalStars());if(nx)note+='Le faltan '+(nx.stars-totalStars())+' ★ para el color «'+nx.n+'».';}
   $('resRecord').textContent=note;
-  $('resAgain').hidden=$('resNext').hidden=$('resMenu').hidden=ol;$('resLobby').hidden=!ol;
+  $('resAgain').hidden=$('resNext').hidden=$('resMenu').hidden=ol;$('resLobby').hidden=!ol;$('resTableSec').hidden=!ol||!renderTable($('resTable'));
   viralAfterFinish();
   const c=$('count');c.hidden=false;c.className='go';c.textContent=place===1?'¡GANÓ!':'META';
   if(place&&place<=3||!ops.length)fanfare();else beep(660,.3,.12,'triangle');
@@ -1136,6 +1148,7 @@ function frame(){
     if(mode==='count'){countT-=dt;const c=$('count'),n=Math.ceil(countT);
       if(countT>0){if(n!==lastCount){lastCount=n;c.className='';c.textContent=n;beep(520,.14,.16);}}
       else{mode='race';goT=.8;c.className='go';c.textContent='¡YA!';beep(1040,.35,.2);showStartTip();}}
+    if(mode==='count'&&countT>2.5)rotateTip();
     if(goT>0){goT-=dt;if(goT<=0&&mode==='race')$('count').hidden=true;}
     if(mode==='race'||mode==='done')raceClock+=dt;
     const sub=Math.max(1,Math.ceil(realDt/.033)),h=realDt/sub;let out={throttle:0,brakeLight:false};
@@ -1322,7 +1335,7 @@ addEventListener('resize',()=>{if(!$('editor').hidden){edSize();edDraw(validate(
    in the standalone file PeerJS connects browsers directly, with the host relaying everyone's state. */
 const NET_MAX=6,CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const inArtifact=!!(window.claude&&typeof window.claude.use==='function');
-const net={tr:null,code:'',host:false,inRace:false,rid:0,seen:0,list:[],hostGoneT:0,ph:'lobby',hr:0,trk:null,laps:3,slots:{},busy:false,fullErr:false,leaveArm:0};
+const net={roomName:'',table:new Map(),curMap:new Map(),cur:[],tb:[],tr:null,code:'',host:false,inRace:false,rid:0,seen:0,list:[],hostGoneT:0,ph:'lobby',hr:0,trk:null,laps:3,slots:{},busy:false,fullErr:false,leaveArm:0};
 const remotes=new Map(),remotePool=[];
 if(!cfg.name)cfg.name='Piloto '+(10+Math.floor(Math.random()*90));
 if(cfg.nameSet===undefined)cfg.nameSet=!/^Piloto \d{2}$/.test(cfg.name);
@@ -1391,7 +1404,7 @@ async function netCreate(){
   try{let tr=null,code='';
     for(let k=0;k<4&&!tr;k++){code=newCode();try{tr=inArtifact?await roomTransport(code):await p2pTransport(code,true);}catch(e){if(e.why!=='unavailable-id')throw e;}}
     if(!tr)throw fail('server');
-    Object.assign(net,{tr,code,host:true,ph:'lobby',hr:0,inRace:false,seen:0,hostGoneT:0,fullErr:false});olStatus('');netTick();renderLobby();
+    Object.assign(net,{tr,code,host:true,ph:'lobby',hr:0,inRace:false,seen:0,hostGoneT:0,fullErr:false,roomName:cleanText($('olRoomName').value,24),table:new Map(),curMap:new Map(),cur:[],tb:[]});olStatus('');netTick();renderLobby();
   }catch(e){olStatus(whyText(e),true);}finally{net.busy=false;renderLobby();}}
 async function netJoin(raw){
   if(needName())return;
@@ -1411,16 +1424,37 @@ function netLeave(msg){
   for(const r of remotes.values()){r.car.root.visible=false;remotePool.push(r);}remotes.clear();
   if(wasRacing&&(mode==='race'||mode==='count'))toast((msg?msg+' ':'')+'Termine la carrera en solitario.');else if(msg){olStatus(msg,true);toast(msg);}
   renderLobby();updateOnlineBtn();}
+const PTS=[10,8,6,5,4,3];
+const cleanText=(s,max)=>String(s??'').replace(/[\u0000-\u001f\u007f-\u009f\u00ad\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/g,'').replace(/\s+/g,' ').trim().slice(0,max);
+// host only: points of the race in progress, from everyone's reported finishing time; added to the room table when the next race starts
+function hostScore(){
+  if(!net.host)return;
+  // remember every finish of the current race as soon as it is reported; players going back to the lobby must not erase it
+  if(net.hr)for(const e of net.list)if(e.p&&e.p.rid===net.hr&&isNum(e.p.fin))net.curMap.set(e.id,{id:e.id,n:cleanName(e.me?cfg.name:e.p.n)||'Piloto',t:e.p.fin});
+  const fins=[...net.curMap.values()].sort((a,b)=>a.t-b.t);
+  net.cur=fins.map((f,k)=>({id:f.id,n:f.n,pts:PTS[k]||2,win:k===0?1:0}));
+  const rows=new Map();for(const[id,r]of net.table)rows.set(id,{...r});
+  for(const c of net.cur){const r=rows.get(c.id)||{n:c.n,pts:0,wins:0,races:0};r.n=c.n;r.pts+=c.pts;r.wins+=c.win;r.races+=1;rows.set(c.id,r);}
+  net.tb=[...rows.entries()].sort((a,b)=>(b[1].pts-a[1].pts)||(b[1].wins-a[1].wins)).slice(0,8).map(([id,r])=>[id,r.n,r.pts,r.wins,r.races]);}
+function hostCommit(){for(const c of net.cur){const r=net.table.get(c.id)||{n:c.n,pts:0,wins:0,races:0};r.n=c.n;r.pts+=c.pts;r.wins+=c.win;r.races+=1;net.table.set(c.id,r);}net.cur=[];net.curMap=new Map();}
+function tableRows(){const h=(net.list.find(x=>x.p&&x.p.hv===1)||{}).p||{};const tb=net.host?net.tb:h.tb;if(!Array.isArray(tb))return[];
+  const meId=(net.list.find(x=>x.me)||{}).id;
+  return tb.slice(0,8).filter(r=>Array.isArray(r)&&r.length>=5).map(r=>({me:r[0]===meId,n:cleanName(r[1])||'Piloto',pts:isNum(r[2])?Math.max(0,Math.round(r[2])):0,wins:isNum(r[3])?Math.max(0,Math.round(r[3])):0,races:isNum(r[4])?Math.max(0,Math.round(r[4])):0}));}
+function renderTable(ol){const rows=tableRows();ol.textContent='';rows.forEach((r,k)=>{const li=document.createElement('li');if(r.me)li.className='me';
+    const a=document.createElement('span');a.textContent=ord(k+1);const b=document.createElement('span');b.textContent=r.n+(r.me?' · usted':'');
+    const c=document.createElement('span');c.textContent=r.pts+' pts'+(r.wins?' · '+r.wins+(r.wins===1?' victoria':' victorias'):'');li.append(a,b,c);ol.appendChild(li);});return rows.length;}
+const roomTitle=()=>{const h=(net.list.find(x=>x.p&&x.p.hv===1)||{}).p||{};return cleanText(net.host?net.roomName:h.rn,24);};
 function myPresence(){
   const racing=net.inRace&&mode!=='menu';
   const p={ver:1,n:cleanName(cfg.name)||'Piloto',c:COLORS[cfg.color].c,rid:racing?net.rid:0,
     s:racing?Math.round(state.s*10)/10:0,l:Math.round(state.lat*100)/100,v:Math.round(state.v*10)/10,a:Math.round(state.ang*100)/100,
     b:state.boostT>0?1:0,fin:racing&&state.finished?Math.round(lap.total*1000)/1000:null,lap:racing?Math.min(lap.n,raceLaps):0};
-  if(net.host)Object.assign(p,{hv:1,ph:net.ph,hr:net.hr,trk:net.trk,laps:net.laps,slots:net.slots,rt:racing?Math.round(raceClock):0});
+  if(net.host)Object.assign(p,{hv:1,ph:net.ph,hr:net.hr,trk:net.trk,laps:net.laps,slots:net.slots,rt:racing?Math.round(raceClock):0,rn:net.roomName,tb:net.tb});
   return p;}
 function netTick(){
   if(!net.tr)return;
   if(net.tr.closed()){netLeave(net.fullErr?WHY.full:'Se perdió la conexión con la sala.');return;}
+  hostScore();
   net.tr.send(myPresence());
   net.list=net.tr.list();
   const hostE=net.list.find(x=>x.p&&x.p.hv===1);
@@ -1431,7 +1465,7 @@ function netTick(){
     if(net.host||(!racingNow&&!(isNum(h.rt)&&h.rt>8)))startOnlineRace(h);
     else olStatus('Hay una carrera en curso. Entrará en la próxima.');}
   if(!$('online').hidden)renderLobby();
-  if(net.inRace&&!$('results').hidden)renderStandings();}
+  if(net.inRace&&!$('results').hidden){renderStandings();$('resTableSec').hidden=!renderTable($('resTable'));}}
 setInterval(netTick,80);
 
 // --- tracks travel as a preset id, or as the custom control points
@@ -1446,6 +1480,7 @@ function hostStart(){
   const def=allTracks().find(t=>t.id===cfg.track)||PRESETS[0];
   const ids=net.tr.list().map(x=>x).sort((a,b)=>(b.me?1:0)-(a.me?1:0)).map(x=>x.id).slice(0,NET_MAX);
   const slots={};ids.forEach((id,k)=>slots[id]=k);
+  hostScore();hostCommit();
   Object.assign(net,{ph:'race',hr:((Date.now()%1e9)+Math.floor(Math.random()*1000))|0,trk:trackForNet(def),laps:cfg.laps,slots});netTick();}
 function startOnlineRace(h){
   const def=trackFromNet(h.trk);if(!def){olStatus('No se pudo cargar la pista del anfitrión.',true);return;}
@@ -1496,7 +1531,8 @@ function renderLobby(){
   $('olCreate').disabled=$('olJoin').disabled=net.busy;
   $('olModeNote').textContent=inArtifact?'Dentro de Claude: sus amigos deben iniciar sesión en Claude y tener acceso a esta página.':'Funciona en celulares y computadoras. Cada jugador entra a esta misma página y escribe el código.';
   if(!inRoom)return;
-  $('olCodeShow').textContent=net.code;
+  $('olCodeShow').textContent=net.code;{const rn=roomTitle();$('olRoomShow').hidden=!rn;$('olRoomShow').textContent=rn;}
+  $('olTableSec').hidden=!renderTable($('olTable'));
   const list=net.list.length?net.list:[{id:'me',me:true,p:myPresence()}];
   const hostP=(list.find(x=>x.p&&x.p.hv===1)||{}).p;
   $('olCount').textContent=Math.min(list.length,NET_MAX);
@@ -1539,7 +1575,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261016-001620';
+const BUILD='20261016-005653';
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
 function showLive(){const t=liveCount>0?(liveCount===1?'1 persona con el juego abierto ahora':liveCount+' personas con el juego abierto ahora'):'';
@@ -1655,6 +1691,26 @@ $('installBtn').addEventListener('click',async()=>{if(!deferredInstall)return;de
 addEventListener('appinstalled',()=>{$('installBtn').hidden=true;toast('Paso Alpino quedó instalado como app.');});
 if(hosted&&/iPhone|iPad|iPod/.test(navigator.userAgent)&&!navigator.standalone)$('iosTip').hidden=false;
 $('pilotName').value=cfg.nameSet?cfg.name:'';$('pilotName').addEventListener('input',e=>{const n=cleanName(e.target.value);if(n){cfg.name=n;cfg.nameSet=true;}else cfg.nameSet=false;saveCfg();$('olName').value=cfg.nameSet?cfg.name:'';});
+
+/* ---------- phones: full screen and landscape when a race starts ----------
+   The browser's bars eat a big part of a phone screen. On Android the game asks for full screen and turns sideways
+   from the player's own tap (Arrancar, Aceptar reto, Crear sala, Unirse). iPhone browsers do not allow it, so the menu
+   explains how to add the game to the home screen, where it opens without bars. Installed copies open sideways already. */
+const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const standalone=matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+if(cfg.autoFs===undefined)cfg.autoFs=true;
+const canAutoFs=coarse&&!isIOS&&!standalone&&!inArtifact&&!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
+function goBig(){if(!canAutoFs||!cfg.autoFs)return;const d=document.documentElement;
+  const lock=()=>{try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});}catch(e){}};
+  if(document.fullscreenElement||document.webkitFullscreenElement){lock();return;}
+  try{Promise.resolve((d.requestFullscreen||d.webkitRequestFullscreen).call(d,{navigationUI:'hide'})).then(lock).catch(()=>{});}catch(e){}}
+for(const id of['go','retoGo','olCreate','olJoin','olStart','resAgain','resNext'])$(id).addEventListener('click',goBig);
+function renderFs(){$('fsAutoSec').hidden=!canAutoFs;if(!canAutoFs)return;
+  segControl('fsSeg',[[true,'Sí'],[false,'No']],!!cfg.autoFs,v=>{cfg.autoFs=v;saveCfg();renderFs();});}
+renderFs();
+if(isIOS&&!standalone&&hosted)$('iosMenuTip').hidden=false;
+function rotateTip(){if(!coarse||tips.rotate||innerHeight<=innerWidth)return;tips.rotate=1;store.set('paso-alpino-consejos',tips);
+  toast('Consejo: gire el teléfono. En horizontal se ve mucha más pista.',5000);}
 
 /* ---------- boot ---------- */
 renderMenu();setLapHUD();
