@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Paso Alpino">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Paso Alpino">
 <meta property="og:title" content="Paso Alpino · Carreras 3D de montaña">
@@ -233,6 +234,13 @@ summary{cursor:pointer;font-weight:600;font-size:13px;letter-spacing:.12em;text-
 .linkbtn:hover{color:var(--text)}
 #siteTip a{color:var(--amber)}
 .card.credits{max-width:380px;text-align:center;justify-items:center}
+#installSheet{background:rgba(8,12,18,.84)}
+.card.inst{max-width:480px}
+.steps{list-style:none;margin:0;padding:0;counter-reset:st;display:grid;gap:12px}
+.steps li{counter-increment:st;display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;font-size:16px;line-height:1.4;color:#dfe6eb}
+.steps li::before{content:counter(st);width:34px;height:34px;border-radius:50%;background:rgba(255,178,74,.16);color:var(--amber);font-family:var(--f-num);font-weight:800;font-size:19px;display:grid;place-items:center}
+.steps b{color:var(--text);font-weight:600}
+.glyph{display:inline-block;width:22px;height:22px;vertical-align:-5px;margin:0 2px;padding:1px;border:1px solid var(--line);border-radius:5px;box-sizing:content-box;color:var(--text)}
 .names{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-family:var(--f-num);font-size:20px;letter-spacing:.02em}
 .livenote{font-size:13px;color:var(--ok);letter-spacing:.02em;margin:0}
 .livenote::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:7px;vertical-align:1px;box-shadow:0 0 8px var(--ok)}
@@ -332,7 +340,6 @@ select.field option{color:#111}
       <span class="startotal" id="starTotal" title="Estrellas ganadas">★ 0</span>
       <span class="note" id="loading">Preparando la pista…</span>
       <span class="note" id="siteTip" hidden>Para verlo en pantalla completa e instalarlo, juegue en <a href="https://peakdrift.netlify.app/" target="_blank" rel="noopener">peakdrift.netlify.app</a>.</span>
-      <span class="note" id="iosMenuTip" hidden>Para jugar en pantalla completa en el iPhone: toque Compartir y luego «Agregar a inicio».</span>
       <span class="livenote" id="liveNote" hidden></span>
       <button class="ghost" id="installBtn" type="button" hidden>Instalar app</button>
     </div>
@@ -404,7 +411,6 @@ select.field option{color:#111}
         <div class="label">Pantalla y control</div>
         <div class="actions"><button class="ghost" id="fsBtn" type="button" hidden>Pantalla completa</button><button class="ghost" id="gyroBtn" type="button">Giro: <span id="gyroName">Apagado</span></button></div>
         <div class="note">«Giro» permite manejar inclinando el teléfono.</div>
-        <div class="note" id="iosTip" hidden>Para tenerlo como app en el iPhone: toque Compartir y luego «Agregar a inicio».</div>
       </div>
       <div class="sec" style="margin-top:12px">
         <div class="label">Calidad gráfica</div>
@@ -424,6 +430,18 @@ select.field option{color:#111}
     <textarea id="shareTxt" class="field" rows="3" readonly hidden aria-label="Texto para compartir"></textarea>
     <p class="note" id="shareNote">Mantenga presionada la imagen para guardarla o compartirla.</p>
     <div class="actions"><button class="ghost" id="shareClose" type="button">Volver</button></div>
+  </div>
+</div>
+
+<!-- install guide: steps for the browser in hand (iPhone, Huawei, Xiaomi, Firefox…) when there is no install prompt -->
+<div id="installSheet" class="sheet" hidden>
+  <div class="card glass inst">
+    <div class="eyebrow" id="instWhere">Instalar</div>
+    <h2>Paso Alpino como app</h2>
+    <p>Queda con su ícono en la pantalla de inicio y se abre sin las barras del navegador, con más espacio para la pista.</p>
+    <ol class="steps" id="instSteps"></ol>
+    <p class="note" id="instAlt"></p>
+    <div class="actions"><button class="primary" id="instClose" type="button">Entendido</button><button class="ghost" id="instCopy" type="button">Copiar enlace</button></div>
   </div>
 </div>
 
@@ -829,7 +847,7 @@ addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.ke
   if(mode!=='menu'&&['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
   if((k===' '||k==='shift')&&!e.repeat&&mode==='race')fireNitro();
   if(k==='c'&&mode!=='menu')cycleCam();if(k==='m')toggleSound();if(k==='n')toggleMusic();if(k==='r'&&mode==='race')respawn();
-  if(k==='escape'){if(!$('credits').hidden){$('creditsClose').click();return;}if(!$('shareSheet').hidden){$('shareClose').click();return;}if(!$('editor').hidden)closeEditor();else if(!$('online').hidden&&!net.inRace){$('online').hidden=true;$('intro').hidden=false;}else if(mode!=='menu')menuPress();else if(paused&&!$('intro').hidden)resumeRace();}});
+  if(k==='escape'){if(!$('installSheet').hidden){$('instClose').click();return;}if(!$('credits').hidden){$('creditsClose').click();return;}if(!$('shareSheet').hidden){$('shareClose').click();return;}if(!$('editor').hidden)closeEditor();else if(!$('online').hidden&&!net.inRace){$('online').hidden=true;$('intro').hidden=false;}else if(mode!=='menu')menuPress();else if(paused&&!$('intro').hidden)resumeRace();}});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;touch={l:0,r:0,g:0,b:0};});
 function bindHold(id,key){const el=$(id);
@@ -1577,7 +1595,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261016-010154';
+const BUILD='20261016-012935';
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
 function showLive(){const t=liveCount>0?(liveCount===1?'1 persona con el juego abierto ahora':liveCount+' personas con el juego abierto ahora'):'';
@@ -1686,17 +1704,6 @@ function viralAfterFinish(){
     $('resRecord').textContent+=(ms<challenge.ms?' ¡Superó el reto de '+challenge.name+' por '+d.toFixed(1).replace('.',',')+' s!':' Le faltaron '+d.toFixed(1).replace('.',',')+' s para superar a '+challenge.name+'.');}
   $('resChallenge').hidden=!isPreset(raceDef.id);rkAfterRace();}
 
-// install as an app (Android/desktop prompt; iPhone gets a one-line tip)
-let deferredInstall=null;
-// Samsung Internet builds its own app package with an outdated Android target, and Android 14+ blocks it
-// ("Se bloqueó la app no segura"). Chrome builds a current one, so Samsung players install from Chrome.
-function viaChrome(){return hosted&&/SamsungBrowser/i.test(navigator.userAgent)&&/Android/i.test(navigator.userAgent)&&!standalone;}
-function chromeIntent(){const u=new URL(location.href);return 'intent://'+u.host+u.pathname+u.search+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent('https://play.google.com/store/apps/details?id=com.android.chrome')+';end';}
-addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('installBtn').hidden=false;});
-$('installBtn').addEventListener('click',async()=>{if(viaChrome()){toast('Se abrirá en Chrome. Ahí toque «Instalar app». (Samsung Internet arma una versión antigua que Android bloquea.)',6000);setTimeout(()=>{location.href=chromeIntent();},700);return;}
-  if(!deferredInstall)return;deferredInstall.prompt();try{await deferredInstall.userChoice;}catch(e){}deferredInstall=null;$('installBtn').hidden=true;});
-addEventListener('appinstalled',()=>{$('installBtn').hidden=true;toast('Paso Alpino quedó instalado como app.');});
-if(hosted&&/iPhone|iPad|iPod/.test(navigator.userAgent)&&!navigator.standalone)$('iosTip').hidden=false;
 $('pilotName').value=cfg.nameSet?cfg.name:'';$('pilotName').addEventListener('input',e=>{const n=cleanName(e.target.value);if(n){cfg.name=n;cfg.nameSet=true;}else cfg.nameSet=false;saveCfg();$('olName').value=cfg.nameSet?cfg.name:'';});
 
 /* ---------- phones: full screen and landscape when a race starts ----------
@@ -1715,8 +1722,67 @@ for(const id of['go','retoGo','olCreate','olJoin','olStart','resAgain','resNext'
 function renderFs(){$('fsAutoSec').hidden=!canAutoFs;if(!canAutoFs)return;
   segControl('fsSeg',[[true,'Sí'],[false,'No']],!!cfg.autoFs,v=>{cfg.autoFs=v;saveCfg();renderFs();});}
 renderFs();
-if(isIOS&&!standalone&&hosted)$('iosMenuTip').hidden=false;
-if(viaChrome()){$('installBtn').hidden=false;$('installBtn').textContent='Instalar app (con Chrome)';}
+/* ---------- install as an app ----------
+   Chrome, Edge and Opera on Android (and desktop Chrome/Edge) hand over a native install prompt. Samsung Internet does too,
+   but builds a package with an outdated Android target that Android 14+ blocks, so Samsung players install from Chrome.
+   Safari on iPhone, the Huawei browser (HarmonyOS/EMUI), the Xiaomi browser and Firefox never offer a prompt: on any phone
+   without one, «Instalar app» opens step-by-step instructions written for the browser in hand. */
+let deferredInstall=null;
+const UA=navigator.userAgent;
+function viaChrome(){return hosted&&/SamsungBrowser/i.test(UA)&&/Android/i.test(UA)&&!standalone;}
+function chromeIntent(){const u=new URL(location.href);return 'intent://'+u.host+u.pathname+u.search+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent('https://play.google.com/store/apps/details?id=com.android.chrome')+';end';}
+function browserKind(){
+  if(/FBAN|FBAV|FB_IAB|Instagram|musical_ly|TikTok|Snapchat|\bLine\/|; wv\)/i.test(UA))return 'inapp';
+  if(isIOS){if(/CriOS/.test(UA))return 'ios-chrome';if(/FxiOS|EdgiOS|OPiOS|OPT\/|GSA\/|YaBrowser|DuckDuckGo/.test(UA))return 'ios-other';return 'ios-safari';}
+  if(!coarse)return 'desktop';
+  if(/HuaweiBrowser|HarmonyOS|OpenHarmony|ArkWeb/i.test(UA))return 'huawei';
+  if(/MiuiBrowser|XiaoMi\/|MiBrowser/i.test(UA))return 'xiaomi';
+  if(/SamsungBrowser/i.test(UA))return 'samsung';
+  if(/Firefox\//.test(UA))return 'firefox';
+  if(/OPR\/|Opera/.test(UA))return 'opera';
+  if(/EdgA\//.test(UA))return 'edge';
+  if(/Android/.test(UA)&&/Chrome\//.test(UA))return 'chrome';
+  return 'other';}
+const GL=(d,fill)=>'<svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" '+(fill?'fill="currentColor"':'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"')+'>'+d+'</svg>';
+const IG={share:GL('<path d="M12 14V3M8 7l4-4 4 4"/><path d="M8.5 10H6v11h12V10h-2.5"/>'),
+  plus:GL('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>'),
+  vdots:GL('<circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>',1),
+  hdots:GL('<circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>',1),
+  menu:GL('<path d="M4 7h16M4 12h16M4 17h16"/>')};
+function installGuide(k){
+  const dev=/iPad/.test(UA)||navigator.platform==='MacIntel'?'iPad':'iPhone';
+  switch(k){
+    case 'inapp':return['Dentro de otra app',['Toque '+IG.hdots+' o '+IG.vdots+' arriba a la derecha.','Elija <b>«Abrir en el navegador»</b> (o «Abrir en Chrome» / «Abrir en Safari»).','Ahí toque otra vez <b>Instalar app</b>.'],'Facebook, Instagram, TikTok y otras apps abren el juego en una ventana propia que no permite instalarlo. También puede copiar el enlace y pegarlo en su navegador.',true];
+    case 'ios-safari':return[dev+' · Safari',['Toque '+IG.share+' <b>Compartir</b>, en la barra de la dirección. Si no lo ve, toque '+IG.hdots+' primero.','Deslice hacia abajo y toque '+IG.plus+' <b>«Agregar a inicio»</b> (o «Agregar a pantalla de inicio»).','Si aparece <b>«Abrir como app web»</b>, déjelo activado. Toque <b>«Agregar»</b>.'],'Después ábralo desde el ícono nuevo y gire el teléfono: el juego llena toda la pantalla.',false];
+    case 'ios-chrome':return[dev+' · Chrome',['Toque '+IG.share+' <b>Compartir</b>, arriba a la derecha junto a la dirección.','Toque '+IG.plus+' <b>«Agregar a inicio»</b> (si no aparece, búsquela en «Más»).','Toque <b>«Agregar»</b> y ábralo desde el ícono nuevo.'],'Si no aparece la opción, copie el enlace, ábralo en Safari y hágalo desde ahí.',true];
+    case 'ios-other':return[dev,['Abra el menú del navegador ('+IG.hdots+' o '+IG.menu+') y toque '+IG.share+' <b>Compartir</b>.','Toque '+IG.plus+' <b>«Agregar a inicio»</b>.','Toque <b>«Agregar»</b> y ábralo desde el ícono nuevo.'],'Si no aparece la opción, copie el enlace, ábralo en Safari y hágalo desde ahí.',true];
+    case 'huawei':return['Navegador Huawei',['Toque el menú del navegador: '+IG.vdots+' arriba o '+IG.menu+' abajo.','Toque <b>«Añadir a la pantalla principal»</b>. Según la versión se llama «Añadir al escritorio» o está dentro de «Añadir a».','Elija <b>«Pantalla principal del teléfono»</b> y toque <b>«Aceptar»</b>.'],'Abra el juego desde el ícono nuevo: al tocar Arrancar se pone a pantalla completa y en horizontal. Si su teléfono también tiene Chrome o Firefox, ahí la opción se llama «Instalar app».',true];
+    case 'xiaomi':return['Navegador de Xiaomi',['Toque el menú del navegador: '+IG.menu+' abajo o '+IG.vdots+' arriba.','Busque <b>«Añadir a pantalla de inicio»</b> (a veces está dentro de «Añadir a» o de «Compartir»).','Confirme con <b>«Añadir»</b>.'],'Si tiene Chrome, ábralo ahí: la opción se llama «Instalar app» y abre el juego sin barras.',true];
+    case 'samsung':return['Samsung Internet',['Toque '+IG.menu+' abajo a la derecha.','Toque <b>«Añadir página a»</b> y luego <b>«Pantalla de inicio»</b>.','Confirme con <b>«Añadir»</b>.'],'Si Android muestra un aviso de app no segura, instálelo desde Chrome.',true];
+    case 'firefox':return['Firefox',['Toque '+IG.vdots+' (el menú).','Toque <b>«Instalar»</b> o <b>«Agregar a la pantalla de inicio»</b>.','Confirme con <b>«Agregar»</b>.'],'',false];
+    case 'opera':return['Opera',['Abra el menú de Opera ('+IG.vdots+' o el ícono de Opera).','Toque <b>«Añadir a…»</b> y luego <b>«Pantalla de inicio»</b>.','Confirme con <b>«Añadir»</b>.'],'',false];
+    case 'edge':return['Edge',['Toque '+IG.menu+' abajo.','Toque <b>«Agregar al teléfono»</b> o <b>«Instalar app»</b>.','Confirme con <b>«Instalar»</b>.'],'Si ya lo instaló, ábralo desde su ícono.',false];
+    case 'chrome':return['Chrome',['Toque '+IG.vdots+' arriba a la derecha.','Toque <b>«Instalar app»</b> o <b>«Agregar a la pantalla principal»</b>.','Confirme con <b>«Instalar»</b>.'],'Si ya lo instaló, ábralo desde su ícono.',false];
+    case 'desktop':return['Computadora',['En la barra de direcciones toque el ícono de instalar, o abra el menú '+IG.vdots+'.','Elija <b>«Instalar Paso Alpino»</b> (en algunos navegadores está en «Guardar y compartir»).','Confirme con <b>«Instalar»</b>.'],'En Safari para Mac: menú Archivo y luego «Agregar al Dock».',false];
+    default:return['Su navegador',['Abra el menú del navegador ('+IG.vdots+', '+IG.hdots+' o '+IG.menu+').','Busque <b>«Instalar app»</b>, <b>«Agregar a pantalla de inicio»</b> o <b>«Añadir al escritorio»</b>.','Confirme y abra el juego desde el ícono nuevo.'],'Si no aparece, copie el enlace y ábralo en Chrome, Safari o Firefox.',true];}}
+function openInstall(){const[where,steps,alt,copy]=installGuide(browserKind());
+  $('instWhere').textContent='Instalar · '+where;
+  $('instSteps').innerHTML=steps.map(t=>'<li><span>'+t+'</span></li>').join('');
+  $('instAlt').textContent=alt;$('instAlt').hidden=!alt;$('instCopy').hidden=!copy;
+  $('intro').hidden=true;$('installSheet').hidden=false;$('instClose').focus();}
+$('instClose').addEventListener('click',()=>{$('installSheet').hidden=true;$('intro').hidden=false;$('installBtn').focus();});
+$('instCopy').addEventListener('click',async()=>{const u=siteUrl();
+  try{await navigator.clipboard.writeText(u);toast('Enlace copiado. Péguelo en la barra de direcciones del otro navegador.');}catch(e){toast(u,9000);}});
+function showInstall(){const b=$('installBtn');b.hidden=!(hosted&&!standalone&&(coarse||deferredInstall||viaChrome()));
+  b.textContent=viaChrome()&&!deferredInstall?'Instalar app (con Chrome)':'Instalar app';}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;showInstall();});
+$('installBtn').addEventListener('click',async()=>{
+  if(viaChrome()){toast('Se abrirá en Chrome. Ahí toque «Instalar app». (Samsung Internet arma una versión antigua que Android bloquea.)',6000);setTimeout(()=>{location.href=chromeIntent();},700);return;}
+  if(deferredInstall){const ev=deferredInstall;deferredInstall=null;ev.prompt();let ok=false;try{ok=(await ev.userChoice).outcome==='accepted';}catch(e){}
+    if(ok)$('installBtn').hidden=true;else showInstall();return;}
+  openInstall();});
+addEventListener('appinstalled',()=>{$('installBtn').hidden=true;toast('Paso Alpino quedó instalado como app.');});
+showInstall();
 if(hosted&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(inArtifact)$('siteTip').hidden=false;
 function rotateTip(){if(!coarse||tips.rotate||innerHeight<=innerWidth)return;tips.rotate=1;store.set('paso-alpino-consejos',tips);
