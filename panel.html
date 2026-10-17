@@ -40,8 +40,8 @@ h1{margin:4px 0 0;font-family:var(--f-num);font-weight:800;font-size:clamp(34px,
 .grid b{display:block;margin-top:6px;font-family:var(--f-num);font-weight:800;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
 .grid small{display:block;margin-top:4px;font-size:13px;color:var(--muted)}
 .c-amber b{color:var(--amber)}.c-blue b{color:var(--nitro)}
-.chart{overflow-x:auto}
-#days{display:block;width:100%;min-width:420px;height:180px}
+.chart{overflow-x:auto}.grid .wide{grid-column:1/-1}
+#days,#instDays{display:block;width:100%;min-width:420px;height:180px}
 .who{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
 .who li{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:15px}
 .who li b{font-family:var(--f-num);font-weight:700;font-size:17px;letter-spacing:.02em}
@@ -77,6 +77,10 @@ footer a{color:var(--muted)}
     <div class="tile c-blue"><div class="label">Salas</div><b id="salas">–</b><small>salas abiertas</small></div>
     <div class="tile"><div class="label">Visitas hoy</div><b id="hoy">–</b><small>hora de Costa Rica</small></div>
     <div class="tile"><div class="label">Visitas totales</div><b id="total">–</b><small>desde que se publicó</small></div>
+    <div class="tile c-amber"><div class="label">Instalaciones</div><b id="instalaciones">–</b><small>teléfonos o computadoras con el ícono</small></div>
+    <div class="tile c-amber"><div class="label">Instalaciones hoy</div><b id="instHoy">–</b><small>hora de Costa Rica</small></div>
+    <div class="tile c-blue"><div class="label">Como app ahora</div><b id="comoApp">–</b><small>abrieron desde el ícono</small></div>
+    <div class="tile wide"><div class="label">Jugadores distintos</div><b id="jugadores">–</b><small>navegadores nuevos</small></div>
   </section>
 
   <section class="tile">
@@ -89,7 +93,12 @@ footer a{color:var(--muted)}
     <svg id="days" viewBox="0 0 700 180" aria-label="Visitas por día"></svg>
   </section>
 
-  <footer><span>Se actualiza cada 5 segundos. Una visita es cada vez que alguien abre el juego.</span><a href="./">Abrir el juego</a></footer>
+  <section class="tile chart">
+    <div class="label">Instalaciones por día · últimos 14 días</div>
+    <svg id="instDays" viewBox="0 0 700 180" aria-label="Instalaciones por día"></svg>
+  </section>
+
+  <footer><span>Se actualiza cada 5 segundos. Una visita es cada vez que alguien abre el juego. Una instalación se cuenta la primera vez que alguien lo abre desde el ícono en su pantalla de inicio.</span><a href="./">Abrir el juego</a></footer>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -102,7 +111,7 @@ function drawSpark(){const s=$('spark');s.textContent='';if(hist.length<2)return
   el('path',{d:'M0,'+h+' L'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L')+' L'+w+','+h+' Z',fill:'rgba(95,214,164,.14)'},s);
   el('polyline',{points:pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '),fill:'none',stroke:'#5fd6a4','stroke-width':2,'vector-effect':'non-scaling-stroke'},s);
   const last=pts[pts.length-1];el('circle',{cx:last[0],cy:last[1],r:3.5,fill:'#5fd6a4'},s);}
-function drawDays(dias){const s=$('days');s.textContent='';
+function drawDays(dias,id){const s=$(id||'days');s.textContent='';
   const fmt=d=>d.toLocaleDateString('en-CA',{timeZone:'America/Costa_Rica'});const out=[];
   for(let i=13;i>=0;i--){const d=new Date(Date.now()-i*864e5),k=fmt(d);out.push([k,(dias&&dias[k])||0]);}
   const max=Math.max(1,...out.map(x=>x[1])),W=700,H=180,top=22,bottom=28,bw=W/out.length;
@@ -116,12 +125,12 @@ let lastOk=0;
 async function load(){
   try{const r=await fetch('/api/estadisticas',{cache:'no-store'});if(!r.ok)throw new Error(r.status);const d=await r.json();
     $('ahora').textContent=d.ahora;$('ahoraTxt').textContent=d.ahora===1?'persona con el juego abierto':'personas con el juego abierto';
-    for(const k of['jugando','enLinea','salas','hoy','total'])$(k).textContent=(d[k]??0).toLocaleString('es-CR');
+    for(const k of['jugando','enLinea','salas','hoy','total','instalaciones','instHoy','comoApp','jugadores'])$(k).textContent=(d[k]??0).toLocaleString('es-CR');
     const who=$('who');who.textContent='';const q=d.quienes||[];
     if(!q.length){const li=document.createElement('li');li.className='empty';li.textContent='Nadie por ahora.';who.appendChild(li);}
     q.forEach(v=>{const li=document.createElement('li');li.className=v.l?'l':v.j?'j':'';const dot=document.createElement('i');const b=document.createElement('b');b.textContent=v.n||'Sin nombre';
-      const sm=document.createElement('small');sm.textContent=v.l?('en línea'+(v.s?' · sala '+v.s:'')):v.j?'corriendo':'en el menú';li.append(dot,b,sm);who.appendChild(li);});
-    hist.push(d.ahora);if(hist.length>60)hist.shift();drawSpark();drawDays(d.dias);
+      const sm=document.createElement('small');sm.textContent=(v.l?('en línea'+(v.s?' · sala '+v.s:'')):v.j?'corriendo':'en el menú')+(v.a?' · app':'');li.append(dot,b,sm);who.appendChild(li);});
+    hist.push(d.ahora);if(hist.length>60)hist.shift();drawSpark();drawDays(d.dias);drawDays(d.instDias,'instDays');
     lastOk=Date.now();setStatus('live','En vivo');
   }catch(e){setStatus('bad',lastOk?'Sin conexión con el contador; reintentando…':'El contador todavía no responde. ¿Ya se publicó el sitio en Netlify?');}}
 load();setInterval(load,5000);
