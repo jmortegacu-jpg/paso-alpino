@@ -245,6 +245,19 @@ body.ingarage #lap,body.ingarage #cluster,body.ingarage #menu,body.ingarage #tou
 .cp-t{display:grid;gap:2px;min-width:0}.cp-t b{font-family:var(--f-num);font-weight:800;font-size:24px;letter-spacing:.02em;text-transform:uppercase;line-height:1}.cp-t small{font-size:13px;color:var(--muted)}
 .cp-go{flex:none;font-family:var(--f-num);font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
 .cp-go::after{content:" ›"}
+.newdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);margin-right:7px;vertical-align:1px}
+.ico{width:16px;height:16px;flex:none;vertical-align:-3px}
+.unlock{display:grid;gap:7px}
+.ustate{display:flex;align-items:center;gap:8px;font-family:var(--f-num);font-weight:700;font-size:20px;letter-spacing:.04em}
+.ustate.ok{color:var(--ok)}.ustate.coin{color:var(--amber)}.ustate small{font-family:var(--f-ui);font-weight:500;font-size:14px;color:var(--muted);letter-spacing:0}
+.ubar{height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}.ubar i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),#ffd08a);border-radius:4px}
+.usteps{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.usteps li{display:flex;align-items:center;gap:9px;font-size:15px;color:#dfe6eb}
+.usteps li .ico{color:var(--muted)}.usteps li.done{color:var(--ok)}.usteps li.done .ico{color:var(--ok)}
+.usteps .mk{margin-left:auto;font-family:var(--f-num);font-weight:700}
+.earn{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.earn span{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:12px;color:#cdd6dd;white-space:nowrap}
+.earn span .ico{width:13px;height:13px;color:var(--amber)}.earn b{font-family:var(--f-num);font-weight:700;color:var(--amber)}
 .gsheet{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:space-between;gap:12px;pointer-events:none;box-sizing:border-box;
   padding-block:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 14px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   background:linear-gradient(180deg,rgba(8,12,18,.4),rgba(8,12,18,0) 28%,rgba(8,12,18,0) 55%,rgba(8,12,18,.55))}
@@ -409,7 +422,7 @@ select.field option{color:#111}
     </div>
     <div class="sec">
       <div class="label"><span>Su auto</span><span class="credpill" id="credMenu">0 créditos</span></div>
-      <button class="carpick" id="garageBtn" type="button"><span class="cp-t"><b id="carName">Aurora V12</b><small id="carKind">Superdeportivo</small></span><span class="cp-go">Garaje</span></button>
+      <button class="carpick" id="garageBtn" type="button"><span class="cp-t"><b id="carName">Aurora V12</b><small id="carKind">Superdeportivo</small></span><span class="cp-go"><i class="newdot" id="garageNew" hidden></i>Garaje</span></button>
       <div class="colorrow"><div class="swatches" id="swatches"></div><span class="note" id="colorName"></span></div>
     </div>
     <div class="sec">
@@ -515,7 +528,7 @@ select.field option{color:#111}
   <div class="card glass gpanel" id="gPanel">
     <div class="ginfo">
       <ul class="gstats" id="gStats"></ul>
-      <div class="gside"><div class="label">Cómo se consigue</div><p class="gget" id="gGet"></p><p class="gtrait" id="gTrait"></p></div>
+      <div class="gside"><div class="unlock" id="gGet"></div><p class="gtrait" id="gTrait"></p><div class="earn" id="gEarn" aria-label="Cómo se ganan créditos"></div></div>
     </div>
     <div class="actions"><button class="primary" id="gAct" type="button">Usar este auto</button><button class="ghost" id="gBack" type="button">Volver</button></div>
     <div class="gnav"><button class="arrow" id="gPrev" type="button" aria-label="Auto anterior">‹</button><nav class="gcars" id="gCars" aria-label="Autos"></nav><button class="arrow" id="gNext" type="button" aria-label="Auto siguiente">›</button></div>
@@ -1957,7 +1970,18 @@ const trackName=id=>(PRESETS.find(t=>t.id===id)||{}).name||id;
 const starsOn=(track,diff)=>+starMap[track+'|'+diff]||0;
 function duelReady(id){const d=CARINFO[id].duel;if(!d)return false;return d.need==='dificil'?starsOn(d.track,'dificil')>=3:starsOn(d.track,'normal')>=3||starsOn(d.track,'dificil')>=3;}
 function duelNeed(id){const d=CARINFO[id].duel;return'Gane en '+trackName(d.track)+' en '+(d.need==='dificil'?'Difícil':'Normal o Difícil')+' para desafiar a '+d.boss+'.';}
-function renderCarPick(){$('carName').textContent=carById(cfg.car).name;$('carKind').textContent=carById(cfg.car).kind+' · '+SPECS[cfg.car].box;$('credMenu').textContent=credTxt(garage.cred);}
+const ICO={
+  coin:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M15 9.2a3.4 3.4 0 1 0 0 5.6"/></svg>',
+  check:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>',
+  flag:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h13l-2.5 4L18 12H5"/></svg>',
+  duel:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l10 10M20 4L10 14M7 17l-3 3M17 17l3 3M6 14l4 4M18 14l-4 4"/></svg>',
+  drift:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18c6 0 4-12 12-12h3M16 3l3 3-3 3"/></svg>',
+  pass:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17l5-5-5-5M13 17l5-5-5-5"/></svg>',
+  clean:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.2 8.2-7 10-3.8-1.8-7-5-7-10V6z"/></svg>',
+  star:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>'};
+$('gEarn').innerHTML='<span>'+ICO.flag+'1.º <b>+300</b></span><span>'+ICO.drift+'Derrape <b>+4/s</b></span><span>'+ICO.pass+'Adelantar <b>+10</b></span><span>'+ICO.clean+'Vuelta limpia <b>+25</b></span><span>'+ICO.star+'Difícil <b>×1,5</b></span>';
+$('gEarn').title='Créditos que paga cada carrera';
+function renderCarPick(){$('garageNew').hidden=!CARS.some(m=>!garage.owned.includes(m.id)&&(CARINFO[m.id].price?garage.cred>=CARINFO[m.id].price:duelReady(m.id)));$('carName').textContent=carById(cfg.car).name;$('carKind').textContent=carById(cfg.car).kind+' · '+SPECS[cfg.car].box;$('credMenu').textContent=credTxt(garage.cred);}
 let gIdx=0,gOpen=false;
 function openGarage(){gOpen=true;document.body.classList.add('ingarage');gIdx=Math.max(0,CARS.findIndex(m=>m.id===cfg.car));$('intro').hidden=true;$('garage').hidden=false;camMode=2;renderGarage();garageFrame();$('gAct').focus();}
 function closeGarage(){gOpen=false;document.body.classList.remove('ingarage');$('garage').hidden=true;camera.clearViewOffset();camera.updateProjectionMatrix();setPlayerCar(cfg.car);$('intro').hidden=false;renderMenu();$('garageBtn').focus();}
@@ -1965,16 +1989,20 @@ function renderGarage(){const M=CARS[gIdx],I=CARINFO[M.id],own=garage.owned.incl
   $('gName').textContent=M.name;$('gKind').textContent=M.kind+' · '+SPECS[M.id].box;$('gCred').textContent=credTxt(garage.cred);$('gTrait').textContent=I.t;
   const ul=$('gStats');ul.textContent='';STAT_NAMES.forEach((n,k)=>{const li=document.createElement('li'),a=document.createElement('span'),bar=document.createElement('span'),i=document.createElement('i'),b=document.createElement('b');
     a.textContent=n;bar.className='bar';i.style.width=I.s[k]*10+'%';bar.appendChild(i);b.textContent=I.s[k];li.append(a,bar,b);ul.appendChild(li);});
+  // how to get it, shown as a picture: a tick, a credit bar, or two steps to a duel
   const act=$('gAct'),get=$('gGet');act.disabled=false;act.className='primary';
-  if(own){get.textContent=M.id==='aurora'?'Es el auto con que empieza todo jugador.':I.duel?'Lo ganó venciendo a '+I.duel.boss+'.':'Ya es suyo.';
+  if(own){get.innerHTML='<div class="ustate ok">'+ICO.check+'Suyo</div>';
     if(cfg.car===M.id){act.textContent='En uso';act.disabled=true;act.className='ghost';}else act.textContent='Usar este auto';}
-  else if(I.price){get.textContent='Se compra con créditos de carrera: '+credTxt(I.price)+'.';
-    if(garage.cred>=I.price)act.textContent='Comprar · '+credTxt(I.price);else{act.textContent='Le faltan '+credTxt(I.price-garage.cred);act.disabled=true;act.className='ghost';}}
-  else{get.textContent='Se gana venciendo a '+I.duel.boss+', el jefe de '+trackName(I.duel.track)+', en un duelo a 2 vueltas.';
-    if(duelReady(M.id))act.textContent='Desafiar a '+I.duel.boss;else{act.textContent=duelNeed(M.id);act.disabled=true;act.className='ghost wrap';}}
+  else if(I.price){const k=Math.min(1,garage.cred/I.price);
+    get.innerHTML='<div class="ustate coin">'+ICO.coin+nf(Math.min(garage.cred,I.price))+' <small>/ '+nf(I.price)+' créditos</small></div><div class="ubar"><i style="width:'+(k*100).toFixed(0)+'%"></i></div>';
+    if(garage.cred>=I.price)act.textContent='Comprar';else{act.textContent='Faltan '+nf(I.price-garage.cred);act.disabled=true;act.className='ghost';}}
+  else{const d=I.duel,s1=duelReady(M.id);
+    get.innerHTML='<ol class="usteps"><li class="'+(s1?'done':'')+'">'+ICO.flag+'Gane '+trackName(d.track)+' · '+(d.need==='dificil'?'Difícil':'Normal')+'<span class="mk">'+(s1?'✓':'1')+'</span></li>'
+      +'<li>'+ICO.duel+'Venza a '+d.boss+' en un duelo<span class="mk">2</span></li></ol>';
+    if(s1)act.textContent='Desafiar a '+d.boss;else{act.textContent='Primero gane la pista';act.disabled=true;act.className='ghost';}}
   const nav=$('gCars');if(!nav.children.length)CARS.forEach((m,k)=>{const b=document.createElement('button');b.type='button';b.addEventListener('click',()=>{gIdx=k;renderGarage();});nav.appendChild(b);});
   [...nav.children].forEach((b,k)=>{const m=CARS[k],o=garage.owned.includes(m.id);b.textContent='';const n=document.createElement('span');n.textContent=m.name;const t=document.createElement('small');
-    t.textContent=o?(cfg.car===m.id?'En uso':'Suyo'):CARINFO[m.id].price?nf(CARINFO[m.id].price):'Duelo';b.append(n,t);b.setAttribute('aria-pressed',k===gIdx?'true':'false');b.classList.toggle('own',o);});
+    t.innerHTML=o?(cfg.car===m.id?'En uso':'Suyo'):CARINFO[m.id].price?ICO.coin+nf(CARINFO[m.id].price):ICO.duel+'Duelo';b.append(n,t);b.setAttribute('aria-pressed',k===gIdx?'true':'false');b.classList.toggle('own',o);});
   nav.children[gIdx].scrollIntoView({block:'nearest',inline:'center'});}
 $('gAct').addEventListener('click',()=>{const M=CARS[gIdx],I=CARINFO[M.id];
   if(garage.owned.includes(M.id)){cfg.car=M.id;saveCfg();toast('Listo: correrá con el '+M.name+'.');renderGarage();return;}
@@ -2478,7 +2506,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261017-015648';
+const BUILD='20261017-022844';
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
 function showLive(){const t=liveCount>0?(liveCount===1?'1 persona con el juego abierto ahora':liveCount+' personas con el juego abierto ahora'):'';
