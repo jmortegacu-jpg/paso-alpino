@@ -231,6 +231,7 @@ summary{cursor:pointer;font-weight:600;font-size:13px;letter-spacing:.12em;text-
 /* credits, live count, update banner */
 .menufoot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:4px;font-size:12px;color:rgba(158,172,184,.7);letter-spacing:.04em}
 .poweredby{display:block;text-align:center;font-size:11px;color:rgba(158,172,184,.55);text-decoration:none;letter-spacing:.03em;padding-top:2px}.poweredby:hover{color:rgba(158,172,184,.9);text-decoration:underline}
+.qrcard{max-width:380px;text-align:center}.qrcard .actions{justify-content:center}.qrbox{width:min(260px,62vw,48vh);margin:14px auto 12px;padding:10px;border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.35)}.qrbox svg{display:block;width:100%;height:auto}
 .linkbtn{background:none;border:0;padding:4px 2px;cursor:pointer;font-size:12px;color:rgba(158,172,184,.85);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(158,172,184,.35)}
 .linkbtn:hover{color:var(--text)}
 #siteTip a{color:var(--amber)}
@@ -310,6 +311,9 @@ body.ingarage #lap,body.ingarage #cluster,body.ingarage #menu,body.ingarage #tou
 .reto{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:12px 14px;border-radius:10px;border:1px solid rgba(95,214,164,.45);background:rgba(95,214,164,.08)}
 .retotxt{display:grid;gap:4px;min-width:0;flex:1 1 220px}.retotxt p{margin:0;font-size:15px;line-height:1.4}
 .reto .label{color:var(--ok)}
+.daily{border-color:rgba(255,178,74,.5);background:rgba(255,178,74,.08)}.daily .label{color:var(--amber)}
+.dstreak{margin-left:10px;padding:1px 8px;border-radius:99px;background:rgba(255,178,74,.18);color:var(--amber);letter-spacing:.04em}.dprize{color:rgba(238,242,245,.7);font-size:13px}
+.daily.done{border-color:rgba(95,214,164,.4);background:rgba(95,214,164,.06)}.daily.done .label{color:var(--ok)}
 .wr{color:var(--amber);margin:2px 0 0}
 #retoTime{font-family:var(--f-num);font-weight:500;font-size:16px;font-variant-numeric:tabular-nums;color:var(--ok)}#retoTime.over{color:var(--red)}
 .sharerow .share{flex:1 1 160px}
@@ -423,6 +427,10 @@ select.field option{color:#111}
       <div class="retotxt"><span class="label">Reto recibido</span><p id="retoTxt"></p></div>
       <div class="actions"><button class="primary" id="retoGo" type="button">Aceptar reto</button><button class="linkbtn" id="retoX" type="button">Quitar</button></div>
     </div>
+    <div class="reto daily" id="dailyBox" hidden>
+      <div class="retotxt"><span class="label">Reto del día<span class="dstreak" id="dStreak" hidden></span></span><p id="dailyTxt"></p><small class="dprize" id="dPrize"></small></div>
+      <div class="actions"><button class="primary" id="dailyGo" type="button">Jugar</button></div>
+    </div>
     <div class="sec">
       <div class="label"><span>Su auto</span><span class="credpill" id="credMenu">0 créditos</span></div>
       <button class="carpick" id="garageBtn" type="button"><span class="cp-t"><b id="carName">Aurora V12</b><small id="carKind">Superdeportivo</small></span><span class="cp-go"><i class="newdot" id="garageNew" hidden></i>Garaje</span></button>
@@ -432,6 +440,11 @@ select.field option{color:#111}
       <div class="label">Pista</div>
       <div class="tracks" id="trackList"></div>
       <p class="note wr" id="wrLine" hidden></p>
+    </div>
+    <div class="sec">
+      <div class="label">Hora y clima</div>
+      <div class="seg" id="wxSeg"></div>
+      <div class="note" id="wxNote" hidden>Con lluvia hay menos agarre: frene antes de las curvas. Estas carreras no cuentan para el ranking mundial.</div>
     </div>
     <div class="sec">
       <div class="label">Rivales</div>
@@ -498,7 +511,7 @@ select.field option{color:#111}
         <div class="note">Si el juego va lento en su celular, elija «Baja».</div>
       </div>
     </details>
-    <div class="menufoot"><span>Un juego de OrtegaCorp</span><button class="linkbtn" id="creditsBtn" type="button">Créditos</button></div>
+    <div class="menufoot"><span>Un juego de OrtegaCorp</span><span><button class="linkbtn" id="qrBtn" type="button">Código QR</button> · <button class="linkbtn" id="creditsBtn" type="button">Créditos</button></span></div>
     <a class="poweredby" href="https://www.netlify.com/" target="_blank" rel="noopener">This site is powered by Netlify</a>
   </div>
 </div>
@@ -523,6 +536,17 @@ select.field option{color:#111}
     <ol class="steps" id="instSteps"></ol>
     <p class="note" id="instAlt"></p>
     <div class="actions"><button class="primary" id="instClose" type="button">Entendido</button><button class="ghost" id="instCopy" type="button">Copiar enlace</button></div>
+  </div>
+</div>
+
+<!-- QR code: point another phone's camera at it to open (and then install) the game -->
+<div id="qrSheet" class="sheet" hidden>
+  <div class="card glass qrcard">
+    <div class="eyebrow">Juegue en otro teléfono</div>
+    <h2>Escanee y corra</h2>
+    <div class="qrbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 33 33" shape-rendering="crispEdges" role="img" aria-label="Código QR de peakdrift.netlify.app"><rect x="-2" y="-2" width="33" height="33" fill="#fff"/><path fill="#0b0f14" d="M0 0h7v1h-7zM8 0h1v1h-1zM11 0h1v1h-1zM14 0h1v1h-1zM17 0h2v1h-2zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM10 1h1v1h-1zM18 1h3v1h-3zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM12 2h2v1h-2zM16 2h3v1h-3zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h2v1h-2zM12 3h1v1h-1zM14 3h2v1h-2zM18 3h2v1h-2zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h9v1h-9zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h4v1h-4zM13 5h2v1h-2zM16 5h2v1h-2zM19 5h2v1h-2zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM8 7h5v1h-5zM14 7h4v1h-4zM20 7h1v1h-1zM0 8h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h3v1h-3zM16 8h2v1h-2zM19 8h1v1h-1zM21 8h5v1h-5zM28 8h1v1h-1zM1 9h3v1h-3zM5 9h1v1h-1zM7 9h3v1h-3zM15 9h3v1h-3zM22 9h7v1h-7zM0 10h2v1h-2zM4 10h3v1h-3zM8 10h3v1h-3zM13 10h3v1h-3zM17 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM28 10h1v1h-1zM1 11h2v1h-2zM7 11h1v1h-1zM9 11h1v1h-1zM13 11h1v1h-1zM15 11h1v1h-1zM17 11h2v1h-2zM20 11h6v1h-6zM27 11h2v1h-2zM1 12h1v1h-1zM3 12h1v1h-1zM6 12h1v1h-1zM9 12h1v1h-1zM11 12h3v1h-3zM15 12h7v1h-7zM27 12h1v1h-1zM0 13h1v1h-1zM3 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM11 13h1v1h-1zM13 13h3v1h-3zM17 13h2v1h-2zM21 13h8v1h-8zM0 14h1v1h-1zM2 14h1v1h-1zM4 14h1v1h-1zM6 14h2v1h-2zM10 14h2v1h-2zM15 14h1v1h-1zM18 14h1v1h-1zM21 14h2v1h-2zM25 14h2v1h-2zM28 14h1v1h-1zM0 15h1v1h-1zM4 15h2v1h-2zM8 15h3v1h-3zM14 15h2v1h-2zM17 15h1v1h-1zM19 15h3v1h-3zM23 15h1v1h-1zM27 15h2v1h-2zM1 16h1v1h-1zM4 16h1v1h-1zM6 16h2v1h-2zM10 16h2v1h-2zM13 16h2v1h-2zM17 16h1v1h-1zM20 16h2v1h-2zM27 16h1v1h-1zM0 17h1v1h-1zM3 17h3v1h-3zM15 17h2v1h-2zM18 17h1v1h-1zM22 17h4v1h-4zM27 17h2v1h-2zM2 18h1v1h-1zM5 18h5v1h-5zM12 18h6v1h-6zM21 18h1v1h-1zM26 18h1v1h-1zM28 18h1v1h-1zM2 19h1v1h-1zM4 19h1v1h-1zM8 19h2v1h-2zM13 19h1v1h-1zM15 19h1v1h-1zM17 19h4v1h-4zM22 19h1v1h-1zM27 19h2v1h-2zM0 20h2v1h-2zM4 20h1v1h-1zM6 20h2v1h-2zM9 20h2v1h-2zM12 20h2v1h-2zM17 20h1v1h-1zM20 20h6v1h-6zM28 20h1v1h-1zM8 21h1v1h-1zM10 21h2v1h-2zM13 21h4v1h-4zM19 21h2v1h-2zM24 21h1v1h-1zM28 21h1v1h-1zM0 22h7v1h-7zM8 22h5v1h-5zM15 22h1v1h-1zM17 22h1v1h-1zM19 22h2v1h-2zM22 22h1v1h-1zM24 22h3v1h-3zM28 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM9 23h2v1h-2zM14 23h1v1h-1zM17 23h1v1h-1zM20 23h1v1h-1zM24 23h1v1h-1zM27 23h2v1h-2zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM8 24h2v1h-2zM11 24h1v1h-1zM13 24h5v1h-5zM19 24h7v1h-7zM27 24h1v1h-1zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM9 25h1v1h-1zM12 25h2v1h-2zM15 25h1v1h-1zM19 25h3v1h-3zM28 25h1v1h-1zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM9 26h2v1h-2zM12 26h4v1h-4zM17 26h1v1h-1zM19 26h1v1h-1zM21 26h1v1h-1zM25 26h4v1h-4zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h2v1h-2zM14 27h1v1h-1zM17 27h1v1h-1zM19 27h2v1h-2zM22 27h2v1h-2zM25 27h1v1h-1zM27 27h2v1h-2zM0 28h7v1h-7zM8 28h1v1h-1zM15 28h1v1h-1zM17 28h2v1h-2zM20 28h1v1h-1zM22 28h1v1h-1zM24 28h1v1h-1zM27 28h1v1h-1z"/></svg></div>
+    <p class="note">Abra la cámara del teléfono y apunte al código. Se abre Paso Alpino; ahí puede tocar «Instalar app».</p>
+    <div class="actions"><button class="primary" id="qrClose" type="button">Listo</button><button class="ghost" id="qrShare" type="button">Compartir enlace</button></div>
   </div>
 </div>
 
@@ -695,19 +719,56 @@ const scene=new THREE.Scene();
 scene.fog=new THREE.Fog(new THREE.Color('#eea676'),260,3300);
 const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,7000);
 const sunDir=new THREE.Vector3(-0.55,0.2,-0.8).normalize();
-const skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,fog:false,uniforms:{sunDir:{value:sunDir}},
+// sky colours come from uniforms so the same dome serves sunset, night (with stars) and rain
+const skyU={sunDir:{value:sunDir},zen:{value:new THREE.Color(.16,.27,.48)},hor:{value:new THREE.Color(1,.63,.42)},low:{value:new THREE.Color(.62,.44,.38)},
+  glow:{value:new THREE.Color(1,.62,.32)},disc:{value:6},stars:{value:0}};
+const skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,fog:false,uniforms:skyU,
   vertexShader:`varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-  fragmentShader:`uniform vec3 sunDir;varying vec3 vDir;void main(){vec3 d=normalize(vDir);float h=d.y;
-    vec3 zen=vec3(.16,.27,.48),hor=vec3(1.,.63,.42),low=vec3(.62,.44,.38);vec3 c=mix(hor,zen,pow(clamp(h,0.,1.),.5));
+  fragmentShader:`uniform vec3 sunDir,zen,hor,low,glow;uniform float disc,stars;varying vec3 vDir;void main(){vec3 d=normalize(vDir);float h=d.y;
+    vec3 c=mix(hor,zen,pow(clamp(h,0.,1.),.5));
     if(h<0.)c=mix(hor,low,clamp(-h*5.,0.,1.));float s=max(dot(d,sunDir),0.);
-    c+=vec3(1.,.62,.32)*pow(s,6.)*.55+vec3(1.,.92,.75)*pow(s,700.)*6.;gl_FragColor=vec4(c,1.);}`});
+    c+=glow*pow(s,6.)*.55+vec3(1.,.92,.75)*pow(s,700.)*disc;
+    if(stars>0.){vec3 q=floor(d*300.);float r=fract(sin(dot(q,vec3(12.9898,78.233,37.719)))*43758.5453);c+=vec3(.85,.9,1.)*step(.9972,r)*(.5+fract(r*91.7))*stars*smoothstep(.03,.3,h);}
+    gl_FragColor=vec4(c,1.);}`});
 const sky=new THREE.Mesh(new THREE.SphereGeometry(5500,32,16),skyMat);scene.add(sky);
-{const es=new THREE.Scene();es.add(new THREE.Mesh(new THREE.SphereGeometry(100,32,16),skyMat));const pm=new THREE.PMREMGenerator(renderer);scene.environment=pm.fromScene(es,0.03).texture;pm.dispose();}
+let envTex=null;
+function regenEnv(){const es=new THREE.Scene(),m=new THREE.Mesh(new THREE.SphereGeometry(100,32,16),skyMat);es.add(m);const pm=new THREE.PMREMGenerator(renderer);
+  const t=pm.fromScene(es,0.03).texture;pm.dispose();m.geometry.dispose();scene.environment=t;if(envTex)envTex.dispose();envTex=t;}
+regenEnv();
 const sun=new THREE.DirectionalLight('#ffd3a3',2.7);sun.castShadow=true;
 function applyShadows(){const q=QUAL[quality];sun.castShadow=q.shadows;if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(q.shadow,q.shadow);}
 Object.assign(sun.shadow.camera,{left:-38,right:38,top:38,bottom:-38,near:1,far:400});
 sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.03;applyShadows();scene.add(sun,sun.target);
-scene.add(new THREE.HemisphereLight('#a9bfe0','#5b4b3c',0.45));
+const hemi=new THREE.HemisphereLight('#a9bfe0','#5b4b3c',0.45);scene.add(hemi);
+
+/* ---------- time of day and weather: sunset, night and rain ----------
+   Night turns on the headlights (one spot light that follows the player) and stars; rain brings low cloud, a wet road,
+   falling drops drawn on the GPU, less grip for everyone and the sound of rain. The headlight is switched off entirely
+   at sunset so phones do not pay for it; changing the weather happens in the menu or at the start, never mid-race. */
+const WX={
+  tarde:{name:'Atardecer',zen:[.16,.27,.48],hor:[1,.63,.42],low:[.62,.44,.38],glow:[1,.62,.32],disc:6,stars:0,fog:'#eea676',f0:260,f1:3300,sun:'#ffd3a3',si:2.7,hs:'#a9bfe0',hg:'#5b4b3c',hi:.45,env:1,grip:1,ai:1,rain:0,lights:0,wet:0},
+  noche:{name:'Noche',zen:[.004,.008,.026],hor:[.035,.05,.1],low:[.015,.018,.03],glow:[.22,.28,.45],disc:2.2,stars:1,fog:'#0a0f1c',f0:110,f1:1500,sun:'#9fb3ff',si:.42,hs:'#506090',hg:'#141414',hi:.27,env:.45,grip:1,ai:1,rain:0,lights:1,wet:0},
+  lluvia:{name:'Lluvia',zen:[.3,.33,.37],hor:[.52,.54,.57],low:[.36,.37,.39],glow:[.12,.12,.12],disc:0,stars:0,fog:'#80878f',f0:30,f1:900,sun:'#d5dce4',si:.85,hs:'#b8c2cc',hg:'#454644',hi:.8,env:.8,grip:.82,ai:.92,rain:1,lights:.55,wet:1}};
+let wxKey='tarde',CW=WX.tarde;
+const headL=new THREE.SpotLight('#fff1d6',0,170,.52,.55,1.25);headL.castShadow=false;headL.visible=false;scene.add(headL,headL.target);
+const rainN=700,rainBox=new THREE.Vector3(70,36,70);
+const rain=(()=>{const g=new THREE.BufferGeometry(),base=new Float32Array(rainN*6),off=new Float32Array(rainN*6);
+  for(let i=0;i<rainN;i++){const x=Math.random()*rainBox.x,y=Math.random()*rainBox.y,z=Math.random()*rainBox.z;base.set([x,y,z,x,y,z],i*6);off.set([0,0,0,.06,.8,.02],i*6);}
+  g.setAttribute('position',new THREE.BufferAttribute(base,3));g.setAttribute('off',new THREE.BufferAttribute(off,3));
+  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:false,uniforms:{uT:{value:0},uC:{value:new THREE.Vector3()},uBox:{value:rainBox}},
+    vertexShader:`attribute vec3 off;uniform float uT;uniform vec3 uC,uBox;void main(){vec3 p=position-vec3(uT*1.8,uT*26.,0.);
+      p=mod(p-uC+uBox*.5,uBox)+uC-uBox*.5+off;gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}`,
+    fragmentShader:`void main(){gl_FragColor=vec4(.82,.86,.9,.4);}`});
+  const l=new THREE.LineSegments(g,m);l.frustumCulled=false;l.visible=false;scene.add(l);return l;})();
+let roadMat=null,markMats=[];
+function applyWorldWx(){if(roadMat){roadMat.roughness=CW.wet?.42:.88;roadMat.color.set(CW.wet?'#9aa0a8':'#ffffff');roadMat.envMapIntensity=CW.wet?1.6:1;}
+  for(const m of markMats){m.emissive.set(m.color);m.emissiveIntensity=CW.lights?.22:0;}}
+function applyWeather(k){if(!WX[k])k='tarde';wxKey=k;CW=WX[k];
+  skyU.zen.value.setRGB(...CW.zen);skyU.hor.value.setRGB(...CW.hor);skyU.low.value.setRGB(...CW.low);skyU.glow.value.setRGB(...CW.glow);skyU.disc.value=CW.disc;skyU.stars.value=CW.stars;
+  scene.fog.color.set(CW.fog);scene.fog.near=CW.f0;scene.fog.far=CW.f1;sun.color.set(CW.sun);sun.intensity=CW.si;hemi.color.set(CW.hs);hemi.groundColor.set(CW.hg);hemi.intensity=CW.hi;
+  regenEnv();rain.visible=!!CW.rain;headL.visible=!!CW.lights;applyWorldWx();}
+// which weather a race uses: the daily challenge's, the online host's, or the player's own choice
+const raceWx=()=>daily?daily.wx:net.inRace?(net.raceWx||'tarde'):(cfg.wx||'tarde');
 
 /* ---------- world (rebuilt per track) ---------- */
 const world=new THREE.Group();scene.add(world);
@@ -753,10 +814,10 @@ function buildWorld(def){
   const asphalt=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#3b3d41';g.fillRect(0,0,w,h);
     for(let i=0;i<9000;i++){const v=40+Math.random()*50|0;g.fillStyle=`rgba(${v},${v},${v+3},${.25+Math.random()*.4})`;g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*1.5,1+Math.random()*1.5);}
     g.fillStyle='rgba(20,20,22,.18)';for(let i=0;i<6;i++){g.fillRect(w*.22+Math.random()*8,0,10,h);g.fillRect(w*.72+Math.random()*8,0,10,h);}});
-  ribbon(-HALF,HALF,0.02,0.02,new THREE.MeshStandardMaterial({map:asphalt,roughness:.88,side:THREE.DoubleSide}),{v:0.08});
+  roadMat=new THREE.MeshStandardMaterial({map:asphalt,roughness:.88,side:THREE.DoubleSide});ribbon(-HALF,HALF,0.02,0.02,roadMat,{v:0.08});
   const gravel=new THREE.MeshStandardMaterial({color:'#6e6457',roughness:1,side:THREE.DoubleSide});
   ribbon(HALF,20,0.02,-1.6,gravel);ribbon(-HALF,-20,0.02,-1.6,gravel);
-  const mark=c=>new THREE.MeshStandardMaterial({color:c,roughness:.6,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  markMats=[];const mark=c=>{const m=new THREE.MeshStandardMaterial({color:c,roughness:.6,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});markMats.push(m);return m;};
   const yellow=mark('#f2b632'),white=mark('#e9ecef');
   ribbon(-0.3,-0.12,0.03,0.03,yellow);ribbon(0.12,0.3,0.03,0.03,yellow);
   ribbon(5.9,6.1,0.03,0.03,white,{dash:[3.5,7]});ribbon(-6.1,-5.9,0.03,0.03,white,{dash:[3.5,7]});
@@ -817,7 +878,7 @@ function buildWorld(def){
   {const w=6;for(let i=0;i<N;i++){const a=T[(i-w+N)%N],b=T[(i+w)%N],la=Math.hypot(a.x,a.z),lb=Math.hypot(b.x,b.z);
       const ang=Math.acos(clamp((a.x*b.x+a.z*b.z)/(la*lb),-1,1)),k=ang/(2*w*segLen);VMAX[i]=Math.min(92,(.24+Math.sqrt(.0576+80*Math.max(k,1e-5)))/(2*Math.max(k,1e-5)));}
     for(let pass=0;pass<2;pass++)for(let i=N-1;i>=0;i--){const j=(i+1)%N;VMAX[i]=Math.min(VMAX[i],Math.sqrt(VMAX[j]*VMAX[j]+2*14*segLen));}}
-  sizeMap();
+  applyWorldWx();sizeMap();
 }
 
 /* ---------- cars: Aurora V12 (original design) ---------- */
@@ -1592,7 +1653,7 @@ function ensureAudio(){if(audio){if(audio.ctx.state==='suspended')audio.ctx.resu
 function initSfx(ctx){const out=ctx.createGain();out.gain.value=.9;out.connect(ctx.destination);
   const nb=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   const loop=(type,freq,q)=>{const s=ctx.createBufferSource();s.buffer=nb;s.loop=true;const f=ctx.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q;const g=ctx.createGain();g.gain.value=0;s.connect(f).connect(g).connect(out);s.start();return g;};
-  sfx={ctx,out,nb,skid:loop('bandpass',1150,.9),wind:loop('bandpass',520,.6)};}
+  sfx={ctx,out,nb,skid:loop('bandpass',1150,.9),wind:loop('bandpass',520,.6),rain:loop('highpass',2600,.4)};}
 function beep(f,dur=.12,vol=.18,type='square'){if(!sfx||!soundOn)return;const c=sfx.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(sfx.out);o.start(t);o.stop(t+dur+.02);}
 function whoosh(){if(!sfx||!soundOn)return;const c=sfx.ctx,t=c.currentTime,s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=sfx.nb;f.type='bandpass';f.Q.value=1.2;
@@ -1701,7 +1762,7 @@ function stepPlayer(dt){
   if(mode==='done')v=Math.max(0,v-9*dt);
   if(!throttle&&!brakeIn&&!boosting){const f=(1.1+.00028*v*v)*dt;v=Math.abs(v)<=f?0:v-Math.sign(v)*f;}else v-=Math.sign(v)*.00016*v*v*dt;
   // steering is limited by tyre grip, so fast corners need a lift, a brake or a drift
-  const grip=(state.drift?sp.dgrip:sp.grip)+sp.gripV*Math.abs(v);
+  const grip=((state.drift?sp.dgrip:sp.grip)+sp.gripV*Math.abs(v))*CW.grip;
   let yr=-state.steer*(sp.steer/(1+Math.abs(v)/30))*v/2.6;const cap=grip/Math.max(Math.abs(v),4);yr=clamp(yr,-cap,cap);
   if(state.drift)yr-=state.driftDir*.22*Math.min(1,v/30);
   state.yaw+=yr*dt;state.yr=yr;
@@ -1728,10 +1789,10 @@ function stepPlayer(dt){
 
 /* ---------- rivals ---------- */
 function stepRivals(dt){
-  if(mode!=='race'&&mode!=='done')return;const d=duel?{nitro:true}:DIFFS[cfg.diff],all=[me,...active];
+  if(mode!=='race'&&mode!=='done')return;const d=duel?{nitro:true}:DIFFS[DK()],all=[me,...active];
   for(const r of active){
     const m=((r.s%trackLen)+trackLen)%trackLen,i=Math.floor(m/segLen)%N,look=(i+Math.round(Math.max(10,r.v*.7)/segLen))%N;
-    const rs=r.spec||SPECS.aurora;let tv=Math.min(VMAX[i],VMAX[look]*1.03)*r.skill*rs.ai;
+    const rs=r.spec||SPECS.aurora;let tv=Math.min(VMAX[i],VMAX[look]*1.03)*r.skill*rs.ai*CW.ai;
     if(mode==='race'&&!state.finished){const gap=r.s-state.s;tv*=gap>140?.94:gap<-140?1.07:1;}
     if(r.finished)tv=Math.min(tv,32);
     let blk=null;for(const o of all){if(o===r)continue;const ds=o.s-r.s;if(ds>0&&ds<15&&Math.abs(o.lat-r.lat)<2.4&&(!blk||ds<blk.ds))blk={o,ds};}
@@ -1798,13 +1859,13 @@ function finishRace(rec){
   mode='done';state.finished=true;state.order=++finishCount;endDrift();state.boostT=0;setLapHUD();
   const id=raceDef.id,ol=net.inRace,ops=opponents(),place=ops.length?standings().indexOf(me)+1:0;
   let stars=0,unlocked=[];
-  if(!ol&&active.length&&!duel){stars=place===1?3:place<=3?2:1;const before=totalStars(),key=id+'|'+cfg.diff;if(stars>(+starMap[key]||0)){starMap[key]=stars;store.set('paso-alpino-estrellas',starMap);}
+  if(!ol&&active.length&&!duel&&!daily){stars=place===1?3:place<=3?2:1;const before=totalStars(),key=id+'|'+cfg.diff;if(stars>(+starMap[key]||0)){starMap[key]=stars;store.set('paso-alpino-estrellas',starMap);}
     const after=totalStars();unlocked=COLORS.filter(c=>c.stars>before&&c.stars<=after);}
   let duelWon=false;if(duel&&place===1&&!garage.owned.includes(duel.car)){garage.owned.push(duel.car);saveGarage();duelWon=true;}
-  $('resTrack').textContent=raceDef.name+' · '+raceLaps+(raceLaps===1?' vuelta':' vueltas')+' · '+(ol?'En línea · '+(roomTitle()||'sala '+net.code):DIFFS[cfg.diff].name);
+  $('resTrack').textContent=raceDef.name+' · '+raceLaps+(raceLaps===1?' vuelta':' vueltas')+' · '+(ol?'En línea · '+(roomTitle()||'sala '+net.code):DIFFS[DK()].name)+(wxKey!=='tarde'?' · '+CW.name:'');
   $('resTitle').textContent=duel?(place===1?'¡Ganó el '+carById(duel.car).name+'!':duel.boss+' ganó el duelo'):!ops.length?'¡Carrera terminada!':place===1?'¡Ganó la carrera!':place<=3?'¡Podio! '+ord(place)+' lugar':'Llegó en '+ord(place)+' lugar';
   if(duel)$('resTrack').textContent='Duelo contra '+duel.boss+' · '+raceDef.name+' · 2 vueltas';
-  const st=$('resStars');st.hidden=ol||!active.length||!!duel;st.textContent='';for(let k=0;k<3;k++){const s=document.createElement('span');s.textContent='★';if(k<stars){s.className='on';s.style.animationDelay=(.5+k*.25)+'s';}st.appendChild(s);}
+  const st=$('resStars');st.hidden=ol||!active.length||!!duel||!!daily;st.textContent='';for(let k=0;k<3;k++){const s=document.createElement('span');s.textContent='★';if(k<stars){s.className='on';s.style.animationDelay=(.5+k*.25)+'s';}st.appendChild(s);}
   const best=Math.min(...lap.list);$('resTotal').textContent=fmt(lap.total);$('resBest').textContent=fmt(best);
   renderStandings();
   const box=$('resLaps');box.textContent='';lap.list.forEach((t,k)=>{const d=document.createElement('div');if(t===best)d.className='best';
@@ -1814,7 +1875,12 @@ function finishRace(rec){
   else if(unlocked.length)note+='¡Desbloqueó el color «'+unlocked.map(c=>c.n).join('», «')+'»!';
   else if(active.length){const nx=COLORS.find(c=>c.stars>totalStars());if(nx)note+='Le faltan '+(nx.stars-totalStars())+' ★ para el color «'+nx.n+'».';}
   if(duel)note=place===1?(duelWon?'El '+carById(duel.car).name+' ya está en su garaje. ':'')+'¡Excelente manejo!':'Inténtelo otra vez: use el rebufo detrás de '+duel.boss+' y guarde un nitro para la recta final.';
-  $('resRecord').textContent=note;showCredits(raceCredits(place,ops.length,ol,rec));
+  if(daily){const ok=place>0&&place<=daily.need,first=ok&&dailyRec.done!==daily.day;
+    if(first){dailyRec.streak=dailyRec.last===dayBefore(daily.day)?(dailyRec.streak||0)+1:1;dailyRec.last=dailyRec.done=daily.day;store.set('paso-alpino-diario',dailyRec);dailyPay=dailyPrize(dailyRec.streak);}
+    $('resTitle').textContent=ok?(first?'¡Reto del día cumplido!':'¡Cumplido otra vez!'):daily.need===1?'Le faltó ganar el reto':'Le faltó el podio';
+    $('resTrack').textContent='Reto del día · '+raceDef.name+' · '+CW.name+' · '+carModel.name;
+    note=ok?(first?(dailyRec.streak>1?'Racha de '+dailyRec.streak+' días seguidos. ':'')+'Mañana hay otro reto: si vuelve, el premio sube.':'El premio del reto ya lo cobró hoy. Mañana hay otro.'):'Inténtelo otra vez: '+(daily.need===1?'necesita llegar de 1.º':'necesita quedar entre los 3 primeros')+'.';}
+  $('resRecord').textContent=note;showCredits(raceCredits(place,ops.length,ol,rec));dailyPay=0;
   $('resAgain').hidden=$('resNext').hidden=$('resMenu').hidden=ol;if(duel)$('resNext').hidden=true;$('resLobby').hidden=!ol;$('resTableSec').hidden=!ol||!renderTable($('resTable'));
   viralAfterFinish();
   const c=$('count');c.hidden=false;c.className='go';c.textContent=place===1?'¡GANÓ!':'META';
@@ -1849,19 +1915,20 @@ function updateCamera(dt){
   sky.position.copy(camera.position);}
 
 /* ---------- loop ---------- */
-const clock=new THREE.Clock();const perf={t:0,n:0,good:0};
+const clock=new THREE.Clock();const perf={t:0,n:0,good:0,low:0};let frameN=0,perfAuto=0;// perfAuto: shadows switched off because the phone could not keep up
 function showStartTip(){if(tips.drift)return;tips.drift=1;store.set('paso-alpino-consejos',tips);
   toast(coarse?'Consejo: mantenga FRENO mientras gira a buena velocidad para derrapar. El derrape carga el NITRO.':'Consejo: frene (↓) mientras gira a buena velocidad para derrapar. El derrape carga el nitro (Espacio).',6000);}
 function frame(){
   const realDt=Math.min(clock.getDelta(),.25),dt=realDt;
   perf.t+=realDt;perf.n++;if(perf.t>=1.5){const fps=perf.n/perf.t;perf.t=0;perf.n=0;
-    if(fps<27&&dyn>.55){dyn=Math.max(.55,dyn-.15);applyPR();resize();}else if(fps>56&&dyn<1){perf.good++;if(perf.good>2){dyn=Math.min(1,dyn+.1);applyPR();resize();perf.good=0;}}else perf.good=0;}
+    if(fps<27&&dyn>.55){dyn=Math.max(.55,dyn-.15);applyPR();resize();}
+    else if(fps<24&&mode==='race'&&sun.castShadow&&!perfAuto){if(++perf.low>=2){perfAuto=1;sun.castShadow=false;}}else if(fps>56&&dyn<1){perf.good++;if(perf.good>2){dyn=Math.min(1,dyn+.1);applyPR();resize();perf.good=0;}}else perf.good=0;}
   if(N){
     if(mode==='count'){countT-=dt;const c=$('count'),n=Math.ceil(countT);
       if(countT>0){if(n!==lastCount){lastCount=n;c.className='';c.textContent=n;beep(520,.14,.16);}}
-      else{mode='race';goT=.8;c.className='go';c.textContent='¡YA!';beep(1040,.35,.2);showStartTip();}}
+      else{mode='race';goT=.8;c.className='go';c.textContent='¡YA!';beep(1040,.35,.2);}}
     if(mode==='count'&&countT>2.5)rotateTip();
-    if(goT>0){goT-=dt;if(goT<=0&&mode==='race')$('count').hidden=true;}
+    if(goT>0){goT-=dt;if(goT<=0&&mode==='race'){$('count').hidden=true;showStartTip();}}// the tip waits until «¡YA!» is gone so both never overlap
     if(mode==='race'||mode==='done')raceClock+=dt;
     const sub=Math.max(1,Math.ceil(realDt/.033)),h=realDt/sub;let out={throttle:0,brakeLight:false};
     if(!paused)for(let k=0;k<sub;k++){out=stepPlayer(h);stepRivals(h);collide();raceEvents(h);}
@@ -1888,6 +1955,9 @@ function frame(){
     updateSmoke(dt);
     sun.position.set(state.x,state.y,state.z).addScaledVector(sunDir,160);sun.target.position.set(state.x,state.y,state.z);
     updateCamera(dt);
+    if(CW.lights){const yw=state.yaw+state.ang*.5,fx=Math.sin(yw),fz=Math.cos(yw);headL.position.set(state.x+fx*1.7,state.y+.9,state.z+fz*1.7);
+      headL.target.position.set(state.x+fx*42,state.y-2,state.z+fz*42);headL.intensity=CW.lights*(gOpen?0:420);}else if(headL.intensity)headL.intensity=0;
+    if(rain.visible){const u=rain.material.uniforms;u.uT.value=clock.elapsedTime%600;u.uC.value.copy(camera.position);}
     // HUD
     const kmh=state.v*3.6,gi=gearInfo(kmh);
     $('speed').textContent=Math.round(Math.abs(kmh));const gEl=$('gear');gEl.textContent=gi.g;gEl.classList.toggle('r',gi.g==='R');
@@ -1900,7 +1970,7 @@ function frame(){
       if(posFlashT>0){posFlashT-=dt;if(posFlashT<=0)pe.className='';}}
     alertT-=dt;const al=$('alert');if(alertT>0&&mode==='race'){if(al.textContent!==alertMsg)al.textContent=alertMsg;al.classList.add('show');}else al.classList.remove('show');
     {const o=mode==='race'?(boosting?.6:state.draft?.2:0):0,fx=$('speedfx');fx.style.opacity=o;fx.classList.toggle('on',o>0);}
-    drawMap();
+    if(!coarse||frameN&1)drawMap();
     if(audio){if(voiceDirty)engineVoice();const V=VOICES[spec.voice]||VOICES.v12,t=audio.ctx.currentTime;let f,f2,cut;
       if(V.ev){const k=clamp(Math.abs(state.v)/spec.top,0,1.25);f=130+k*2200;f2=f*V.m2;cut=4200;}
       else{const rpm=gi.g==='N'?(out.throttle?V.idle*2.9:V.idle*.82):V.idle+gi.f*V.span;f=rpm/60*V.mul;f2=f*V.m2;cut=V.lp+rpm*V.lpk+out.throttle*500+(boosting?900:0);
@@ -1909,9 +1979,12 @@ function frame(){
       audio.lfoG.gain.setTargetAtTime(V.am*.45,t,.1);
       audio.whG.gain.setTargetAtTime(soundOn&&mode==='race'&&V.wh?V.wh*.014*out.throttle*clamp(Math.abs(state.v)/40,0,1):0,t,.12);audio.wh.frequency.setTargetAtTime(1700+Math.abs(state.v)*32,t,.1);
       audio.g.gain.setTargetAtTime(soundOn&&mode!=='menu'?(V.ev?.026:.035)+out.throttle*(V.ev?.035:.045)+(boosting?.03:0):0,t,.1);
-      if(sfx){sfx.skid.gain.setTargetAtTime(soundOn&&mode!=='menu'?(state.drift?.16:smoking?.08:0):0,t,.06);sfx.wind.gain.setTargetAtTime(soundOn&&boosting?.14:0,t,.15);}
+      if(sfx){sfx.skid.gain.setTargetAtTime(soundOn&&mode!=='menu'?(state.drift?.16:smoking?.08:0):0,t,.06);sfx.wind.gain.setTargetAtTime(soundOn&&boosting?.14:0,t,.15);sfx.rain.gain.setTargetAtTime(soundOn&&CW.rain?(mode==='race'?.07:.045):0,t,.4);}
       if(music)music.out.gain.setTargetAtTime(musicOn?(mode==='menu'?.32:.42)*(hasVoice()?.4:1):0,t,.25);}
   }
+  frameN++;
+  // in the menu the scene is only a backdrop: drawing every other frame saves battery
+  if(mode==='menu'&&!gOpen&&frameN&1){requestAnimationFrame(frame);return;}
   renderer.render(scene,camera);requestAnimationFrame(frame);}
 function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();smokeMat.uniforms.uPR.value=renderer.getPixelRatio();sizeMap();}
 addEventListener('resize',resize);
@@ -1958,7 +2031,7 @@ function renderSwatches(){const box=$('swatches');box.textContent='';const ts=to
     b.addEventListener('click',()=>{if(locked){toast('Consiga '+col.stars+' estrellas en total para desbloquear «'+col.n+'». Lleva '+ts+'.');return;}cfg.carPaint[carModel.id]=i;applyPaint();saveCfg();renderSwatches();});box.appendChild(b);});
   $('colorName').textContent=cur>=0?COLORS[cur].n:'Color original';}
 function renderQuality(){segControl('qSeg',Object.entries(QUAL).map(([k,q])=>[k,q.name]),quality,k=>{quality=k;cfg.quality=k;dyn=1;applyPR();applyShadows();resize();saveCfg();renderQuality();});}
-function renderMenu(){renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();renderCarPick();}
+function renderMenu(){renderDaily();renderWx();renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();renderCarPick();}
 /* ---------- garage: credits, buying cars and duels ----------
    Every race pays credits (place, difficulty and length, plus drifts, overtakes, clean laps and records).
    Three cars are bought with credits; the other three are won by beating a track's boss in a one-on-one duel. */
@@ -1990,8 +2063,8 @@ $('gEarn').innerHTML='<span>'+ICO.flag+'1.º <b>+300</b></span><span>'+ICO.drift
 $('gEarn').title='Créditos que paga cada carrera';
 function renderCarPick(){$('garageNew').hidden=!CARS.some(m=>!garage.owned.includes(m.id)&&(CARINFO[m.id].price?garage.cred>=CARINFO[m.id].price:duelReady(m.id)));$('carName').textContent=carById(cfg.car).name;$('carKind').textContent=carById(cfg.car).kind+' · '+SPECS[cfg.car].box;$('credMenu').textContent=credTxt(garage.cred);}
 let gIdx=0,gOpen=false;
-function openGarage(){gOpen=true;document.body.classList.add('ingarage');gIdx=Math.max(0,CARS.findIndex(m=>m.id===cfg.car));$('intro').hidden=true;$('garage').hidden=false;camMode=2;renderGarage();garageFrame();$('gAct').focus();}
-function closeGarage(){gOpen=false;document.body.classList.remove('ingarage');$('garage').hidden=true;camera.clearViewOffset();camera.updateProjectionMatrix();setPlayerCar(cfg.car);$('intro').hidden=false;renderMenu();$('garageBtn').focus();}
+function openGarage(){if(daily){endDaily();dropPause();}if(wxKey!=='tarde')applyWeather('tarde');gOpen=true;document.body.classList.add('ingarage');gIdx=Math.max(0,CARS.findIndex(m=>m.id===cfg.car));$('intro').hidden=true;$('garage').hidden=false;camMode=2;renderGarage();garageFrame();$('gAct').focus();}
+function closeGarage(){gOpen=false;document.body.classList.remove('ingarage');$('garage').hidden=true;camera.clearViewOffset();camera.updateProjectionMatrix();setPlayerCar(cfg.car);if(wxKey!==(cfg.wx||'tarde'))applyWeather(cfg.wx||'tarde');$('intro').hidden=false;renderMenu();$('garageBtn').focus();}
 function renderGarage(){const M=CARS[gIdx],I=CARINFO[M.id],own=garage.owned.includes(M.id);setPlayerCar(M.id);
   $('gName').textContent=M.name;$('gKind').textContent=M.kind+' · '+SPECS[M.id].box;$('gCred').textContent=credTxt(garage.cred);$('gTrait').textContent=I.t;
   const ul=$('gStats');ul.textContent='';STAT_NAMES.forEach((n,k)=>{const li=document.createElement('li'),a=document.createElement('span'),bar=document.createElement('span'),i=document.createElement('i'),b=document.createElement('b');
@@ -2031,12 +2104,13 @@ let rs={drift:0,passes:0,clean:0,hit:false,rec:false};
 const PAY=[300,220,170,130,110,90];
 function raceCredits(place,ops,ol,rec){const items=[];
   const custom=raceDef&&!isPreset(raceDef.id)&&!duel?.4:1,lm=Math.pow(raceLaps/3,.8);
-  let base;if(duel)base=place===1?250:60;else if(ol)base=place===1?160:place===2?120:place===3?100:80;else if(ops)base=(PAY[place-1]||80)*({facil:.7,normal:1,dificil:1.5}[cfg.diff]||1);else base=60;
-  base=Math.round(base*(duel?1:lm)*custom);items.push([duel?(place===1?'Duelo ganado':'Duelo'):ol?'Carrera en línea · '+ord(place):ops?ord(place)+' lugar · '+DIFFS[cfg.diff].name:'Contrarreloj',base]);
+  let base;if(duel)base=place===1?250:60;else if(ol)base=place===1?160:place===2?120:place===3?100:80;else if(ops)base=(PAY[place-1]||80)*({facil:.7,normal:1,dificil:1.5}[DK()]||1);else base=60;
+  base=Math.round(base*(duel?1:lm)*custom);items.push([duel?(place===1?'Duelo ganado':'Duelo'):ol?'Carrera en línea · '+ord(place):ops?ord(place)+' lugar · '+DIFFS[DK()].name:'Contrarreloj',base]);
   const dr=Math.min(200,Math.round(rs.drift*4*custom));if(dr>0)items.push(['Derrapes ('+Math.round(rs.drift)+' s)',dr]);
   const ps=Math.min(150,Math.round(rs.passes*10*custom));if(ps>0)items.push(['Adelantamientos ('+rs.passes+')',ps]);
   const cl=Math.round(rs.clean*25*custom);if(cl>0)items.push(['Vueltas sin chocar ('+rs.clean+')',cl]);
   if(rs.rec||rec)items.push(['Récord de vuelta',Math.round(50*custom)]);
+  if(dailyPay)items.push(['Reto del día'+(dailyRec.streak>1?' · racha de '+dailyRec.streak+' días':''),dailyPay]);
   return items;}
 function nextGoal(){const buy=CARS.filter(m=>!garage.owned.includes(m.id)&&CARINFO[m.id].price).sort((a,b)=>CARINFO[a.id].price-CARINFO[b.id].price)[0];
   if(buy){const p=CARINFO[buy.id].price;return garage.cred>=p?'¡Ya le alcanza para el '+buy.name+'! Cómprelo en el Garaje.':'Le faltan '+credTxt(p-garage.cred)+' para el '+buy.name+'.';}
@@ -2046,6 +2120,32 @@ function showCredits(items){const total=items.reduce((a,x)=>a+x[1],0);garage.cre
   const ul=$('resCredList');ul.textContent='';for(const[n,v]of items){const li=document.createElement('li'),a=document.createElement('span'),b=document.createElement('b');a.textContent=n;b.textContent='+'+nf(v);li.append(a,b);ul.appendChild(li);}
   const el=$('resCredN'),t0=performance.now();el.textContent='+0';const step=()=>{const k=Math.min(1,(performance.now()-t0)/1100);el.textContent='+'+nf(total*k*(2-k));if(k<1)requestAnimationFrame(step);};setTimeout(()=>requestAnimationFrame(step),1800);
   $('resCredTotal').textContent='Total: '+credTxt(garage.cred);$('resCredNext').textContent=nextGoal();$('resCred').hidden=false;}
+
+// daily challenge: the same track, weather, car and goal for everyone on a given day (Costa Rica date).
+// The car of the day can be one the player does not own yet, so they get to try it. Paying once a day, more on a streak.
+const hoyCR=()=>new Date().toLocaleDateString('en-CA',{timeZone:'America/Costa_Rica'});
+const dayBefore=d=>{const t=new Date(d+'T12:00:00Z');t.setUTCDate(t.getUTCDate()-1);return t.toISOString().slice(0,10);};
+let dailyRec=store.get('paso-alpino-diario',{});if(!dailyRec||typeof dailyRec!=='object')dailyRec={};
+let daily=null,dailyPay=0;
+const DK=()=>daily?daily.diff:cfg.diff;
+const dailyPrize=st=>300+50*Math.min(Math.max(0,(st||1)-1),6);
+const WXIN={tarde:'al atardecer',noche:'de noche',lluvia:'bajo la lluvia'};
+function dailyToday(){const day=hoyCR(),n=+day.replace(/-/g,''),r=k=>hash(n,k*7919+13);
+  const goal=[{diff:'normal',need:1,verb:'Gane'},{diff:'dificil',need:3,verb:'Llegue al podio'}][Math.floor(r(4)*2)];
+  return{day,track:PRESETS[Math.floor(r(1)*PRESETS.length)].id,wx:['noche','lluvia','tarde','noche','lluvia'][Math.floor(r(2)*5)],car:CARS[Math.floor(r(3)*CARS.length)].id,...goal};}
+function renderDaily(){const box=$('dailyBox'),d=dailyToday(),done=dailyRec.done===d.day,M=carById(d.car),own=garage.owned.includes(d.car);
+  const live=dailyRec.last===d.day||dailyRec.last===dayBefore(d.day)?(dailyRec.streak||0):0;
+  box.hidden=false;box.classList.toggle('done',done);
+  $('dailyTxt').textContent=done?'¡Listo por hoy! Mañana hay otro reto.':d.verb+' en '+PRESETS.find(t=>t.id===d.track).name+', '+WXIN[d.wx]+', con el '+M.name+(own?'.':' (pruébelo gratis).');
+  $('dPrize').textContent=done?'':'Premio: '+credTxt(dailyPrize(live+1))+(live?' · siga la racha':'');$('dPrize').hidden=done;
+  const sk=$('dStreak');sk.hidden=!live;sk.textContent=live+(live===1?' día':' días');
+  const b=$('dailyGo');b.textContent=done?'Repetir':'Jugar';b.className=done?'ghost':'primary';}
+function startDaily(){daily=dailyToday();const def=PRESETS.find(t=>t.id===daily.track);net.inRace=false;
+  setPlayerCar(daily.car);startRaceWith(def,{laps:2,daily:true});}
+function endDaily(){if(!daily)return;daily=null;if(carModel.id!==cfg.car)setPlayerCar(cfg.car);}
+$('dailyGo').addEventListener('click',startDaily);
+function renderWx(){const k=WX[cfg.wx]?cfg.wx:'tarde';segControl('wxSeg',Object.entries(WX).map(([id,w])=>[id,w.name]),k,v=>{cfg.wx=v;saveCfg();renderWx();if(mode==='menu'&&!paused)applyWeather(v);});
+  $('wxNote').hidden=k!=='lluvia';}
 
 // duels: one boss, two laps, on the boss's home track
 let duel=null;
@@ -2061,10 +2161,10 @@ function dropPause(){if(paused){paused=null;updateResume();}}
 function resumeRace(){if(!paused)return;$('intro').hidden=true;mode=paused.mode;countT=paused.countT;paused=null;updateResume();
   active.forEach(r=>r.car.root.visible=true);camMode=0;camInit=false;$('camName').textContent=camNames[0];if(mode==='count')$('count').hidden=false;}
 $('resume').addEventListener('click',resumeRace);
-function openMenu(){paused=(mode==='race'||mode==='count')?{mode,countT}:null;mode='menu';$('count').hidden=true;$('results').hidden=true;$('intro').hidden=false;camMode=2;$('camName').textContent=camNames[2];
+function openMenu(){paused=(mode==='race'||mode==='count')?{mode,countT}:null;if(!paused){endDaily();if(wxKey!==(cfg.wx||'tarde'))applyWeather(cfg.wx||'tarde');}mode='menu';$('count').hidden=true;$('results').hidden=true;$('intro').hidden=false;camMode=2;$('camName').textContent=camNames[2];
   state.boostT=0;state.drift=false;rivals.forEach(r=>r.car.root.visible=false);if(boss.car)boss.car.root.visible=false;renderMenu();updateResume();(paused?$('resume'):$('go')).focus();}
 function setupGrid(opt={}){
-  const d=duel?{n:1,skill:[duel.skill,duel.skill+.01]}:DIFFS[cfg.diff];rivals.forEach(r=>{r.car.root.visible=false;});if(boss.car)boss.car.root.visible=false;
+  const d=duel?{n:1,skill:[duel.skill,duel.skill+.01]}:DIFFS[DK()];rivals.forEach(r=>{r.car.root.visible=false;});if(boss.car)boss.car.root.visible=false;
   active=opt.online?[]:duel?[boss]:rivals.slice(0,d.n);
   if(!duel&&!opt.online){const ids=CARS.map(m=>m.id).sort(()=>Math.random()-.5);active.forEach((r,k)=>setCarModel(r,ids[k%ids.length]));}
   const rowGap=Math.max(1,Math.round(9/segLen)),slotIdx=j=>((N-12-Math.floor(j/2)*rowGap)%N+N)%N,slotLat=j=>j%2?4.2:-4.2;
@@ -2075,19 +2175,19 @@ function setupGrid(opt={}){
   active.forEach((r,k)=>{const j=free[k],i=slotIdx(j);r.s=i*segLen-trackLen;r.lat=r.latT=slotLat(j);r.prefLat=(Math.random()*2-1)*6;r.v=0;r.latV=0;
     r.skill=lerp(d.skill[0],d.skill[1],Math.random());r.nitroT=0;r.passT=0;r.finished=false;r.order=0;r.braking=false;r.ahead=r.s>state.s;r.car.root.visible=true;placeRival(r,0);});
   $('lap').classList.toggle('solo',!active.length&&!opt.online);lastPos=0;$('pos').className='';}
-function startRace(){net.inRace=false;if(duel){startDuel(duel.car);return;}startRaceWith(allTracks().find(t=>t.id===cfg.track)||PRESETS[0],{laps:cfg.laps});}
+function startRace(){net.inRace=false;if(duel){startDuel(duel.car);return;}if(daily){startDaily();return;}startRaceWith(allTracks().find(t=>t.id===cfg.track)||PRESETS[0],{laps:cfg.laps});}
 function startRaceWith(def,opt){
   paused=null;updateResume();raceLaps=opt.laps;
   $('intro').hidden=true;$('results').hidden=true;$('online').hidden=true;const c=$('count');
-  if(!opt.duel)duel=null;$('resCred').hidden=true;
-  const begin=()=>{raceDef=def;setupGrid(opt);lap={n:1,t:0,total:0,list:[],done:-1};rs={drift:0,passes:0,clean:0,hit:false,rec:false};bestLap=store.get(bestKey(def.id),null);raceClock=0;finishCount=0;
+  if(!opt.duel)duel=null;if(!opt.daily)endDaily();$('resCred').hidden=true;
+  const begin=()=>{if(wxKey!==raceWx())applyWeather(raceWx());raceDef=def;setupGrid(opt);lap={n:1,t:0,total:0,list:[],done:-1};rs={drift:0,passes:0,clean:0,hit:false,rec:false};bestLap=store.get(bestKey(def.id),null);raceClock=0;finishCount=0;
     setLapHUD();camMode=0;camInit=false;$('camName').textContent=camNames[0];mode='count';countT=3;lastCount=0;c.hidden=false;c.className='';ensureAudio();};
   if(builtId!==def.id+'|'+quality){c.hidden=false;c.className='small';c.textContent='CARGANDO PISTA…';mode='menu';
     setTimeout(()=>{buildWorld(def);begin();},40);}else begin();}
 $('go').addEventListener('click',startRace);
 $('resAgain').addEventListener('click',startRace);
-$('resNext').addEventListener('click',()=>{const list=allTracks(),i=list.findIndex(t=>t.id===cfg.track);cfg.track=list[(i+1)%list.length].id;saveCfg();startRace();});
-$('resMenu').addEventListener('click',()=>{duel=null;openMenu();});
+$('resNext').addEventListener('click',()=>{endDaily();const list=allTracks(),i=list.findIndex(t=>t.id===cfg.track);cfg.track=list[(i+1)%list.length].id;saveCfg();startRace();});
+$('resMenu').addEventListener('click',()=>{duel=null;endDaily();openMenu();});
 
 /* ---------- track editor ---------- */
 const ed={pts:[],drag:-1,W:2400};const edc=$('edCanvas'),eg=edc.getContext('2d');
@@ -2273,7 +2373,7 @@ function myPresence(){
   const p={ver:1,n:cleanName(cfg.name)||'Piloto',c:myColor(),k:carModel.id,rid:racing?net.rid:0,
     s:racing?Math.round(state.s*10)/10:0,l:Math.round(state.lat*100)/100,v:Math.round(state.v*10)/10,a:Math.round(state.ang*100)/100,
     b:state.boostT>0?1:0,fin:racing&&state.finished?Math.round(lap.total*1000)/1000:null,lap:racing?Math.min(lap.n,raceLaps):0,m:voice.on?1:0};
-  if(net.host)Object.assign(p,{hv:1,ph:net.ph,hr:net.hr,trk:net.trk,laps:net.laps,slots:net.slots,rt:racing?Math.round(raceClock):0,rn:net.roomName,tb:net.tb,eq:net.eq?1:0});
+  if(net.host)Object.assign(p,{hv:1,ph:net.ph,hr:net.hr,trk:net.trk,laps:net.laps,slots:net.slots,rt:racing?Math.round(raceClock):0,rn:net.roomName,tb:net.tb,eq:net.eq?1:0,wx:net.wx||'tarde'});
   return p;}
 function netTick(){
   if(!net.tr)return;
@@ -2306,8 +2406,8 @@ function hostStart(){
   const ids=net.tr.list().map(x=>x).sort((a,b)=>(b.me?1:0)-(a.me?1:0)).map(x=>x.id).slice(0,NET_MAX);
   const slots={};ids.forEach((id,k)=>slots[id]=k);
   hostScore();hostCommit();
-  Object.assign(net,{ph:'race',hr:((Date.now()%1e9)+Math.floor(Math.random()*1000))|0,trk:trackForNet(def),laps:cfg.laps,slots});netTick();}
-function startOnlineRace(h){net.eqCars=h.eq===1;
+  Object.assign(net,{ph:'race',hr:((Date.now()%1e9)+Math.floor(Math.random()*1000))|0,trk:trackForNet(def),laps:cfg.laps,slots,wx:WX[cfg.wx]?cfg.wx:'tarde'});netTick();}
+function startOnlineRace(h){net.eqCars=h.eq===1;net.raceWx=typeof h.wx==='string'&&WX[h.wx]?h.wx:'tarde';
   const def=trackFromNet(h.trk);if(!def){olStatus('No se pudo cargar la pista del anfitrión.',true);return;}
   const meE=net.list.find(x=>x.me),slot=meE&&h.slots&&isNum(h.slots[meE.id])?clamp(Math.round(h.slots[meE.id]),0,5):-1;
   if(slot<0){olStatus('La carrera empezó sin usted (sala llena o llegó tarde). Entrará en la próxima.',true);return;}
@@ -2513,7 +2613,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261017-043508';
+const BUILD='20261017-134905';
 const GOAT='pasoalpino';   // GoatCounter code of the owner's account (the part before .goatcounter.com); empty = off
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
@@ -2534,12 +2634,15 @@ if(hosted){
   // Each visit counts as a page view; opening from the home-screen icon and installing also count as events.
   if(GOAT){window.goatcounter={no_onload:true};const gs=document.createElement('script');gs.async=true;gs.src='https://gc.zgo.at/count.js';gs.dataset.goatcounter='https://'+GOAT+'.goatcounter.com/count';
     gs.onload=()=>{const gc=window.goatcounter;if(!gc||!gc.count)return;gc.count({path:asApp?'/app':'/'});
+      const de=(new URLSearchParams(location.search).get('de')||'').toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,20);if(de)gc.count({path:'de-'+de,title:'Llegó desde: '+de,event:true});
       if(asApp&&!store.get('paso-alpino-gc-inst',false)){gc.count({path:'instalacion',title:'Instalación',event:true});store.set('paso-alpino-gc-inst',true);}};
     document.head.appendChild(gs);}
   setTimeout(ping,1500);setInterval(ping,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)ping();});
   if(BUILD!=='__'+'BUILD__'){
-    const check=()=>fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.v&&d.v!==BUILD)updReady=true;}).catch(()=>{});
-    setTimeout(check,8000);setInterval(check,60000);
+    // asks every 3 minutes and only while the game is on screen (fewer requests to the site); once a new version is found it stops asking
+    let lastCheck=0;const check=()=>{if(updReady||document.hidden||Date.now()-lastCheck<60000)return;lastCheck=Date.now();
+      fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.v&&d.v!==BUILD)updReady=true;}).catch(()=>{});};
+    setTimeout(check,8000);setInterval(check,180000);document.addEventListener('visibilitychange',check);
     setInterval(()=>{$('upd').hidden=!(updReady&&mode!=='race'&&mode!=='count');},1500);}
 }
 $('updBtn').addEventListener('click',()=>location.reload());
@@ -2618,7 +2721,7 @@ function rkRender(d,myPos){const ol=$('rkList');ol.textContent='';(d.top||[]).fo
     b.append(dot,document.createTextNode(cleanName(e.n)||'Piloto'));if(typeof e.a==='string'&&CARS.some(m=>m.id===e.a)){const sm=document.createElement('small');sm.className='rkcar';sm.textContent=' · '+carById(e.a).name;b.appendChild(sm);}
     const c=document.createElement('span');c.textContent=fmt((+e.t||0)/1000);li.append(a,b,c);ol.appendChild(li);});}
 async function rkAfterRace(){
-  $('rkSec').hidden=true;lastRank=null;if(!hosted||!vid||!raceDef||!isPreset(raceDef.id))return;
+  $('rkSec').hidden=true;lastRank=null;if(!hosted||!vid||!raceDef||!isPreset(raceDef.id)||wxKey==='lluvia')return;
   $('rkTitle').textContent=raceDef.name+' · '+lapsTxt(raceLaps);
   try{const r=await fetch('/api/ranking',{method:'POST',headers:{'content-type':'application/json'},
       body:JSON.stringify({pista:raceDef.id,vueltas:raceLaps,t:Math.round(lap.total*1000),n:cleanName(cfg.name)||'Piloto',c:myColor(),a:carModel.id,id:vid})});
@@ -2648,7 +2751,7 @@ function goBig(){if(!canAutoFs||!cfg.autoFs)return;const d=document.documentElem
   const lock=()=>{try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});}catch(e){}};
   if(document.fullscreenElement||document.webkitFullscreenElement){lock();return;}
   try{Promise.resolve((d.requestFullscreen||d.webkitRequestFullscreen).call(d,{navigationUI:'hide'})).then(lock).catch(()=>{});}catch(e){}}
-for(const id of['go','retoGo','olCreate','olJoin','olStart','resAgain','resNext'])$(id).addEventListener('click',goBig);
+for(const id of['go','retoGo','dailyGo','olCreate','olJoin','olStart','resAgain','resNext'])$(id).addEventListener('click',goBig);
 function renderFs(){$('fsAutoSec').hidden=!canAutoFs;if(!canAutoFs)return;
   segControl('fsSeg',[[true,'Sí'],[false,'No']],!!cfg.autoFs,v=>{cfg.autoFs=v;saveCfg();renderFs();});}
 renderFs();
@@ -2700,6 +2803,9 @@ function openInstall(){const[where,steps,alt,copy]=installGuide(browserKind());
   $('instSteps').innerHTML=steps.map(t=>'<li><span>'+t+'</span></li>').join('');
   $('instAlt').textContent=alt;$('instAlt').hidden=!alt;$('instCopy').hidden=!copy;
   $('intro').hidden=true;$('installSheet').hidden=false;$('instClose').focus();}
+$('qrBtn').addEventListener('click',()=>{$('intro').hidden=true;$('qrSheet').hidden=false;$('qrClose').focus();});
+$('qrClose').addEventListener('click',()=>{$('qrSheet').hidden=true;$('intro').hidden=false;$('qrBtn').focus();});
+$('qrShare').addEventListener('click',()=>shareOut('Juegue Paso Alpino, carreras 3D gratis en el celular:',(siteUrl()||'https://peakdrift.netlify.app/')+'?de=compartir'));
 $('instClose').addEventListener('click',()=>{$('installSheet').hidden=true;$('intro').hidden=false;$('installBtn').focus();});
 $('instCopy').addEventListener('click',async()=>{const u=siteUrl();
   try{await navigator.clipboard.writeText(u);toast('Enlace copiado. Péguelo en la barra de direcciones del otro navegador.');}catch(e){toast(u,9000);}});
@@ -2721,7 +2827,7 @@ function rotateTip(){if(!coarse||tips.rotate||innerHeight<=innerWidth)return;tip
 /* ---------- boot ---------- */
 renderMenu();setLapHUD();
 resize();requestAnimationFrame(frame);
-setTimeout(()=>{const def=allTracks().find(t=>t.id===cfg.track)||PRESETS[0];buildWorld(def);placeOnRoad(6,-5);
+setTimeout(()=>{const def=allTracks().find(t=>t.id===cfg.track)||PRESETS[0];applyWeather(cfg.wx||'tarde');buildWorld(def);placeOnRoad(6,-5);
   $('loading').hidden=true;$('go').disabled=false;$('go').focus();if(net.pendingOpen)openOnline();},30);
 </script>
 
