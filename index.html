@@ -2510,7 +2510,8 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261017-035228';
+const BUILD='20261017-041314';
+const GOAT='pasoalpino';   // GoatCounter code of the owner's account (the part before .goatcounter.com); empty = off
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
 function showLive(){const t=liveCount>0?(liveCount===1?'1 persona con el juego abierto ahora':liveCount+' personas con el juego abierto ahora'):'';
@@ -2526,6 +2527,12 @@ if(hosted){
   const ping=()=>{if(document.hidden)return;
     fetch('/api/visita',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:vid,n:cleanName(cfg.name),nueva:first,jugando:(mode==='race'||mode==='count')?1:0,enLinea:net.inRace?1:0,sala:net.code||'',app:asApp?1:0,primera,instalada})})
       .then(r=>r.ok?r.json():null).then(d=>{if(d&&d.ok){first=false;primera=false;if(instalada){instalada=false;store.set('paso-alpino-app-contada',true);}liveCount=d.ahora;showLive();}}).catch(()=>{});};
+  // GoatCounter: an outside counter only the owner can see (goatcounter.com). Nothing from it is shown inside the game.
+  // Each visit counts as a page view; opening from the home-screen icon and installing also count as events.
+  if(GOAT){window.goatcounter={no_onload:true};const gs=document.createElement('script');gs.async=true;gs.src='https://gc.zgo.at/count.js';gs.dataset.goatcounter='https://'+GOAT+'.goatcounter.com/count';
+    gs.onload=()=>{const gc=window.goatcounter;if(!gc||!gc.count)return;gc.count({path:asApp?'/app':'/'});
+      if(asApp&&!store.get('paso-alpino-gc-inst',false)){gc.count({path:'instalacion',title:'Instalación',event:true});store.set('paso-alpino-gc-inst',true);}};
+    document.head.appendChild(gs);}
   setTimeout(ping,1500);setInterval(ping,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)ping();});
   if(BUILD!=='__'+'BUILD__'){
     const check=()=>fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.v&&d.v!==BUILD)updReady=true;}).catch(()=>{});
