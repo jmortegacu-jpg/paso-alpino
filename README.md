@@ -24,3 +24,9 @@ Quien tenga el juego abierto ve el aviso «Hay una mejora nueva del juego» y lo
 ## Privacidad
 
 El contador no guarda nombres ni datos personales: cada navegador recibe un identificador al azar.
+
+## Licencia y conducta
+
+- Licencia: [Creative Commons BY-NC-ND 4.0](LICENSE.md). Proyecto sin fines de lucro.
+- [Código de conducta](CODE_OF_CONDUCT.md)
+- This site is powered by [Netlify](https://www.netlify.com/).

@@ -230,12 +230,13 @@ summary{cursor:pointer;font-weight:600;font-size:13px;letter-spacing:.12em;text-
 .standings .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;box-shadow:0 0 0 1px rgba(255,255,255,.3)}
 /* credits, live count, update banner */
 .menufoot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:4px;font-size:12px;color:rgba(158,172,184,.7);letter-spacing:.04em}
+.poweredby{display:block;text-align:center;font-size:11px;color:rgba(158,172,184,.55);text-decoration:none;letter-spacing:.03em;padding-top:2px}.poweredby:hover{color:rgba(158,172,184,.9);text-decoration:underline}
 .linkbtn{background:none;border:0;padding:4px 2px;cursor:pointer;font-size:12px;color:rgba(158,172,184,.85);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(158,172,184,.35)}
 .linkbtn:hover{color:var(--text)}
 #siteTip a{color:var(--amber)}
 .card.credits{max-width:520px;text-align:center;justify-items:center}
 .credimg{width:100%;height:auto;border-radius:10px;display:block;box-shadow:0 8px 30px rgba(0,0,0,.45)}
-.note.lic{font-size:12px;line-height:1.45;max-width:46ch}.note.lic a{color:var(--amber)}
+.note.lic{font-size:12px;line-height:1.45;max-width:46ch}.note.lic a,.credits .note a{color:var(--amber)}
 #installSheet{background:rgba(8,12,18,.84)}
 .card.inst{max-width:480px}
 /* garage and credits */
@@ -498,6 +499,7 @@ select.field option{color:#111}
       </div>
     </details>
     <div class="menufoot"><span>Un juego de OrtegaCorp</span><button class="linkbtn" id="creditsBtn" type="button">Créditos</button></div>
+    <a class="poweredby" href="https://www.netlify.com/" target="_blank" rel="noopener">This site is powered by Netlify</a>
   </div>
 </div>
 
@@ -550,6 +552,7 @@ select.field option{color:#111}
       <li>Gael Ortega Solís</li>
     </ul>
     <p class="note">Paso Alpino · 2026</p>
+    <p class="note">This site is powered by <a href="https://www.netlify.com/" target="_blank" rel="noopener">Netlify</a> · <a href="https://github.com/jmortegacu-jpg/paso-alpino/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noopener">Código de conducta</a></p>
     <p class="note lic">© 2026 OrtegaCorp. Este juego y sus imágenes se comparten bajo la licencia <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.es" target="_blank" rel="noopener">Creative Commons BY-NC-ND 4.0</a>: puede compartirlo dando crédito a OrtegaCorp, sin usarlo con fines comerciales y sin modificarlo.</p>
     <div class="actions"><button class="ghost" id="creditsClose" type="button">Cerrar</button></div>
   </div>
@@ -2510,7 +2513,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261017-041314';
+const BUILD='20261017-043508';
 const GOAT='pasoalpino';   // GoatCounter code of the owner's account (the part before .goatcounter.com); empty = off
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
