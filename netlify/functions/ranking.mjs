@@ -4,13 +4,14 @@
 // Solo pistas del juego (no pistas propias). Se descartan tiempos imposibles (más de 100 m/s de promedio).
 import { getStore } from "@netlify/blobs";
 
+const AUTOS = ["aurora", "colibri", "danta", "relampago", "volcan", "quetzal", "cometa"];
 const LARGO = { alpino: 3722, lago: 3693, cumbre: 2803 };   // metros por vuelta
 const VUELTAS = [1, 2, 3, 5, 10];
 const MAX_LISTA = 200;
 const json = (o, status = 200) => new Response(JSON.stringify(o), {
   status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 const limpiarNombre = s => String(s ?? "").replace(/[\u0000-\u001f\u007f-\u009f\u00ad\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/g, "").trim().slice(0, 14) || "Piloto";
-const publico = e => ({ n: e.n, t: e.t, c: e.c });
+const publico = e => ({ n: e.n, t: e.t, c: e.c, a: e.a || "aurora" });
 
 export async function handle(req, store) {
   const url = new URL(req.url);
@@ -29,14 +30,15 @@ export async function handle(req, store) {
     const minimo = (LARGO[p] * v / 100) * 1000;           // promedio de 360 km/h: imposible bajar de aquí
     if (t < minimo || t > 60 * 60 * 1000) return json({ ok: false, motivo: "tiempo no válido" }, 400);
     const color = typeof b.c === "string" && /^#[0-9a-f]{6}$/i.test(b.c) ? b.c : "#8a929b";
+    const auto = AUTOS.includes(b.a) ? b.a : "aurora";                // con qué auto se hizo el tiempo
     const clave = `rank-${p}-${v}`;
     const lista = (await store.get(clave, { type: "json" })) || [];
     const i = lista.findIndex(e => e.id === id);
     let mejoro = false;
-    if (i < 0) { lista.push({ id, n: limpiarNombre(b.n), t, c: color, d: Date.now() }); mejoro = true; }
+    if (i < 0) { lista.push({ id, n: limpiarNombre(b.n), t, c: color, a: auto, d: Date.now() }); mejoro = true; }
     else {
       lista[i].n = limpiarNombre(b.n); lista[i].c = color;
-      if (t < lista[i].t) { lista[i].t = t; lista[i].d = Date.now(); mejoro = true; }
+      if (t < lista[i].t) { lista[i].t = t; lista[i].a = auto; lista[i].d = Date.now(); mejoro = true; }
     }
     lista.sort((a, z) => a.t - z.t);
     lista.length = Math.min(lista.length, MAX_LISTA);
