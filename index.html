@@ -495,6 +495,11 @@ select.field option{color:#111}
         <input id="pilotName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false" placeholder="Escriba su nombre">
         <div class="note">Así aparece en el ranking mundial, en los retos y en las carreras en línea.</div>
       </div>
+      <div class="sec" style="margin-top:12px">
+        <div class="label">Fantasma de su mejor vuelta</div>
+        <div class="seg" id="ghostSeg"></div>
+        <div class="note">Un auto transparente repite su mejor vuelta en cada pista para que usted intente ganarle. Se guarda solo en este dispositivo.</div>
+      </div>
       <div class="sec" id="fsAutoSec" style="margin-top:12px" hidden>
         <div class="label">Pantalla completa y horizontal al arrancar</div>
         <div class="seg" id="fsSeg"></div>
@@ -668,6 +673,7 @@ select.field option{color:#111}
 </div>
 
 <script nomodule>document.getElementById('loading').textContent='Este navegador es demasiado antiguo para el juego. Actualícelo o use Chrome, Safari, Edge o Firefox.';</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -681,9 +687,10 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}};
 
 /* ---------- quality ---------- */
-const QUAL={alta:{name:'Alta',pr:1.75,shadow:2048,shadows:true,seg:320,trees:1},media:{name:'Media',pr:1.25,shadow:1024,shadows:true,seg:220,trees:.6},baja:{name:'Baja',pr:.85,shadow:512,shadows:false,seg:150,trees:.3}};
+const QUAL={ultra:{name:'Ultra',pr:2.6,shadow:4096,shadows:true,seg:320,trees:1,fx:true},alta:{name:'Alta',pr:1.75,shadow:2048,shadows:true,seg:320,trees:1},media:{name:'Media',pr:1.25,shadow:1024,shadows:true,seg:220,trees:.6},baja:{name:'Baja',pr:.85,shadow:512,shadows:false,seg:150,trees:.3}};
 let quality=store.get('paso-alpino-config',{})?.quality;if(!QUAL[quality])quality=coarse?((navigator.deviceMemory&&navigator.deviceMemory<=3)?'baja':'media'):'alta';
 let dyn=1;// adaptive resolution factor
+const fx={on:false,comp:null,bloom:null,cube:null,rt:null,k:0,loading:false};// Ultra effects (see «Ultra effects» below)
 /* ---------- noise ---------- */
 function hash(x,y){let h=(Math.imul(x,374761393)+Math.imul(y,668265263))|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967296;}
 function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y);let fx=x-xi,fy=y-yi;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);
@@ -1490,7 +1497,11 @@ return{MODELS,byId,build:(id,paint,hi)=>build(byId(id),paint,hi),bodyPt,cabPt,vO
 
 const kit=carKit(THREE),CARS=kit.MODELS,carById=id=>kit.byId(id);
 for(const M of CARS){let t=0;for(let i=0;i<=30;i++)t=Math.max(t,M.K.top(lerp(M.cabin.z1,M.cabin.z0,i/30)));M.top=t;}   // roof height, for name labels
-const paint=new THREE.MeshPhysicalMaterial({color:COLORS[0].c,metalness:.6,roughness:.28,clearcoat:1,clearcoatRoughness:.03,envMapIntensity:1.35});
+const flakeTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),im=g.createImageData(128,128);
+  for(let i=0;i<128*128;i++){const a=Math.random()*Math.PI*2,r=Math.random()*.55;im.data[i*4]=128+Math.cos(a)*r*127;im.data[i*4+1]=128+Math.sin(a)*r*127;im.data[i*4+2]=255;im.data[i*4+3]=255;}
+  g.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(24,24);return t;})();
+// paint: metallic base with fine flakes that sparkle under a smooth clear coat
+const paint=new THREE.MeshPhysicalMaterial({color:COLORS[0].c,metalness:.6,roughness:.28,clearcoat:1,clearcoatRoughness:.03,envMapIntensity:1.35,normalMap:quality==='baja'?null:flakeTex,normalScale:new THREE.Vector2(.07,.07)});
 /* How each car drives. Speeds in m/s (90 m/s is 324 km/h on the dial). acc = pull from low speed, exp = how quickly that pull fades
    near top speed, grip/gripV = cornering grip and the extra grip speed (downforce) brings, dgrip = grip while drifting, driftV/driftS =
    speed and steering needed to start a drift, driftN = nitro earned per second of drift, wall = speed lost scraping the barrier,
@@ -1508,7 +1519,7 @@ let P=null,car=null,body=null,wheels=null,tailMat=null,wheelSt=null,carModel=CAR
 function setPlayerCar(id){const M=carById(id);if(P&&carModel===M)return;const old=P&&P.root;
   P=kit.build(M.id,paint,true);scene.add(P.root);if(old){P.root.position.copy(old.position);P.root.rotation.copy(old.rotation);scene.remove(old);}
   car=P.root;body=P.body;wheels=P.wheels;tailMat=P.tailMat;wheelSt=P.wheelSt;carModel=M;spec=SPECS[M.id]||SPECS.aurora;voiceDirty=true;
-  applyPaint();const gl=document.querySelector('.gearbox .label');if(gl)gl.textContent=spec.box;}
+  applyPaint();if(fx.on)carEnv(true);const gl=document.querySelector('.gearbox .label');if(gl)gl.textContent=spec.box;}
 const RIVALS=[{name:'Mara',c:'#e4dccb'},{name:'Kito',c:'#c8322a'},{name:'Bruma',c:'#5d6b78'},{name:'Tenaz',c:'#178a78'},{name:'Orión',c:'#7b45b5'}];
 const rivals=RIVALS.map(d=>({...d,mat:new THREE.MeshPhysicalMaterial({color:d.c,metalness:.55,roughness:.32,clearcoat:1,clearcoatRoughness:.05,envMapIntensity:1.2}),
   car:null,modelId:'',spec:SPECS.aurora,s:0,lat:0,latT:0,prefLat:0,latV:0,v:0,skill:.9,nitroT:0,passT:0,finished:false,finishT:0,order:0,ahead:true,braking:false,x:0,z:0}));
@@ -1569,6 +1580,30 @@ let lap={n:1,t:0,total:0,list:[],done:-1};
 let raceDef=null,bestLap=null,alertT=0,alertMsg='';
 const keys={};let touch={l:0,r:0,g:0,b:0};let gyro={on:false,got:false,val:0};
 const bestKey=id=>'paso-alpino-mejor-'+id;
+/* ---------- ghost: a see-through car repeats the player's best lap on each track (saved only on this device, no server) ---------- */
+const ghostKey=id=>'paso-alpino-fantasma-'+id,GDT=.1;
+const ghostMat=new THREE.MeshBasicMaterial({color:'#9fd8ff',transparent:true,opacity:.3,depthWrite:false});
+const ghost={rec:[],data:null,obj:null,objId:''};
+function ghostReset(){ghost.rec=[];ghost.data=raceDef&&!net.inRace&&cfg.ghost!==false?store.get(ghostKey(raceDef.id),null):null;if(ghost.obj)ghost.obj.visible=false;}
+function ghostModel(id){if(ghost.obj&&ghost.objId===id)return ghost.obj;if(ghost.obj)scene.remove(ghost.obj);
+  const c=kit.build(carById(id).id,ghostMat,false);
+  c.root.traverse(o=>{if(o.isSprite)o.visible=false;else if(o.isMesh){o.material=ghostMat;o.castShadow=o.receiveShadow=false;}});
+  for(const f of c.flames)f.visible=false;ghost.obj=c.root;ghost.objId=id;scene.add(c.root);return c.root;}
+// a lap just ended: keep its path if it was a record
+function ghostLap(t,rec,first){const r=ghost.rec;ghost.rec=[];
+  if(!rec||net.inRace||r.length<20||r.length>60000)return;
+  const g={v:1,car:carModel.id,first,t:+t.toFixed(3),p:r};store.set(ghostKey(raceDef.id),g);if(cfg.ghost!==false)ghost.data=g;}
+function ghostStep(){
+  const g=ghost.data,racing=mode==='race'&&raceDef&&!net.inRace;
+  if(racing){const r=ghost.rec;while(r.length/5*GDT<=lap.t&&r.length<60000)r.push(+state.x.toFixed(2),+state.y.toFixed(2),+state.z.toFixed(2),+(state.yaw+state.ang).toFixed(3),+state.pitch.toFixed(3));}
+  const show=g&&(mode==='race'||mode==='count')&&!net.inRace&&g.first===(lap.done<1)&&lap.t<g.t;
+  if(!show){if(ghost.obj)ghost.obj.visible=false;return;}
+  const o=ghostModel(g.car),p=g.p,n=p.length/5,u=lap.t/GDT,i=Math.min(n-2,Math.floor(u)),f=clamp(u-i,0,1),a=i*5,b=a+5;
+  if(i<0||b+4>=p.length){o.visible=false;return;}
+  const ang=(x,y)=>x+((((y-x+Math.PI)%(2*Math.PI))+2*Math.PI)%(2*Math.PI)-Math.PI)*f;
+  o.position.set(lerp(p[a],p[b],f),lerp(p[a+1],p[b+1],f),lerp(p[a+2],p[b+2],f));o.rotation.set(ang(p[a+4],p[b+4]),ang(p[a+3],p[b+3]),0,'YXZ');
+  // fade out when it overlaps the player's car so it never blocks the view
+  const d=Math.hypot(o.position.x-state.x,o.position.z-state.z);ghostMat.opacity=.3*clamp((d-1.5)/5,0,1);o.visible=ghostMat.opacity>.01;}
 const ord=n=>n+'.º';
 
 /* ---------- input ---------- */
@@ -1840,6 +1875,7 @@ function standings(){const ol=net.inRace;return[me,...opponents()].sort((a,b)=>{
 function completeLap(){
   const t=lap.t;lap.list.push(t);let rec=false;
   if(bestLap==null||t<bestLap){bestLap=t;rec=true;rs.rec=true;store.set(bestKey(raceDef.id),t);}
+  ghostLap(t,rec,lap.done===1);
   if(!rs.hit)rs.clean++;rs.hit=false;
   if(lap.done>=raceLaps){finishRace(rec);return;}
   lap.n=lap.done+1;lap.t=0;setLapHUD();
@@ -1947,7 +1983,7 @@ function frame(){
     if(prevThr&&!out.throttle&&Math.abs(state.v)>24&&mode==='race'&&spec.voice!=='ev')popT=.55;prevThr=out.throttle;
     if(popT>0&&!boosting){popT-=dt;const on=Math.random()<.35;for(const fl of P.flames){fl.visible=on;if(on)fl.scale.set(.6,.6,.3+Math.random()*.35);}if(on&&Math.random()<.5)crackle();}
     for(const r of active)placeRival(r,dt);
-    syncRemotes(dt);
+    syncRemotes(dt);ghostStep();
     // tyre smoke from the rear wheels
     const smoking=state.drift||(out.brakeLight&&state.v>18&&mode==='race')||(state.wallT>0&&Math.abs(state.v)>10);
     if(smoking){smAcc+=dt*(state.drift?50:30);const yw=state.yaw+state.ang,fx=Math.sin(yw),fz=Math.cos(yw);
@@ -1985,8 +2021,29 @@ function frame(){
   frameN++;
   // in the menu the scene is only a backdrop: drawing every other frame saves battery
   if(mode==='menu'&&!gOpen&&frameN&1){requestAnimationFrame(frame);return;}
-  renderer.render(scene,camera);requestAnimationFrame(frame);}
-function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();smokeMat.uniforms.uPR.value=renderer.getPixelRatio();sizeMap();}
+  if(fx.on&&N)updateReflections();if(fx.comp)fx.comp.render();else renderer.render(scene,camera);requestAnimationFrame(frame);}
+function resize(){renderer.setSize(innerWidth,innerHeight,false);if(fx.comp){fx.comp.setPixelRatio(renderer.getPixelRatio());fx.comp.setSize(innerWidth,innerHeight);}camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();smokeMat.uniforms.uPR.value=renderer.getPixelRatio();sizeMap();}
+
+/* ---------- Ultra effects: live reflections on the player's car and glow on lights ----------
+   Only in the «Ultra» quality, for powerful phones and computers. The add-ons load from the same CDN as Three.js
+   (never from the site, so they cost no Netlify credits) and only when Ultra is chosen. */
+function carEnv(on){if(!car)return;car.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
+  for(const m of ms)if(m.isMeshStandardMaterial&&(m.metalness>.25||m.clearcoat>0||m===paint)){const want=on?fx.rt.texture:null;if(m.envMap!==want){m.envMap=want;m.needsUpdate=true;}}});}
+function updateReflections(){if(!fx.cube||!car)return;if((fx.k++)%3)return;
+  const v=car.visible;car.visible=false;fx.cube.position.set(car.position.x,car.position.y+.7,car.position.z);fx.cube.update(renderer,scene);car.visible=v;}
+async function applyFX(){const want=!!QUAL[quality].fx;
+  if(!want){if(fx.on){fx.on=false;carEnv(false);}fx.comp=null;return;}
+  if(!fx.rt){fx.rt=new THREE.WebGLCubeRenderTarget(256,{type:THREE.HalfFloatType});fx.cube=new THREE.CubeCamera(.5,6000,fx.rt);}
+  fx.on=true;carEnv(true);
+  if(fx.comp||fx.loading)return;fx.loading=true;
+  try{const[{EffectComposer},{RenderPass},{UnrealBloomPass},{OutputPass}]=await Promise.all([import('three/addons/postprocessing/EffectComposer.js'),
+      import('three/addons/postprocessing/RenderPass.js'),import('three/addons/postprocessing/UnrealBloomPass.js'),import('three/addons/postprocessing/OutputPass.js')]);
+    if(!QUAL[quality].fx)return;
+    const rt=new THREE.WebGLRenderTarget(innerWidth,innerHeight,{type:THREE.HalfFloatType,samples:4});
+    const comp=new EffectComposer(renderer,rt);comp.addPass(new RenderPass(scene,camera));
+    fx.bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.32,.35,1.15);comp.addPass(fx.bloom);comp.addPass(new OutputPass());
+    comp.setPixelRatio(renderer.getPixelRatio());comp.setSize(innerWidth,innerHeight);fx.comp=comp;
+  }catch(e){fx.comp=null;}finally{fx.loading=false;}}
 addEventListener('resize',resize);
 
 /* ---------- menu ---------- */
@@ -2008,7 +2065,7 @@ function renderTrackList(){const box=$('trackList');box.textContent='';const lis
     b.append(cv,nm,starSpan(+starMap[def.id+'|'+cfg.diff]||0),info);
     if(def.custom){const del=document.createElement('button');del.type='button';del.className='del';del.textContent='Borrar';let armT;
       del.addEventListener('click',e=>{e.stopPropagation();if(!del.classList.contains('arm')){del.classList.add('arm');del.textContent='¿Seguro?';clearTimeout(armT);armT=setTimeout(()=>{del.classList.remove('arm');del.textContent='Borrar';},3000);return;}
-        customs=customs.filter(c=>c.id!==def.id);store.set('paso-alpino-pistas',customs);store.set(bestKey(def.id),null);
+        customs=customs.filter(c=>c.id!==def.id);store.set('paso-alpino-pistas',customs);store.set(bestKey(def.id),null);store.set(ghostKey(def.id),null);
         if(cfg.track===def.id){cfg.track='alpino';saveCfg();}renderTrackList();toast('Pista borrada.');});
       b.appendChild(del);}
     const pick=()=>{if(cfg.track!==def.id)dropPause();cfg.track=def.id;saveCfg();renderTrackList();renderWR();};
@@ -2030,8 +2087,9 @@ function renderSwatches(){const box=$('swatches');box.textContent='';const ts=to
     b.setAttribute('aria-label',(i<0?'Color original del '+carModel.name:col.n)+(locked?', se desbloquea con '+col.stars+' estrellas':''));b.setAttribute('aria-pressed',i===cur);if(locked)b.dataset.need=col.stars+'★';
     b.addEventListener('click',()=>{if(locked){toast('Consiga '+col.stars+' estrellas en total para desbloquear «'+col.n+'». Lleva '+ts+'.');return;}cfg.carPaint[carModel.id]=i;applyPaint();saveCfg();renderSwatches();});box.appendChild(b);});
   $('colorName').textContent=cur>=0?COLORS[cur].n:'Color original';}
-function renderQuality(){segControl('qSeg',Object.entries(QUAL).map(([k,q])=>[k,q.name]),quality,k=>{quality=k;cfg.quality=k;dyn=1;applyPR();applyShadows();resize();saveCfg();renderQuality();});}
-function renderMenu(){renderDaily();renderWx();renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();renderCarPick();}
+function renderQuality(){segControl('qSeg',Object.entries(QUAL).map(([k,q])=>[k,q.name]),quality,k=>{quality=k;cfg.quality=k;dyn=1;applyPR();applyShadows();resize();applyFX();paint.normalMap=k==='baja'?null:flakeTex;paint.needsUpdate=true;saveCfg();renderQuality();});}
+function renderGhost(){segControl('ghostSeg',[[true,'Sí'],[false,'No']],cfg.ghost!==false,v=>{cfg.ghost=v;saveCfg();renderGhost();});}
+function renderMenu(){renderGhost();renderDaily();renderWx();renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();renderCarPick();}
 /* ---------- garage: credits, buying cars and duels ----------
    Every race pays credits (place, difficulty and length, plus drifts, overtakes, clean laps and records).
    Three cars are bought with credits; the other three are won by beating a track's boss in a one-on-one duel. */
@@ -2180,7 +2238,7 @@ function startRaceWith(def,opt){
   paused=null;updateResume();raceLaps=opt.laps;
   $('intro').hidden=true;$('results').hidden=true;$('online').hidden=true;const c=$('count');
   if(!opt.duel)duel=null;if(!opt.daily)endDaily();$('resCred').hidden=true;
-  const begin=()=>{if(wxKey!==raceWx())applyWeather(raceWx());raceDef=def;setupGrid(opt);lap={n:1,t:0,total:0,list:[],done:-1};rs={drift:0,passes:0,clean:0,hit:false,rec:false};bestLap=store.get(bestKey(def.id),null);raceClock=0;finishCount=0;
+  const begin=()=>{if(wxKey!==raceWx())applyWeather(raceWx());raceDef=def;setupGrid(opt);lap={n:1,t:0,total:0,list:[],done:-1};rs={drift:0,passes:0,clean:0,hit:false,rec:false};bestLap=store.get(bestKey(def.id),null);raceClock=0;finishCount=0;ghostReset();
     setLapHUD();camMode=0;camInit=false;$('camName').textContent=camNames[0];mode='count';countT=3;lastCount=0;c.hidden=false;c.className='';ensureAudio();};
   if(builtId!==def.id+'|'+quality){c.hidden=false;c.className='small';c.textContent='CARGANDO PISTA…';mode='menu';
     setTimeout(()=>{buildWorld(def);begin();},40);}else begin();}
@@ -2613,7 +2671,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261017-134905';
+const BUILD='20261018-061811';
 const GOAT='pasoalpino';   // GoatCounter code of the owner's account (the part before .goatcounter.com); empty = off
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
@@ -2826,7 +2884,7 @@ function rotateTip(){if(!coarse||tips.rotate||innerHeight<=innerWidth)return;tip
 
 /* ---------- boot ---------- */
 renderMenu();setLapHUD();
-resize();requestAnimationFrame(frame);
+resize();applyFX();requestAnimationFrame(frame);
 setTimeout(()=>{const def=allTracks().find(t=>t.id===cfg.track)||PRESETS[0];applyWeather(cfg.wx||'tarde');buildWorld(def);placeOnRoad(6,-5);
   $('loading').hidden=true;$('go').disabled=false;$('go').focus();if(net.pendingOpen)openOnline();},30);
 </script>
