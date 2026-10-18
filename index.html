@@ -495,6 +495,11 @@ select.field option{color:#111}
         <input id="pilotName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false" placeholder="Escriba su nombre">
         <div class="note">Así aparece en el ranking mundial, en los retos y en las carreras en línea.</div>
       </div>
+      <div class="sec" style="margin-top:12px">
+        <div class="label">Fantasma de su mejor vuelta</div>
+        <div class="seg" id="ghostSeg"></div>
+        <div class="note">Un auto transparente repite su mejor vuelta en cada pista para que usted intente ganarle. Se guarda solo en este dispositivo.</div>
+      </div>
       <div class="sec" id="fsAutoSec" style="margin-top:12px" hidden>
         <div class="label">Pantalla completa y horizontal al arrancar</div>
         <div class="seg" id="fsSeg"></div>
@@ -1575,6 +1580,30 @@ let lap={n:1,t:0,total:0,list:[],done:-1};
 let raceDef=null,bestLap=null,alertT=0,alertMsg='';
 const keys={};let touch={l:0,r:0,g:0,b:0};let gyro={on:false,got:false,val:0};
 const bestKey=id=>'paso-alpino-mejor-'+id;
+/* ---------- ghost: a see-through car repeats the player's best lap on each track (saved only on this device, no server) ---------- */
+const ghostKey=id=>'paso-alpino-fantasma-'+id,GDT=.1;
+const ghostMat=new THREE.MeshBasicMaterial({color:'#9fd8ff',transparent:true,opacity:.3,depthWrite:false});
+const ghost={rec:[],data:null,obj:null,objId:''};
+function ghostReset(){ghost.rec=[];ghost.data=raceDef&&!net.inRace&&cfg.ghost!==false?store.get(ghostKey(raceDef.id),null):null;if(ghost.obj)ghost.obj.visible=false;}
+function ghostModel(id){if(ghost.obj&&ghost.objId===id)return ghost.obj;if(ghost.obj)scene.remove(ghost.obj);
+  const c=kit.build(carById(id).id,ghostMat,false);
+  c.root.traverse(o=>{if(o.isSprite)o.visible=false;else if(o.isMesh){o.material=ghostMat;o.castShadow=o.receiveShadow=false;}});
+  for(const f of c.flames)f.visible=false;ghost.obj=c.root;ghost.objId=id;scene.add(c.root);return c.root;}
+// a lap just ended: keep its path if it was a record
+function ghostLap(t,rec,first){const r=ghost.rec;ghost.rec=[];
+  if(!rec||net.inRace||r.length<20||r.length>60000)return;
+  const g={v:1,car:carModel.id,first,t:+t.toFixed(3),p:r};store.set(ghostKey(raceDef.id),g);if(cfg.ghost!==false)ghost.data=g;}
+function ghostStep(){
+  const g=ghost.data,racing=mode==='race'&&raceDef&&!net.inRace;
+  if(racing){const r=ghost.rec;while(r.length/5*GDT<=lap.t&&r.length<60000)r.push(+state.x.toFixed(2),+state.y.toFixed(2),+state.z.toFixed(2),+(state.yaw+state.ang).toFixed(3),+state.pitch.toFixed(3));}
+  const show=g&&(mode==='race'||mode==='count')&&!net.inRace&&g.first===(lap.done<1)&&lap.t<g.t;
+  if(!show){if(ghost.obj)ghost.obj.visible=false;return;}
+  const o=ghostModel(g.car),p=g.p,n=p.length/5,u=lap.t/GDT,i=Math.min(n-2,Math.floor(u)),f=clamp(u-i,0,1),a=i*5,b=a+5;
+  if(i<0||b+4>=p.length){o.visible=false;return;}
+  const ang=(x,y)=>x+((((y-x+Math.PI)%(2*Math.PI))+2*Math.PI)%(2*Math.PI)-Math.PI)*f;
+  o.position.set(lerp(p[a],p[b],f),lerp(p[a+1],p[b+1],f),lerp(p[a+2],p[b+2],f));o.rotation.set(ang(p[a+4],p[b+4]),ang(p[a+3],p[b+3]),0,'YXZ');
+  // fade out when it overlaps the player's car so it never blocks the view
+  const d=Math.hypot(o.position.x-state.x,o.position.z-state.z);ghostMat.opacity=.3*clamp((d-1.5)/5,0,1);o.visible=ghostMat.opacity>.01;}
 const ord=n=>n+'.º';
 
 /* ---------- input ---------- */
@@ -1846,6 +1875,7 @@ function standings(){const ol=net.inRace;return[me,...opponents()].sort((a,b)=>{
 function completeLap(){
   const t=lap.t;lap.list.push(t);let rec=false;
   if(bestLap==null||t<bestLap){bestLap=t;rec=true;rs.rec=true;store.set(bestKey(raceDef.id),t);}
+  ghostLap(t,rec,lap.done===1);
   if(!rs.hit)rs.clean++;rs.hit=false;
   if(lap.done>=raceLaps){finishRace(rec);return;}
   lap.n=lap.done+1;lap.t=0;setLapHUD();
@@ -1953,7 +1983,7 @@ function frame(){
     if(prevThr&&!out.throttle&&Math.abs(state.v)>24&&mode==='race'&&spec.voice!=='ev')popT=.55;prevThr=out.throttle;
     if(popT>0&&!boosting){popT-=dt;const on=Math.random()<.35;for(const fl of P.flames){fl.visible=on;if(on)fl.scale.set(.6,.6,.3+Math.random()*.35);}if(on&&Math.random()<.5)crackle();}
     for(const r of active)placeRival(r,dt);
-    syncRemotes(dt);
+    syncRemotes(dt);ghostStep();
     // tyre smoke from the rear wheels
     const smoking=state.drift||(out.brakeLight&&state.v>18&&mode==='race')||(state.wallT>0&&Math.abs(state.v)>10);
     if(smoking){smAcc+=dt*(state.drift?50:30);const yw=state.yaw+state.ang,fx=Math.sin(yw),fz=Math.cos(yw);
@@ -2035,7 +2065,7 @@ function renderTrackList(){const box=$('trackList');box.textContent='';const lis
     b.append(cv,nm,starSpan(+starMap[def.id+'|'+cfg.diff]||0),info);
     if(def.custom){const del=document.createElement('button');del.type='button';del.className='del';del.textContent='Borrar';let armT;
       del.addEventListener('click',e=>{e.stopPropagation();if(!del.classList.contains('arm')){del.classList.add('arm');del.textContent='¿Seguro?';clearTimeout(armT);armT=setTimeout(()=>{del.classList.remove('arm');del.textContent='Borrar';},3000);return;}
-        customs=customs.filter(c=>c.id!==def.id);store.set('paso-alpino-pistas',customs);store.set(bestKey(def.id),null);
+        customs=customs.filter(c=>c.id!==def.id);store.set('paso-alpino-pistas',customs);store.set(bestKey(def.id),null);store.set(ghostKey(def.id),null);
         if(cfg.track===def.id){cfg.track='alpino';saveCfg();}renderTrackList();toast('Pista borrada.');});
       b.appendChild(del);}
     const pick=()=>{if(cfg.track!==def.id)dropPause();cfg.track=def.id;saveCfg();renderTrackList();renderWR();};
@@ -2058,7 +2088,8 @@ function renderSwatches(){const box=$('swatches');box.textContent='';const ts=to
     b.addEventListener('click',()=>{if(locked){toast('Consiga '+col.stars+' estrellas en total para desbloquear «'+col.n+'». Lleva '+ts+'.');return;}cfg.carPaint[carModel.id]=i;applyPaint();saveCfg();renderSwatches();});box.appendChild(b);});
   $('colorName').textContent=cur>=0?COLORS[cur].n:'Color original';}
 function renderQuality(){segControl('qSeg',Object.entries(QUAL).map(([k,q])=>[k,q.name]),quality,k=>{quality=k;cfg.quality=k;dyn=1;applyPR();applyShadows();resize();applyFX();paint.normalMap=k==='baja'?null:flakeTex;paint.needsUpdate=true;saveCfg();renderQuality();});}
-function renderMenu(){renderDaily();renderWx();renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();renderCarPick();}
+function renderGhost(){segControl('ghostSeg',[[true,'Sí'],[false,'No']],cfg.ghost!==false,v=>{cfg.ghost=v;saveCfg();renderGhost();});}
+function renderMenu(){renderGhost();renderDaily();renderWx();renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();renderCarPick();}
 /* ---------- garage: credits, buying cars and duels ----------
    Every race pays credits (place, difficulty and length, plus drifts, overtakes, clean laps and records).
    Three cars are bought with credits; the other three are won by beating a track's boss in a one-on-one duel. */
@@ -2207,7 +2238,7 @@ function startRaceWith(def,opt){
   paused=null;updateResume();raceLaps=opt.laps;
   $('intro').hidden=true;$('results').hidden=true;$('online').hidden=true;const c=$('count');
   if(!opt.duel)duel=null;if(!opt.daily)endDaily();$('resCred').hidden=true;
-  const begin=()=>{if(wxKey!==raceWx())applyWeather(raceWx());raceDef=def;setupGrid(opt);lap={n:1,t:0,total:0,list:[],done:-1};rs={drift:0,passes:0,clean:0,hit:false,rec:false};bestLap=store.get(bestKey(def.id),null);raceClock=0;finishCount=0;
+  const begin=()=>{if(wxKey!==raceWx())applyWeather(raceWx());raceDef=def;setupGrid(opt);lap={n:1,t:0,total:0,list:[],done:-1};rs={drift:0,passes:0,clean:0,hit:false,rec:false};bestLap=store.get(bestKey(def.id),null);raceClock=0;finishCount=0;ghostReset();
     setLapHUD();camMode=0;camInit=false;$('camName').textContent=camNames[0];mode='count';countT=3;lastCount=0;c.hidden=false;c.className='';ensureAudio();};
   if(builtId!==def.id+'|'+quality){c.hidden=false;c.className='small';c.textContent='CARGANDO PISTA…';mode='menu';
     setTimeout(()=>{buildWorld(def);begin();},40);}else begin();}
@@ -2640,7 +2671,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261017-205846';
+const BUILD='20261018-061811';
 const GOAT='pasoalpino';   // GoatCounter code of the owner's account (the part before .goatcounter.com); empty = off
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
