@@ -225,6 +225,39 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     for(const x of [-.46,.46])add(new THREE.TorusGeometry(.060,.012,6,16),material.trim,x,seatY+.38,z0-.08);
   }
 
+  // Sculpted bonnet shoulders: smooth continuous metal surfaces rather than
+  // floating boxes. Patches are slightly above the base loft, and taper into
+  // the cabin so the car reads as a real pressed-metal structure.
+  const sculpt=(side,materialRef,rows,cols,coord)=>{
+    const v=[],uv=[],ix=[];
+    for(let i=0;i<=rows;i++)for(let j=0;j<=cols;j++){
+      const p=coord(i/rows,j/cols);v.push(...p);uv.push(j/cols,i/rows);
+    }
+    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+      const a=i*(cols+1)+j,b=a+1,c=a+cols+1,d=c+1;
+      if(side>0)ix.push(a,b,c,b,d,c);else ix.push(a,c,b,b,c,d);
+    }
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));
+    g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(ix);g.computeVertexNormals();
+    return add(g,materialRef);
+  };
+  for(const side of [-1,1]){
+    const zBeg=Math.min(F-.18,W.zf+.53),zEnd=Math.max(.82,M.cabin.z0+.10);
+    sculpt(side,material.paint,high?24:12,high?8:4,(u,v)=>{
+      const z=zEnd+(zBeg-zEnd)*u,w=cw(z);
+      const x=side*w*(.44+.34*v);
+      const ridge=Math.sin(Math.PI*v)**2*Math.sin(Math.PI*u)**1.25*.058*(1+C.shoulder);
+      return [x,roof(z)+styleRidge(z,x,w)+ridge+.011,z];
+    });
+    // Rear haunch bulges blend into the engine cover and do not intersect tyres.
+    const rz0=W.zr+.44,rz1=R+.24;
+    sculpt(side,material.paint,high?26:12,high?9:4,(u,v)=>{
+      const z=rz0+(rz1-rz0)*u,w=cw(z);
+      const x=side*w*(.47+.29*v);
+      const rise=.037*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)*(1+C.arch);
+      return [x,roof(z)+styleRidge(z,x,w)+rise+.012,z];
+    });
+  }
   // Strong shoulder and door lines provide large-scale surface detail. These
   // curves emphasize the side silhouette without projecting into wheel space.
   const mids=[W.zf-.55,.15,W.zr+.60];
