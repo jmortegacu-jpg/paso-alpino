@@ -113,10 +113,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   bodyGeo.setIndex(indices);bodyGeo.computeVertexNormals();
   const shell=add(bodyGeo,material.paint);shell.name='Original hand-parametric fender and body shell';
 
-  // Distinct nose and rear: solid painted metal with embedded dark fascia.
+  // Bespoke curved front and tail caps, stitched to the loft perimeter.
+  // A flat full-width box looked toy-like and projected beyond the fender.
   for(const [z,front] of [[F,true],[R,false]]){
+    const outline=[...profile(z,1),...profile(z,-1).slice(1,-1).reverse()];
+    const yz=(M.B.yt(z)+M.B.yb(z))/2, positions=[0,yz,z+(front?.004:-.004)];
+    const idx=[];
+    for(const pt of outline)positions.push(pt[0],pt[1],z+(front?.004:-.004));
+    for(let k=0;k<outline.length;k++)idx.push(0,1+k,1+(k+1)%outline.length);
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+    g.setIndex(idx);g.computeVertexNormals();
+    add(g,material.paint);
     const y0=M.B.yb(z)+.05,y1=M.B.yt(z)-.045,w=cw(z)*.9;
-    box(2*w,Math.max(.08,y1-y0),.045,material.paint,0,(y0+y1)/2,z+(front?.002:-.002));
     const lower=Math.max(.13,Math.min(.31,(y1-y0)*.6));
     box(w*(front?1.45:1.25),lower,.053,material.vent,0,y0+lower*.58,z+(front?.029:-.029));
     if(high){
@@ -141,11 +150,13 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       [wb,base,z]
     ];
   }
-  const cp=[],ci=[],cu=[],nr=8;
+  const cp=[],ci=[],cu=[],nr=9;
   for(let i=0;i<=cabSeg;i++){
     const z=z0+(z1-z0)*i/cabSeg,pr=cab(z);
-    const ringPoints=[...pr,...pr.slice(1,-1).reverse().map(([x,y,z])=>[-x,y,z])];
-    for(let j=0;j<nr;j++){cp.push(...ringPoints[j]);cu.push(j/7,i/cabSeg);}
+    // Keep both lower edges; the previous eight-point ring omitted the
+    // driver's side glass foot and produced asymmetric roof geometry.
+    const ringPoints=[...pr,...pr.slice(1).reverse().map(([x,y,z])=>[-x,y,z])];
+    for(let j=0;j<nr;j++){cp.push(...ringPoints[j]);cu.push(j/(nr-1),i/cabSeg);}
   }
   for(let i=0;i<cabSeg;i++)for(let j=0;j<nr-1;j++){
     const a=i*nr+j,b=a+1,c=a+nr,d=c+1;ci.push(a,c,b,b,c,d);
@@ -317,6 +328,12 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   const keep=new Set([P.wheelSt,...(P.flames||[])].filter(Boolean));
   for(const old of [...body.children]){if(!keep.has(old))old.visible=false;}
   body.add(group);
+  // Attach the existing brake-light animation to the original rear LEDs.
+  // The simulation writes P.tailMat.emissiveIntensity every frame.
+  P.tailMat={
+    set emissiveIntensity(value){material.tail.emissiveIntensity=value>2?4.5:2.1;},
+    get emissiveIntensity(){return material.tail.emissiveIntensity;}
+  };
   P.futureChassis={group,material,theme:C,player};
   return P.futureChassis;
 }
