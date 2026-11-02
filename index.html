@@ -1535,7 +1535,7 @@ function updateHdPaint(){
   if(!hdRig)return;
   hdRig.traverse(o=>{if(!o.isMesh)return;
     const ms=Array.isArray(o.material)?o.material:[o.material];
-    for(const m of ms){if(!m||!/^Paint\\s+[12]/i.test(m.name||''))continue;
+    for(const m of ms){if(!m||!/^Paint\s+[12]/i.test(m.name||''))continue;
       m.color.copy(paint.color);m.metalness=.68;m.roughness=.19;
       if('clearcoat' in m){m.clearcoat=1;m.clearcoatRoughness=.045;}
       m.envMapIntensity=2;m.needsUpdate=true;}});
