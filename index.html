@@ -509,7 +509,7 @@ select.field option{color:#111}
         <div class="label">Calidad gráfica</div>
         <div class="seg" id="qSeg"></div>
         <div class="note">Si el juego va lento en su celular, elija «Baja».</div>
-        <div class="note" id="hdModelStatus" aria-live="polite">Carrocerías HD: disponibles con calidad Alta o Cine 4K.</div>
+        <div class="note" id="hdModelStatus" aria-live="polite">Siete diseños futuristas originales. Aurora HD disponible con calidad Alta o Cine 4K.</div>
         <div class="note">Modelo 3D premium: <a href="https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept" target="_blank" rel="noopener">Car Concept</a> © 2024 Darmstadt Graphics Group GmbH / Eric Chadwick, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Adaptado visualmente para Paso Alpino.</div>
       </div>
     </details>
@@ -673,6 +673,7 @@ select.field option{color:#111}
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { enhanceFutureCar } from './graphics/future-vehicles.js';
 
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1521,7 +1522,9 @@ const HD_CAR_URLS=[
   'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/CarConcept/glTF-Binary/CarConcept.glb',
   'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CarConcept/glTF-Binary/CarConcept.glb'
 ];
-const HD_SUPPORTED=new Set(['aurora','quetzal','cometa','volcan']);
+// Only Aurora uses the licensed Car Concept GLB; the other six have distinct
+// original future-designed 3D bodies, avoiding repeated cloned hypercars.
+const HD_SUPPORTED=new Set(['aurora']);
 let hdSource=null,hdLoading=false,hdRig=null,hdWheels=[],hdLoadFailed=false;
 const hdAllowed=()=>HD_SUPPORTED.has(carModel.id)&&(quality==='alta'||quality==='cine');
 function hdStatus(msg){const e=document.getElementById('hdModelStatus');if(e)e.textContent=msg;}
@@ -1562,14 +1565,17 @@ function installHdCar(){
     const obj=visual.getObjectByName(name);if(!obj||!obj.parent)continue;
     const parent=obj.parent,box=new THREE.Box3().setFromObject(obj),centerWorld=box.getCenter(new THREE.Vector3());
     const local=parent.worldToLocal(centerWorld.clone()),pivot=new THREE.Group();
-    pivot.position.copy(local);parent.add(pivot);parent.remove(obj);pivot.add(obj);obj.position.sub(local);
+    // attach() preserves the exact world matrix before transferring the wheel
+    // under its new centre-of-rotation. Removing/readding manually caused
+    // wheels to appear displaced on some uploaded models.
+    pivot.position.copy(local);parent.add(pivot);pivot.attach(obj);
     hdWheels.push({pivot,front,r:front?.35:.37});
   }
   // Hide the original generated meshes only after the HD body has loaded successfully.
   for(const old of body.children)old.visible=false;
   for(const w of wheels)w.pivot.visible=false;
   body.add(rig);hdRig=rig;updateHdPaint();
-  hdStatus('Superdeportivo 3D HD cargado · Car Concept con materiales PBR.');
+  hdStatus('Aurora HD: carrocería premium y llantas centradas · Car Concept PBR.');
 }
 function loadHdCar(){
   if(hdSource){installHdCar();return;}
@@ -1604,7 +1610,11 @@ const SPECS={
   cometa:   {top:98,acc:14.8,exp:.85,grip:22,  gripV:.3, dgrip:25,steer:.62,brake:35,wall:2.9,driftV:23,driftS:.5, driftN:.18,regen:0,   boostT:2.3,boostTop:114,boostAcc:14,roll:.4, pitch:.6,  ai:1.035,gears:[80,130,175,220,270,330],box:'SEC 6',voice:'race'}};
 let P=null,car=null,body=null,wheels=null,tailMat=null,wheelSt=null,carModel=CARS[0],spec=SPECS.aurora,voiceDirty=true;
 function setPlayerCar(id){const M=carById(id);if(P&&carModel===M)return;removeHdCar();const old=P&&P.root;
-  P=kit.build(M.id,paint,true);scene.add(P.root);if(old){P.root.position.copy(old.position);P.root.rotation.copy(old.rotation);scene.remove(old);}
+  P=kit.build(M.id,paint,true);
+  // Visual geometry only: aerodynamic pieces are attached to the sprung body.
+  // Colliders, handling specs and online replay are not changed.
+  enhanceFutureCar(THREE,P.body,M,{detailed:quality!=='baja'});
+  scene.add(P.root);if(old){P.root.position.copy(old.position);P.root.rotation.copy(old.rotation);scene.remove(old);}
   car=P.root;body=P.body;wheels=P.wheels;tailMat=P.tailMat;wheelSt=P.wheelSt;carModel=M;spec=SPECS[M.id]||SPECS.aurora;voiceDirty=true;
   applyPaint();const gl=document.querySelector('.gearbox .label');if(gl)gl.textContent=spec.box;
   if(hdSource)installHdCar();}
