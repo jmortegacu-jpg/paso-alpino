@@ -306,23 +306,45 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     box(M.K.wt(roofMid)*1.9,.045,.09,material.carbon,0,M.K.top(roofMid)+.17,roofMid-.78);
   }
 
-  // Rim detailing is mounted directly on each spin group. Wheel centers,
-  // axle positions and physical radius remain those of carKit.
+  // Correct wheel packaging: original carKit rim/tyre already contains a
+  // complete wheel at the correct axle. New visible rim detail must stay
+  // INSIDE the tyre width, not protrude beyond the outer sidewall.
+  // Each carKit side-group mirrors X, so a positive faceX is outward on both.
   for(let i=0;i<P.wheels.length;i++){
     const wh=P.wheels[i],rad=wh.r;
-    const z=wh.front?W.zf:W.zr, half=wh.front?W.wf:W.wr;
-    const ring= new THREE.Mesh(new THREE.TorusGeometry(rad*.70,.012,8,high?40:20),material.trim);
-    ring.rotation.y=Math.PI/2;ring.position.x=half*.5+.012;wh.spin.add(ring);
+    const half=(wh.front?W.wf:W.wr)*.5;
+    const faceX=Math.max(.045,half-.052),rimR=rad*.685;
+    const ring=new THREE.Mesh(
+      new THREE.TorusGeometry(rimR,.009,8,high?48:24),material.trim);
+    ring.rotation.y=Math.PI/2;ring.position.x=faceX;wh.spin.add(ring);
     if(high){
       const n=C.rim==='turbine'?11:C.rim==='mesh'?14:C.rim==='disc'?6:C.rim==='five'?5:10;
+      const inner=rad*.16,outer=rad*.61;
+      const spokeGeometry=new THREE.BoxGeometry(.018,.022,outer-inner);
+      const spokes=new THREE.Group();spokes.position.x=faceX-.012;
       for(let k=0;k<n;k++){
-        const a=k*2*Math.PI/n,rd=rad*.57;
-        const spoke=new THREE.Mesh(new THREE.BoxGeometry(.015,.025,rd*.55),k%2?material.trim:material.carbon);
-        spoke.position.set(half*.5+.015,Math.sin(a)*rd*.47,Math.cos(a)*rd*.47);
+        const a=k*2*Math.PI/n;
+        const spoke=new THREE.Mesh(spokeGeometry,k%2?material.trim:material.carbon);
+        // Spokes lie within the YZ face of the rim, rotate around the X axle.
+        const radius=(inner+outer)*.5;
+        spoke.position.set(0,Math.sin(a)*radius,Math.cos(a)*radius);
         spoke.rotation.x=-a;
-        wh.spin.add(spoke);
+        spokes.add(spoke);
       }
+      const hub=new THREE.Mesh(
+        new THREE.CylinderGeometry(rad*.095,rad*.095,.023,20),
+        material.trim);
+      hub.rotation.z=Math.PI/2;hub.position.x=.005;spokes.add(hub);
+      wh.spin.add(spokes);
     }
+  }
+  // Protect silhouettes from flying mirrors: the mirror housings are
+  // tightly anchored inside the fender envelope rather than on a free arm.
+  // Add a narrow metal roof centerline to reinforce the canopy geometry.
+  if(high){
+    curve([[0,M.K.top(z0-.2)+.008,z0-.2],
+      [0,M.K.top(roofMid)+.01,roofMid],
+      [0,M.K.top(z1+.2)+.008,z1+.2]],material.carbon,.012);
   }
   // Preserve the game's steering wheel, nitro flames and animation references.
   const keep=new Set([P.wheelSt,...(P.flames||[])].filter(Boolean));
