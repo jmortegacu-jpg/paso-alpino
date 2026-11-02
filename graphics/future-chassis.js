@@ -24,7 +24,7 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   const group=new THREE.Group();group.name=C.title;
   const material={
     paint:new THREE.MeshPhysicalMaterial({color:paint?.color || new THREE.Color(M.paint||'#c42424'),
-      metalness:.64,roughness:.205,clearcoat:1,clearcoatRoughness:.045,envMapIntensity:1.9,side:THREE.DoubleSide}),
+      metalness:.55,roughness:.19,clearcoat:1,clearcoatRoughness:.035,envMapIntensity:2.1,side:THREE.DoubleSide}),
     carbon:new THREE.MeshPhysicalMaterial({color:0x0b0e12,metalness:.28,roughness:.32,clearcoat:1,clearcoatRoughness:.10,side:THREE.DoubleSide}),
     vent:new THREE.MeshStandardMaterial({color:0x06080b,metalness:.14,roughness:.9,side:THREE.DoubleSide}),
     mesh:new THREE.MeshStandardMaterial({color:0x222932,metalness:.58,roughness:.55,side:THREE.DoubleSide}),
@@ -96,12 +96,26 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     ];
     return half.map(([x,y])=>[side*x,archHeight(x,z,y),z]);
   };
+  // Smooth curvature across the width of the vehicle, not only lengthwise.
+  // The old nine-point half-section made paint highlights look like folded
+  // polygons. Centripedal splines create continuous hood, shoulder and haunch.
+  const curveDetail=high?4:2;
+  const smoothProfile=(z,side)=>{
+    const points=profile(z,side).map(p=>new THREE.Vector3(...p));
+    const spline=new THREE.CatmullRomCurve3(points,false,'centripetal',.18);
+    return spline.getPoints((points.length-1)*curveDetail)
+      .map(p=>[p.x,p.y,p.z]);
+  };
   const vertices=[],indices=[],uv=[];
-  const rowParts=9,ring=2*rowParts-2;
+  const rowParts=8*curveDetail+1,ring=2*rowParts-2;
   for(let i=0;i<=highSeg;i++){
-    const z=F+(R-F)*i/highSeg;const pR=profile(z,1),pL=profile(z,-1);
+    const z=F+(R-F)*i/highSeg;
+    const pR=smoothProfile(z,1),pL=smoothProfile(z,-1);
     const ringPts=[...pR,...pL.slice(1,-1).reverse()];
-    for(let j=0;j<ringPts.length;j++){vertices.push(...ringPts[j]);uv.push(j/(ring-1),i/highSeg);}
+    if(ringPts.length!==ring)throw Error('Invalid continuous body ring');
+    for(let j=0;j<ringPts.length;j++){
+      vertices.push(...ringPts[j]);uv.push(j/ring,i/highSeg);
+    }
   }
   for(let i=0;i<highSeg;i++)for(let j=0;j<ring;j++){
     const a=i*ring+j,b=i*ring+(j+1)%ring,c=(i+1)*ring+j,d=(i+1)*ring+(j+1)%ring;
@@ -111,6 +125,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   bodyGeo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
   bodyGeo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
   bodyGeo.setIndex(indices);bodyGeo.computeVertexNormals();
+  // Connected smooth normals across the longitudinal seam, avoiding a
+  // conspicuous dark line along the center of the hood and roof.
+  const normals=bodyGeo.getAttribute('normal');
+  for(let k=0;k<=highSeg;k++){
+    const a=k*ring,b=a+ring-1;
+    const nx=(normals.getX(a)+normals.getX(b))*.5,
+          ny=(normals.getY(a)+normals.getY(b))*.5,
+          nz=(normals.getZ(a)+normals.getZ(b))*.5;
+    const len=Math.hypot(nx,ny,nz)||1;
+    normals.setXYZ(a,nx/len,ny/len,nz/len);
+    normals.setXYZ(b,nx/len,ny/len,nz/len);
+  }
+  normals.needsUpdate=true;
   const shell=add(bodyGeo,material.paint);shell.name='Original hand-parametric fender and body shell';
 
   // Bespoke curved front and tail caps, stitched to the loft perimeter.
