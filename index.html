@@ -509,6 +509,8 @@ select.field option{color:#111}
         <div class="label">Calidad gráfica</div>
         <div class="seg" id="qSeg"></div>
         <div class="note">Si el juego va lento en su celular, elija «Baja».</div>
+        <div class="note" id="hdModelStatus" aria-live="polite">Carrocerías HD: disponibles con calidad Alta o Cine 4K.</div>
+        <div class="note">Modelo 3D premium: <a href="https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept" target="_blank" rel="noopener">Car Concept</a> © 2024 Darmstadt Graphics Group GmbH / Eric Chadwick, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Adaptado visualmente para Paso Alpino.</div>
       </div>
     </details>
     <div class="menufoot"><span>Un juego de OrtegaCorp</span><span><button class="linkbtn" id="qrBtn" type="button">Código QR</button> · <button class="linkbtn" id="creditsBtn" type="button">Créditos</button></span></div>
@@ -668,6 +670,7 @@ select.field option{color:#111}
 </div>
 
 <script nomodule>document.getElementById('loading').textContent='Este navegador es demasiado antiguo para el juego. Actualícelo o use Chrome, Safari, Edge o Firefox.';</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -737,8 +740,19 @@ const skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,fog:
     gl_FragColor=vec4(c,1.);}`});
 const sky=new THREE.Mesh(new THREE.SphereGeometry(5500,32,16),skyMat);scene.add(sky);
 let envTex=null;
-function regenEnv(){const es=new THREE.Scene(),m=new THREE.Mesh(new THREE.SphereGeometry(100,32,16),skyMat);es.add(m);const pm=new THREE.PMREMGenerator(renderer);
-  const t=pm.fromScene(es,0.03).texture;pm.dispose();m.geometry.dispose();scene.environment=t;if(envTex)envTex.dispose();envTex=t;}
+function regenEnv(){
+  const es=new THREE.Scene(),m=new THREE.Mesh(new THREE.SphereGeometry(100,32,16),skyMat);es.add(m);
+  // Studio-style softboxes live only in the reflection probe, not in the visible scenery.
+  // They reveal curved metal body panels and improve the realism of car paint.
+  const cardData=[
+    [-39,19,26,30,13,'#f0f4ff',.9],[41,30,-24,44,14,'#ffffff',.7],
+    [-28,14,-48,18,25,'#a8d4ed',.55],[19,8,48,30,8,'#fff2df',.45]];
+  for(const [x,y,z,w,h,color,intensity] of cardData){
+    const g=new THREE.PlaneGeometry(w,h),mat=new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(intensity),side:THREE.DoubleSide});
+    const card=new THREE.Mesh(g,mat);card.position.set(x,y,z);card.lookAt(0,0,0);es.add(card);}
+  const pm=new THREE.PMREMGenerator(renderer),t=pm.fromScene(es,0.04).texture;
+  pm.dispose();es.traverse(o=>{if(o.geometry&&o!==m)o.geometry.dispose();if(o.material&&o!==m)o.material.dispose();});
+  m.geometry.dispose();scene.environment=t;if(envTex)envTex.dispose();envTex=t;}
 regenEnv();
 const sun=new THREE.DirectionalLight('#ffd3a3',2.7);sun.castShadow=true;
 function applyShadows(){const q=QUAL[quality];sun.castShadow=q.shadows;if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(q.shadow,q.shadow);}
@@ -1499,6 +1513,82 @@ return{MODELS,byId,build:(id,paint,hi)=>build(byId(id),paint,hi),bodyPt,cabPt,vO
 const kit=carKit(THREE),CARS=kit.MODELS,carById=id=>kit.byId(id);
 for(const M of CARS){let t=0;for(let i=0;i<=30;i++)t=Math.max(t,M.K.top(lerp(M.cabin.z1,M.cabin.z0,i/30)));M.top=t;}   // roof height, for name labels
 const paint=new THREE.MeshPhysicalMaterial({color:COLORS[0].c,metalness:.68,roughness:.21,clearcoat:1,clearcoatRoughness:.045,envMapIntensity:1.75});
+/* ---------- real 3D body: externally licensed Car Concept model ----------
+   Load only for desktop/high quality (or opt-in high quality on mobile).
+   Three.js loader, paint shaders, interior, wheel meshes, clearcoat, AO, transmission.
+   Existing car physics, collision, game balance and original procedural backup remain intact. */
+const HD_CAR_URLS=[
+  'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/CarConcept/glTF-Binary/CarConcept.glb',
+  'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CarConcept/glTF-Binary/CarConcept.glb'
+];
+const HD_SUPPORTED=new Set(['aurora','quetzal','cometa','volcan']);
+let hdSource=null,hdLoading=false,hdRig=null,hdWheels=[],hdLoadFailed=false;
+const hdAllowed=()=>HD_SUPPORTED.has(carModel.id)&&(quality==='alta'||quality==='cine');
+function hdStatus(msg){const e=document.getElementById('hdModelStatus');if(e)e.textContent=msg;}
+function removeHdCar(){
+  if(hdRig){hdRig.parent?.remove(hdRig);hdRig=null;}
+  hdWheels=[];
+  if(body)for(const mesh of body.children)mesh.visible=true;
+  if(wheels)for(const wheel of wheels)wheel.pivot.visible=true;
+}
+function updateHdPaint(){
+  if(!hdRig)return;
+  hdRig.traverse(o=>{if(!o.isMesh)return;
+    const ms=Array.isArray(o.material)?o.material:[o.material];
+    for(const m of ms){if(!m||!/^Paint\\s+[12]/i.test(m.name||''))continue;
+      m.color.copy(paint.color);m.metalness=.68;m.roughness=.19;
+      if('clearcoat' in m){m.clearcoat=1;m.clearcoatRoughness=.045;}
+      m.envMapIntensity=2;m.needsUpdate=true;}});
+}
+function installHdCar(){
+  removeHdCar();
+  if(!hdSource||!P||!hdAllowed())return;
+  const visual=hdSource.clone(true);
+  visual.traverse(o=>{
+    if(!o.isMesh)return;
+    // Do not change the cached glTF material when personalizing the player's car.
+    o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();
+    o.castShadow=true;o.receiveShadow=true;
+  });
+  const bb=new THREE.Box3().setFromObject(visual),size=bb.getSize(new THREE.Vector3());
+  if(!Number.isFinite(size.z)||size.z<2||size.z>30)throw Error('Dimensiones del GLB no válidas');
+  const center=bb.getCenter(new THREE.Vector3()),scale=THREE.MathUtils.clamp(4.65/size.z,.85,1.2);
+  visual.position.set(-center.x,-bb.min.y+.015,-center.z);
+  const rig=new THREE.Group();rig.scale.setScalar(scale);rig.add(visual);
+  // The glTF wheel geometry has a shared root transform (source Z-up).
+  // Center each axle pivot before moving the wheels, keeping steering and spin live.
+  visual.updateMatrixWorld(true);
+  for(const [name,front] of [['WheelFrontL',true],['WheelFrontR',true],['WheelRearL',false],['WheelRearR',false]]){
+    const obj=visual.getObjectByName(name);if(!obj||!obj.parent)continue;
+    const parent=obj.parent,box=new THREE.Box3().setFromObject(obj),centerWorld=box.getCenter(new THREE.Vector3());
+    const local=parent.worldToLocal(centerWorld.clone()),pivot=new THREE.Group();
+    pivot.position.copy(local);parent.add(pivot);parent.remove(obj);pivot.add(obj);obj.position.sub(local);
+    hdWheels.push({pivot,front,r:front?.35:.37});
+  }
+  // Hide the original generated meshes only after the HD body has loaded successfully.
+  for(const old of body.children)old.visible=false;
+  for(const w of wheels)w.pivot.visible=false;
+  body.add(rig);hdRig=rig;updateHdPaint();
+  hdStatus('Superdeportivo 3D HD cargado · Car Concept con materiales PBR.');
+}
+function loadHdCar(){
+  if(hdSource){installHdCar();return;}
+  if(hdLoading||hdLoadFailed||!(quality==='alta'||quality==='cine'))return;
+  hdLoading=true;hdStatus('Descargando carrocería premium 3D (11 MB)…');
+  // Dynamic loader keeps the original game usable even if external 3D hosting fails.
+  import('three/addons/loaders/GLTFLoader.js').then(({GLTFLoader})=>{
+    const loader=new GLTFLoader();
+    const attempt=i=>{
+      if(i>=HD_CAR_URLS.length){hdLoading=false;hdLoadFailed=true;hdStatus('Modo compatible: modelo original, no se pudo descargar la carrocería HD.');return;}
+      loader.load(HD_CAR_URLS[i],gltf=>{
+        hdSource=gltf.scene;hdLoading=false;
+        try{installHdCar();}catch(e){console.warn('Carrocería HD no disponible:',e);hdStatus('Modo compatible: auto original.');}
+      },undefined,()=>attempt(i+1));
+    };
+    attempt(0);
+  }).catch(()=>{hdLoading=false;hdLoadFailed=true;hdStatus('Modo compatible: modelo original, sin cargador GLB.');});
+}
+function setHdQuality(){if(quality==='alta'||quality==='cine')loadHdCar();else{removeHdCar();hdStatus('Auto optimizado: elija Alta o Cine 4K para carrocería HD.');}}
 /* How each car drives. Speeds in m/s (90 m/s is 324 km/h on the dial). acc = pull from low speed, exp = how quickly that pull fades
    near top speed, grip/gripV = cornering grip and the extra grip speed (downforce) brings, dgrip = grip while drifting, driftV/driftS =
    speed and steering needed to start a drift, driftN = nitro earned per second of drift, wall = speed lost scraping the barrier,
@@ -1513,10 +1603,11 @@ const SPECS={
   quetzal:  {top:95,acc:13.6,exp:.85,grip:19.5,gripV:.25,dgrip:28,steer:.62,brake:31,wall:2.6,driftV:21,driftS:.45,driftN:.2, regen:0,   boostT:3.0,boostTop:113,boostAcc:14,roll:.9, pitch:1,   ai:1.02, gears:[60,100,140,180,220,265,310,360],box:'AUT 8',voice:'v8t'},
   cometa:   {top:98,acc:14.8,exp:.85,grip:22,  gripV:.3, dgrip:25,steer:.62,brake:35,wall:2.9,driftV:23,driftS:.5, driftN:.18,regen:0,   boostT:2.3,boostTop:114,boostAcc:14,roll:.4, pitch:.6,  ai:1.035,gears:[80,130,175,220,270,330],box:'SEC 6',voice:'race'}};
 let P=null,car=null,body=null,wheels=null,tailMat=null,wheelSt=null,carModel=CARS[0],spec=SPECS.aurora,voiceDirty=true;
-function setPlayerCar(id){const M=carById(id);if(P&&carModel===M)return;const old=P&&P.root;
+function setPlayerCar(id){const M=carById(id);if(P&&carModel===M)return;removeHdCar();const old=P&&P.root;
   P=kit.build(M.id,paint,true);scene.add(P.root);if(old){P.root.position.copy(old.position);P.root.rotation.copy(old.rotation);scene.remove(old);}
   car=P.root;body=P.body;wheels=P.wheels;tailMat=P.tailMat;wheelSt=P.wheelSt;carModel=M;spec=SPECS[M.id]||SPECS.aurora;voiceDirty=true;
-  applyPaint();const gl=document.querySelector('.gearbox .label');if(gl)gl.textContent=spec.box;}
+  applyPaint();const gl=document.querySelector('.gearbox .label');if(gl)gl.textContent=spec.box;
+  if(hdSource)installHdCar();}
 const RIVALS=[{name:'Mara',c:'#e4dccb'},{name:'Kito',c:'#c8322a'},{name:'Bruma',c:'#5d6b78'},{name:'Tenaz',c:'#178a78'},{name:'Orión',c:'#7b45b5'}];
 const rivals=RIVALS.map(d=>({...d,mat:new THREE.MeshPhysicalMaterial({color:d.c,metalness:.55,roughness:.32,clearcoat:1,clearcoatRoughness:.05,envMapIntensity:1.2}),
   car:null,modelId:'',spec:SPECS.aurora,s:0,lat:0,latT:0,prefLat:0,latV:0,v:0,skill:.9,nitroT:0,passT:0,finished:false,finishT:0,order:0,ahead:true,braking:false,x:0,z:0}));
@@ -1553,7 +1644,7 @@ if(!COLORS[cfg.color]||COLORS[cfg.color].stars>totalStars())cfg.color=0;
 // each car remembers its own paint: -1 = the car's original colour, otherwise one of COLORS (some unlocked with stars)
 if(!cfg.carPaint||typeof cfg.carPaint!=='object')cfg.carPaint={aurora:COLORS[cfg.color]?cfg.color:0};
 function paintIdx(id){const v=cfg.carPaint[id||carModel.id];return Number.isInteger(v)&&COLORS[v]&&COLORS[v].stars<=totalStars()?v:-1;}
-function applyPaint(){const i=paintIdx(),c=i>=0?COLORS[i]:null;paint.color.set(c?c.c:carModel.paint);paint.metalness=c&&c.metal?.88:.6;paint.roughness=c&&c.metal?.2:.28;}
+function applyPaint(){const i=paintIdx(),c=i>=0?COLORS[i]:null;paint.color.set(c?c.c:carModel.paint);paint.metalness=c&&c.metal?.88:.6;paint.roughness=c&&c.metal?.2:.28;updateHdPaint();}
 const myColor=()=>'#'+paint.color.getHexString();
 // the garage: race credits and the cars the player owns
 let garage=store.get('paso-alpino-garaje',null);if(!garage||typeof garage!=='object')garage={};
@@ -1949,6 +2040,7 @@ function frame(){
     body.rotation.z=lerp(body.rotation.z,clamp((state.yr||0)*Math.abs(state.v)*.0011*spec.roll,-.085,.085),clamp(dt*5,0,1));
     body.rotation.x=lerp(body.rotation.x,clamp(-(state.acc||0)*.0019*spec.pitch-(boosting?.012:0),-.04,.035),clamp(dt*5,0,1));
     for(const w of wheels){w.spin.rotation.x+=state.v*dt/w.r;if(w.front)w.pivot.rotation.y=-state.steer*.42+(state.drift?state.driftDir*.3:0);}
+    for(const w of hdWheels){w.pivot.rotation.x+=state.v*dt/w.r;if(w.front)w.pivot.rotation.z=-state.steer*.42+(state.drift?state.driftDir*.3:0);}
     wheelSt.rotation.z=state.steer*2.2;tailMat.emissiveIntensity=out.brakeLight?4:1.2;
     for(const fl of P.flames){fl.visible=boosting;if(boosting)fl.scale.set(1,1,.8+Math.random()*.7);}
     // exhaust pops when lifting off at speed (petrol engines only)
@@ -2038,7 +2130,7 @@ function renderSwatches(){const box=$('swatches');box.textContent='';const ts=to
     b.setAttribute('aria-label',(i<0?'Color original del '+carModel.name:col.n)+(locked?', se desbloquea con '+col.stars+' estrellas':''));b.setAttribute('aria-pressed',i===cur);if(locked)b.dataset.need=col.stars+'★';
     b.addEventListener('click',()=>{if(locked){toast('Consiga '+col.stars+' estrellas en total para desbloquear «'+col.n+'». Lleva '+ts+'.');return;}cfg.carPaint[carModel.id]=i;applyPaint();saveCfg();renderSwatches();});box.appendChild(b);});
   $('colorName').textContent=cur>=0?COLORS[cur].n:'Color original';}
-function renderQuality(){segControl('qSeg',Object.entries(QUAL).map(([k,q])=>[k,q.name]),quality,k=>{quality=k;cfg.quality=k;dyn=1;applyPR();applyShadows();resize();saveCfg();renderQuality();});}
+function renderQuality(){segControl('qSeg',Object.entries(QUAL).map(([k,q])=>[k,q.name]),quality,k=>{quality=k;cfg.quality=k;dyn=1;applyPR();applyShadows();resize();saveCfg();setHdQuality();renderQuality();});}
 function renderMenu(){renderDaily();renderWx();renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();renderCarPick();}
 /* ---------- garage: credits, buying cars and duels ----------
    Every race pays credits (place, difficulty and length, plus drifts, overtakes, clean laps and records).
@@ -2835,6 +2927,7 @@ function rotateTip(){if(!coarse||tips.rotate||innerHeight<=innerWidth)return;tip
 /* ---------- boot ---------- */
 renderMenu();setLapHUD();
 resize();requestAnimationFrame(frame);
+setTimeout(()=>setHdQuality(),850);
 setTimeout(()=>{const def=allTracks().find(t=>t.id===cfg.track)||PRESETS[0];applyWeather(cfg.wx||'tarde');buildWorld(def);placeOnRoad(6,-5);
   $('loading').hidden=true;$('go').disabled=false;$('go').focus();if(net.pendingOpen)openOnline();},30);
 </script>
