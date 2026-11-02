@@ -1579,7 +1579,7 @@ function installHdCar(){
 }
 function loadHdCar(){
   if(hdSource){installHdCar();return;}
-  if(hdLoading||hdLoadFailed||!(quality==='alta'||quality==='cine'))return;
+  if(hdLoading||hdLoadFailed||!hdAllowed())return;
   hdLoading=true;hdStatus('Descargando carrocería premium 3D (11 MB)…');
   // Dynamic loader keeps the original game usable even if external 3D hosting fails.
   import('three/addons/loaders/GLTFLoader.js').then(({GLTFLoader})=>{
@@ -1594,7 +1594,10 @@ function loadHdCar(){
     attempt(0);
   }).catch(()=>{hdLoading=false;hdLoadFailed=true;hdStatus('Modo compatible: modelo original, sin cargador GLB.');});
 }
-function setHdQuality(){if(quality==='alta'||quality==='cine')loadHdCar();else{removeHdCar();hdStatus('Auto optimizado: elija Alta o Cine 4K para carrocería HD.');}}
+function setHdQuality(){
+  if(hdAllowed())loadHdCar();
+  else{removeHdCar();hdStatus('Kit aerodinámico de nueva generación activo: '+(carModel?.name||'vehículo')+'.');}
+}
 /* How each car drives. Speeds in m/s (90 m/s is 324 km/h on the dial). acc = pull from low speed, exp = how quickly that pull fades
    near top speed, grip/gripV = cornering grip and the extra grip speed (downforce) brings, dgrip = grip while drifting, driftV/driftS =
    speed and steering needed to start a drift, driftN = nitro earned per second of drift, wall = speed lost scraping the barrier,
@@ -1617,7 +1620,7 @@ function setPlayerCar(id){const M=carById(id);if(P&&carModel===M)return;removeHd
   scene.add(P.root);if(old){P.root.position.copy(old.position);P.root.rotation.copy(old.rotation);scene.remove(old);}
   car=P.root;body=P.body;wheels=P.wheels;tailMat=P.tailMat;wheelSt=P.wheelSt;carModel=M;spec=SPECS[M.id]||SPECS.aurora;voiceDirty=true;
   applyPaint();const gl=document.querySelector('.gearbox .label');if(gl)gl.textContent=spec.box;
-  if(hdSource)installHdCar();}
+  if(hdSource)installHdCar();else if(hdAllowed())loadHdCar();}
 const RIVALS=[{name:'Mara',c:'#e4dccb'},{name:'Kito',c:'#c8322a'},{name:'Bruma',c:'#5d6b78'},{name:'Tenaz',c:'#178a78'},{name:'Orión',c:'#7b45b5'}];
 const rivals=RIVALS.map(d=>({...d,mat:new THREE.MeshPhysicalMaterial({color:d.c,metalness:.55,roughness:.32,clearcoat:1,clearcoatRoughness:.05,envMapIntensity:1.2}),
   car:null,modelId:'',spec:SPECS.aurora,s:0,lat:0,latT:0,prefLat:0,latV:0,v:0,skill:.9,nitroT:0,passT:0,finished:false,finishT:0,order:0,ahead:true,braking:false,x:0,z:0}));
