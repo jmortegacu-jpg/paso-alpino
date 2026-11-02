@@ -509,8 +509,8 @@ select.field option{color:#111}
         <div class="label">Calidad gráfica</div>
         <div class="seg" id="qSeg"></div>
         <div class="note">Si el juego va lento en su celular, elija «Baja».</div>
-        <div class="note" id="hdModelStatus" aria-live="polite">Siete diseños futuristas originales. Aurora HD disponible con calidad Alta o Cine 4K.</div>
-        <div class="note">Modelo 3D premium: <a href="https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept" target="_blank" rel="noopener">Car Concept</a> © 2024 Darmstadt Graphics Group GmbH / Eric Chadwick, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Adaptado visualmente para Paso Alpino.</div>
+        <div class="note" id="hdModelStatus" aria-live="polite">Siete carrocerías tridimensionales originales: cabina, ruedas, interior, aerodinámica y luces.</div>
+        <div class="note">Diseños originales OrtegaCorp Next-Gen: carrocerías generadas en 3D directamente por el juego. No utilizan modelos o logotipos comerciales.</div>
       </div>
     </details>
     <div class="menufoot"><span>Un juego de OrtegaCorp</span><span><button class="linkbtn" id="qrBtn" type="button">Código QR</button> · <button class="linkbtn" id="creditsBtn" type="button">Créditos</button></span></div>
@@ -673,7 +673,7 @@ select.field option{color:#111}
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { enhanceFutureCar } from './graphics/future-vehicles.js';
+import { buildFutureChassis, syncFuturePaint } from './graphics/future-chassis.js';
 
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1524,13 +1524,15 @@ const HD_CAR_URLS=[
 ];
 // Only Aurora uses the licensed Car Concept GLB; the other six have distinct
 // original future-designed 3D bodies, avoiding repeated cloned hypercars.
-const HD_SUPPORTED=new Set(['aurora']);
+const HD_SUPPORTED=new Set([]); // original next-gen chassis replace the external demo GLB
 let hdSource=null,hdLoading=false,hdRig=null,hdWheels=[],hdLoadFailed=false;
 const hdAllowed=()=>HD_SUPPORTED.has(carModel.id)&&(quality==='alta'||quality==='cine');
 function hdStatus(msg){const e=document.getElementById('hdModelStatus');if(e)e.textContent=msg;}
 function removeHdCar(){
-  if(hdRig){hdRig.parent?.remove(hdRig);hdRig=null;}
-  hdWheels=[];
+  // Only undo a previous external-model replacement. Never unhide the old
+  // procedural meshes behind the new original next-generation chassis.
+  if(!hdRig)return;
+  hdRig.parent?.remove(hdRig);hdRig=null;hdWheels=[];
   if(body)for(const mesh of body.children)mesh.visible=true;
   if(wheels)for(const wheel of wheels)wheel.pivot.visible=true;
 }
@@ -1595,8 +1597,7 @@ function loadHdCar(){
   }).catch(()=>{hdLoading=false;hdLoadFailed=true;hdStatus('Modo compatible: modelo original, sin cargador GLB.');});
 }
 function setHdQuality(){
-  if(hdAllowed())loadHdCar();
-  else{removeHdCar();hdStatus('Kit aerodinámico de nueva generación activo: '+(carModel?.name||'vehículo')+'.');}
+  hdStatus('Carrocería original 3D y guardabarros integrados · '+(carModel?.name||'Paso Alpino')+'.');
 }
 /* How each car drives. Speeds in m/s (90 m/s is 324 km/h on the dial). acc = pull from low speed, exp = how quickly that pull fades
    near top speed, grip/gripV = cornering grip and the extra grip speed (downforce) brings, dgrip = grip while drifting, driftV/driftS =
@@ -1614,19 +1615,21 @@ const SPECS={
 let P=null,car=null,body=null,wheels=null,tailMat=null,wheelSt=null,carModel=CARS[0],spec=SPECS.aurora,voiceDirty=true;
 function setPlayerCar(id){const M=carById(id);if(P&&carModel===M)return;removeHdCar();const old=P&&P.root;
   P=kit.build(M.id,paint,true);
-  // Visual geometry only: aerodynamic pieces are attached to the sprung body.
-  // Colliders, handling specs and online replay are not changed.
-  enhanceFutureCar(THREE,P.body,M,{detailed:quality!=='baja'});
+  // Unique original fully modeled body, lights, cockpit and wheel-arch geometry.
+  // The original wheel pivots and car physics are preserved exactly.
+  buildFutureChassis(THREE,P,M,{high:quality==='alta'||quality==='cine',player:true,paint});
   scene.add(P.root);if(old){P.root.position.copy(old.position);P.root.rotation.copy(old.rotation);scene.remove(old);}
   car=P.root;body=P.body;wheels=P.wheels;tailMat=P.tailMat;wheelSt=P.wheelSt;carModel=M;spec=SPECS[M.id]||SPECS.aurora;voiceDirty=true;
   applyPaint();const gl=document.querySelector('.gearbox .label');if(gl)gl.textContent=spec.box;
-  if(hdSource)installHdCar();else if(hdAllowed())loadHdCar();}
+  setHdQuality();}
 const RIVALS=[{name:'Mara',c:'#e4dccb'},{name:'Kito',c:'#c8322a'},{name:'Bruma',c:'#5d6b78'},{name:'Tenaz',c:'#178a78'},{name:'Orión',c:'#7b45b5'}];
 const rivals=RIVALS.map(d=>({...d,mat:new THREE.MeshPhysicalMaterial({color:d.c,metalness:.55,roughness:.32,clearcoat:1,clearcoatRoughness:.05,envMapIntensity:1.2}),
   car:null,modelId:'',spec:SPECS.aurora,s:0,lat:0,latT:0,prefLat:0,latV:0,v:0,skill:.9,nitroT:0,passT:0,finished:false,finishT:0,order:0,ahead:true,braking:false,x:0,z:0}));
 // give a rival or another player a car model (shapes are shared between cars, so switching is quick)
 function setCarModel(o,id){const M=carById(id);if(o.car&&o.modelId===M.id)return o.car;const was=!!(o.car&&o.car.root.visible);
-  if(o.car)scene.remove(o.car.root);o.car=kit.build(M.id,o.mat,false);o.modelId=M.id;o.spec=SPECS[M.id]||SPECS.aurora;scene.add(o.car.root);o.car.root.visible=was;
+  if(o.car)scene.remove(o.car.root);o.car=kit.build(M.id,o.mat,false);
+  buildFutureChassis(THREE,o.car,M,{high:false,paint:o.mat});
+  o.modelId=M.id;o.spec=SPECS[M.id]||SPECS.aurora;scene.add(o.car.root);o.car.root.visible=was;
   if(o.label){o.car.root.add(o.label);o.label.position.y=M.top+.85;}return o.car;}
 rivals.forEach((r,k)=>setCarModel(r,CARS[(k+1)%CARS.length].id));
 
@@ -1657,7 +1660,7 @@ if(!COLORS[cfg.color]||COLORS[cfg.color].stars>totalStars())cfg.color=0;
 // each car remembers its own paint: -1 = the car's original colour, otherwise one of COLORS (some unlocked with stars)
 if(!cfg.carPaint||typeof cfg.carPaint!=='object')cfg.carPaint={aurora:COLORS[cfg.color]?cfg.color:0};
 function paintIdx(id){const v=cfg.carPaint[id||carModel.id];return Number.isInteger(v)&&COLORS[v]&&COLORS[v].stars<=totalStars()?v:-1;}
-function applyPaint(){const i=paintIdx(),c=i>=0?COLORS[i]:null;paint.color.set(c?c.c:carModel.paint);paint.metalness=c&&c.metal?.88:.6;paint.roughness=c&&c.metal?.2:.28;updateHdPaint();}
+function applyPaint(){const i=paintIdx(),c=i>=0?COLORS[i]:null;paint.color.set(c?c.c:carModel.paint);paint.metalness=c&&c.metal?.88:.6;paint.roughness=c&&c.metal?.2:.28;syncFuturePaint(P,paint);updateHdPaint();}
 const myColor=()=>'#'+paint.color.getHexString();
 // the garage: race credits and the cars the player owns
 let garage=store.get('paso-alpino-garaje',null);if(!garage||typeof garage!=='object')garage={};
