@@ -2153,7 +2153,17 @@ function renderTrackList(){const box=$('trackList');box.textContent='';const lis
         customs=customs.filter(c=>c.id!==def.id);store.set('paso-alpino-pistas',customs);store.set(bestKey(def.id),null);
         if(cfg.track===def.id){cfg.track='alpino';saveCfg();}renderTrackList();toast('Pista borrada.');});
       b.appendChild(del);}
-    const pick=()=>{if(cfg.track!==def.id)dropPause();cfg.track=def.id;saveCfg();renderTrackList();renderWR();};
+    const pick=()=>{
+      if(cfg.track!==def.id){
+        dropPause();
+        // Suggested regional atmosphere. Players can still override weather
+        // manually after selecting any Costa Rica circuit.
+        const wxDefault={zurqui:'lluvia',costanera:'tarde',puntarenas:'noche'};
+        if(wxDefault[def.id])cfg.wx=wxDefault[def.id];
+      }
+      cfg.track=def.id;saveCfg();
+      if(mode==='menu'&&!paused&&wxKey!==(cfg.wx||'tarde'))applyWeather(cfg.wx||'tarde');
+      renderTrackList();renderWx();renderWR();};
     b.addEventListener('click',pick);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}});
     box.appendChild(b);requestAnimationFrame(()=>drawPreview(cv,def,def.id===cfg.track));});
   const add=document.createElement('button');add.type='button';add.className='tcard add';add.innerHTML='<span>+</span>Crear pista';add.addEventListener('click',openEditor);box.appendChild(add);
