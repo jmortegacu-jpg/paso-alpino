@@ -674,6 +674,7 @@ select.field option{color:#111}
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildFutureChassis, syncFuturePaint } from './graphics/future-chassis.js';
+import { addCostaRicaScenery } from './graphics/costa-rica-tracks.js';
 
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -703,6 +704,23 @@ const PRESETS=[
     ctrl:[[600,0,4],[520,260,6],[300,420,10],[0,470,14],[-260,380,10],[-420,420,8],[-640,200,6],[-620,-120,4],[-420,-380,8],[-100,-420,12],[120,-300,10],[360,-430,8],[580,-260,6]]},
   {id:'cumbre',name:'Cumbre Nevada',desc:'Curvas técnicas y mucha subida',theme:{amp:1.35,snow:70,lake:false,trees:.6},
     ctrl:[...Array(14)].map((_,i)=>{const a=i/14*Math.PI*2,R=380+[0,60,-50,70,-40,50,-60,40,70,-50,60,-30,50,-60][i];return[Math.cos(a)*R,Math.sin(a)*R,[0,12,26,40,52,58,50,38,30,22,30,20,10,4][i]];})},
+  // Costa Rica Racing Pack — original closed-loop circuits inspired by real roads.
+  // Not survey-accurate reconstructions; the route is adapted for safe arcade racing.
+  {id:'zurqui',name:'Túnel Zurquí · Ruta 32',desc:'Bosque nuboso, túnel iluminado y curvas de montaña',
+    theme:{cr:'zurqui',amp:1.28,snow:2400,lake:false,trees:.8},
+    ctrl:[[610,40,72],[565,320,97],[320,545,132],[70,665,146],[-250,620,165],
+      [-510,440,154],[-615,130,131],[-580,-230,110],[-395,-520,83],[-100,-625,72],
+      [200,-590,65],[490,-380,55],[650,-140,68]]},
+  {id:'costanera',name:'Costanera Sur · Ruta 34',desc:'Rectas tropicales, mar Pacífico, palmeras y atardecer',
+    theme:{cr:'costanera',amp:.20,snow:2400,lake:false,trees:.12},
+    ctrl:[[800,0,10],[730,270,12],[540,450,14],[200,550,16],[-140,535,13],
+      [-500,440,12],[-750,230,11],[-825,-70,10],[-660,-330,12],
+      [-360,-470,14],[0,-515,12],[350,-450,13],[650,-275,10]]},
+  {id:'puntarenas',name:'Paseo de los Turistas',desc:'Circuito urbano frente al mar, malecón y comercios típicos',
+    theme:{cr:'puntarenas',amp:.09,snow:2400,lake:false,trees:0},
+    ctrl:[[130,680,7],[124,440,7],[122,190,7],[116,-130,7],[100,-440,7],
+      [72,-655,7],[-35,-725,7],[-125,-650,7],[-135,-430,7],
+      [-136,-130,7],[-135,170,7],[-132,445,7],[-95,660,7],[0,730,7]]},
 ];
 let customs=store.get('paso-alpino-pistas',[]);
 if(!Array.isArray(customs))customs=[];
@@ -869,7 +887,12 @@ function buildWorld(def){
   const tg=new THREE.PlaneGeometry(TS,TS,SEG,SEG).rotateX(-Math.PI/2).translate(center.x,0,center.z);
   {const p=tg.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,heightAt(p.getX(i),p.getZ(i)));
     tg.computeVertexNormals();const n=tg.attributes.normal,col=new Float32Array(p.count*3);
-    const grass=new THREE.Color('#4d6a32'),dry=new THREE.Color('#857d47'),rock=new THREE.Color('#6d675f'),dark=new THREE.Color('#4a4743'),snow=new THREE.Color('#f1f3f6'),sand=new THREE.Color('#b29f78'),c=new THREE.Color(),r2=new THREE.Color();
+    const tropical=!!theme.cr;
+    const grass=new THREE.Color(theme.cr==='zurqui'?'#275332':theme.cr==='costanera'?'#6c7842':theme.cr==='puntarenas'?'#b1a47c':'#4d6a32'),
+      dry=new THREE.Color(tropical?'#8e885d':'#857d47'),
+      rock=new THREE.Color(tropical?'#686d5e':'#6d675f'),
+      dark=new THREE.Color(tropical?'#3a4b3a':'#4a4743'),
+      snow=new THREE.Color('#f1f3f6'),sand=new THREE.Color('#b29f78'),c=new THREE.Color(),r2=new THREE.Color();
     const sl=theme.snow;
     for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),ny=n.getY(i),v=fbm(x*0.02,z*0.02,3);
       c.copy(grass).lerp(dry,smooth(.4,.7,v));
@@ -878,7 +901,7 @@ function buildWorld(def){
       c.lerp(sand,smooth(-1,-3.5,y));col.set([c.r,c.g,c.b],i*3);}
     tg.setAttribute('color',new THREE.BufferAttribute(col,3));}
   const terrain=new THREE.Mesh(tg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95,envMapIntensity:.45}));terrain.receiveShadow=true;world.add(terrain);
-  const water=new THREE.Mesh(new THREE.PlaneGeometry(TS,TS).rotateX(-Math.PI/2),new THREE.MeshPhysicalMaterial({color:'#2b5c6f',roughness:.08,metalness:.1,envMapIntensity:1.2}));
+  const water=new THREE.Mesh(new THREE.PlaneGeometry(TS,TS).rotateX(-Math.PI/2),new THREE.MeshPhysicalMaterial({color:theme.cr?'#247392':'#2b5c6f',roughness:.08,metalness:.1,envMapIntensity:1.2}));
   water.position.set(center.x,-4.2,center.z);world.add(water);
   // trees
   {const COUNT=Math.round(2500*QUAL[quality].trees*theme.trees);
@@ -896,6 +919,9 @@ function buildWorld(def){
       const s=.7+Math.random()*.9;o.position.set(x,h-.3,z);o.scale.set(s,s*(.85+Math.random()*.4),s);o.rotation.y=Math.random()*6;o.updateMatrix();
       fol.setMatrixAt(k,o.matrix);trunk.setMatrixAt(k,o.matrix);c.setHSL(.29+Math.random()*.05,.38+Math.random()*.15,.16+Math.random()*.07);fol.setColorAt(k,c);k++;}
     fol.count=trunk.count=k;world.add(fol,trunk);}
+  // Costa Rica-specific scenery is rebuilt with each circuit; no impact on
+  // collision physics, global track length, player controls or netcode.
+  if(theme.cr)addCostaRicaScenery(THREE,world,def,pts,T,S,quality);
   // speed profile the rivals follow: corner speed from curvature, then braking zones before each corner
   trackLen=D[N-1]+pts[N-1].distanceTo(pts[0]);segLen=trackLen/N;VMAX=new Float32Array(N);
   {const w=6;for(let i=0;i<N;i++){const a=T[(i-w+N)%N],b=T[(i+w)%N],la=Math.hypot(a.x,a.z),lb=Math.hypot(b.x,b.z);
@@ -2127,7 +2153,17 @@ function renderTrackList(){const box=$('trackList');box.textContent='';const lis
         customs=customs.filter(c=>c.id!==def.id);store.set('paso-alpino-pistas',customs);store.set(bestKey(def.id),null);
         if(cfg.track===def.id){cfg.track='alpino';saveCfg();}renderTrackList();toast('Pista borrada.');});
       b.appendChild(del);}
-    const pick=()=>{if(cfg.track!==def.id)dropPause();cfg.track=def.id;saveCfg();renderTrackList();renderWR();};
+    const pick=()=>{
+      if(cfg.track!==def.id){
+        dropPause();
+        // Suggested regional atmosphere. Players can still override weather
+        // manually after selecting any Costa Rica circuit.
+        const wxDefault={zurqui:'lluvia',costanera:'tarde',puntarenas:'noche'};
+        if(wxDefault[def.id])cfg.wx=wxDefault[def.id];
+      }
+      cfg.track=def.id;saveCfg();
+      if(mode==='menu'&&!paused&&wxKey!==(cfg.wx||'tarde'))applyWeather(cfg.wx||'tarde');
+      renderTrackList();renderWx();renderWR();};
     b.addEventListener('click',pick);b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}});
     box.appendChild(b);requestAnimationFrame(()=>drawPreview(cv,def,def.id===cfg.track));});
   const add=document.createElement('button');add.type='button';add.className='tcard add';add.innerHTML='<span>+</span>Crear pista';add.addEventListener('click',openEditor);box.appendChild(add);
