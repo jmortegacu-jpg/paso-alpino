@@ -24,11 +24,11 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   const group=new THREE.Group();group.name=C.title;
   const material={
     paint:new THREE.MeshPhysicalMaterial({color:paint?.color || new THREE.Color(M.paint||'#c42424'),
-      metalness:.64,roughness:.205,clearcoat:1,clearcoatRoughness:.045,envMapIntensity:1.9,side:THREE.DoubleSide}),
+      metalness:.66,roughness:.175,clearcoat:1,clearcoatRoughness:.04,envMapIntensity:2.2,side:THREE.DoubleSide}),
     carbon:new THREE.MeshPhysicalMaterial({color:0x0b0e12,metalness:.28,roughness:.32,clearcoat:1,clearcoatRoughness:.10,side:THREE.DoubleSide}),
     vent:new THREE.MeshStandardMaterial({color:0x06080b,metalness:.14,roughness:.9,side:THREE.DoubleSide}),
     mesh:new THREE.MeshStandardMaterial({color:0x222932,metalness:.58,roughness:.55,side:THREE.DoubleSide}),
-    glass:new THREE.MeshPhysicalMaterial({color:0x192935,metalness:.18,roughness:.055,transparent:true,opacity:.84,depthWrite:false,clearcoat:1,clearcoatRoughness:0,envMapIntensity:1.9,side:THREE.DoubleSide}),
+    glass:new THREE.MeshPhysicalMaterial({color:0x192935,metalness:.14,roughness:.06,transparent:true,opacity:.78,depthWrite:false,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:2.05,side:THREE.DoubleSide}),
     trim:new THREE.MeshPhysicalMaterial({color:0x58626a,metalness:.9,roughness:.24,side:THREE.DoubleSide}),
     seat:new THREE.MeshStandardMaterial({color:M.id==='volcan'?0x5c1a20:0x1d222a,roughness:.75}),
     stitch:new THREE.MeshStandardMaterial({color:0xb08e66,roughness:.85}),
@@ -96,12 +96,26 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     ];
     return half.map(([x,y])=>[side*x,archHeight(x,z,y),z]);
   };
+  // Smooth curvature across the width of the vehicle, not only lengthwise.
+  // The old nine-point half-section made paint highlights look like folded
+  // polygons. Centripedal splines create continuous hood, shoulder and haunch.
+  const curveDetail=high?4:2;
+  const smoothProfile=(z,side)=>{
+    const points=profile(z,side).map(p=>new THREE.Vector3(...p));
+    const spline=new THREE.CatmullRomCurve3(points,false,'centripetal',.18);
+    return spline.getPoints((points.length-1)*curveDetail)
+      .map(p=>[p.x,p.y,p.z]);
+  };
   const vertices=[],indices=[],uv=[];
-  const rowParts=9,ring=2*rowParts-2;
+  const rowParts=8*curveDetail+1,ring=2*rowParts-2;
   for(let i=0;i<=highSeg;i++){
-    const z=F+(R-F)*i/highSeg;const pR=profile(z,1),pL=profile(z,-1);
+    const z=F+(R-F)*i/highSeg;
+    const pR=smoothProfile(z,1),pL=smoothProfile(z,-1);
     const ringPts=[...pR,...pL.slice(1,-1).reverse()];
-    for(let j=0;j<ringPts.length;j++){vertices.push(...ringPts[j]);uv.push(j/(ring-1),i/highSeg);}
+    if(ringPts.length!==ring)throw Error('Invalid continuous body ring');
+    for(let j=0;j<ringPts.length;j++){
+      vertices.push(...ringPts[j]);uv.push(j/ring,i/highSeg);
+    }
   }
   for(let i=0;i<highSeg;i++)for(let j=0;j<ring;j++){
     const a=i*ring+j,b=i*ring+(j+1)%ring,c=(i+1)*ring+j,d=(i+1)*ring+(j+1)%ring;
@@ -111,6 +125,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   bodyGeo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
   bodyGeo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
   bodyGeo.setIndex(indices);bodyGeo.computeVertexNormals();
+  // Connected smooth normals across the longitudinal seam, avoiding a
+  // conspicuous dark line along the center of the hood and roof.
+  const normals=bodyGeo.getAttribute('normal');
+  for(let k=0;k<=highSeg;k++){
+    const a=k*ring,b=a+ring-1;
+    const nx=(normals.getX(a)+normals.getX(b))*.5,
+          ny=(normals.getY(a)+normals.getY(b))*.5,
+          nz=(normals.getZ(a)+normals.getZ(b))*.5;
+    const len=Math.hypot(nx,ny,nz)||1;
+    normals.setXYZ(a,nx/len,ny/len,nz/len);
+    normals.setXYZ(b,nx/len,ny/len,nz/len);
+  }
+  normals.needsUpdate=true;
   const shell=add(bodyGeo,material.paint);shell.name='Original hand-parametric fender and body shell';
 
   // Bespoke curved front and tail caps, stitched to the loft perimeter.
@@ -198,6 +225,39 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     for(const x of [-.46,.46])add(new THREE.TorusGeometry(.060,.012,6,16),material.trim,x,seatY+.38,z0-.08);
   }
 
+  // Sculpted bonnet shoulders: smooth continuous metal surfaces rather than
+  // floating boxes. Patches are slightly above the base loft, and taper into
+  // the cabin so the car reads as a real pressed-metal structure.
+  const sculpt=(side,materialRef,rows,cols,coord)=>{
+    const v=[],uv=[],ix=[];
+    for(let i=0;i<=rows;i++)for(let j=0;j<=cols;j++){
+      const p=coord(i/rows,j/cols);v.push(...p);uv.push(j/cols,i/rows);
+    }
+    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+      const a=i*(cols+1)+j,b=a+1,c=a+cols+1,d=c+1;
+      if(side>0)ix.push(a,b,c,b,d,c);else ix.push(a,c,b,b,c,d);
+    }
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));
+    g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(ix);g.computeVertexNormals();
+    return add(g,materialRef);
+  };
+  for(const side of [-1,1]){
+    const zBeg=Math.min(F-.18,W.zf+.53),zEnd=Math.max(.82,M.cabin.z0+.10);
+    sculpt(side,material.paint,high?24:12,high?8:4,(u,v)=>{
+      const z=zEnd+(zBeg-zEnd)*u,w=cw(z);
+      const x=side*w*(.44+.34*v);
+      const ridge=Math.sin(Math.PI*v)**2*Math.sin(Math.PI*u)**1.25*.058*(1+C.shoulder);
+      return [x,roof(z)+styleRidge(z,x,w)+ridge+.011,z];
+    });
+    // Rear haunch bulges blend into the engine cover and do not intersect tyres.
+    const rz0=W.zr+.44,rz1=R+.24;
+    sculpt(side,material.paint,high?26:12,high?9:4,(u,v)=>{
+      const z=rz0+(rz1-rz0)*u,w=cw(z);
+      const x=side*w*(.47+.29*v);
+      const rise=.037*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)*(1+C.arch);
+      return [x,roof(z)+styleRidge(z,x,w)+rise+.012,z];
+    });
+  }
   // Strong shoulder and door lines provide large-scale surface detail. These
   // curves emphasize the side silhouette without projecting into wheel space.
   const mids=[W.zf-.55,.15,W.zr+.60];
@@ -243,6 +303,17 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     }
   }
 
+
+  // Recessed lens housings share the car's front fender proportions.
+  for(const sign of [-1,1]){
+    const z=F-.28,x=sign*cw(z)*.69,y=M.B.ye(z)+.012;
+    const lens=new THREE.Mesh(new THREE.SphereGeometry(.23,high?20:12,high?10:6),material.carbon);
+    lens.scale.set(1.25,.36,1.4);lens.position.set(x,y,z);
+    lens.rotation.y=sign*.18;group.add(lens);
+    const surround=new THREE.Mesh(new THREE.TorusGeometry(.13,.013,6,20),material.trim);
+    surround.scale.set(1.5,.63,1);surround.rotation.y=sign*.24;
+    surround.position.set(x,y,z+.23);group.add(surround);
+  }
   // Distinct curved LED silhouettes: designed as luminous volume, not stickers.
   const headY=M.B.ye(F-.29)+.035,hz=F-.27;
   for(const s of [-1,1]){
@@ -306,23 +377,45 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     box(M.K.wt(roofMid)*1.9,.045,.09,material.carbon,0,M.K.top(roofMid)+.17,roofMid-.78);
   }
 
-  // Rim detailing is mounted directly on each spin group. Wheel centers,
-  // axle positions and physical radius remain those of carKit.
+  // Correct wheel packaging: original carKit rim/tyre already contains a
+  // complete wheel at the correct axle. New visible rim detail must stay
+  // INSIDE the tyre width, not protrude beyond the outer sidewall.
+  // Each carKit side-group mirrors X, so a positive faceX is outward on both.
   for(let i=0;i<P.wheels.length;i++){
     const wh=P.wheels[i],rad=wh.r;
-    const z=wh.front?W.zf:W.zr, half=wh.front?W.wf:W.wr;
-    const ring= new THREE.Mesh(new THREE.TorusGeometry(rad*.70,.012,8,high?40:20),material.trim);
-    ring.rotation.y=Math.PI/2;ring.position.x=half*.5+.012;wh.spin.add(ring);
+    const half=(wh.front?W.wf:W.wr)*.5;
+    const faceX=Math.max(.045,half-.052),rimR=rad*.685;
+    const ring=new THREE.Mesh(
+      new THREE.TorusGeometry(rimR,.009,8,high?48:24),material.trim);
+    ring.rotation.y=Math.PI/2;ring.position.x=faceX;wh.spin.add(ring);
     if(high){
       const n=C.rim==='turbine'?11:C.rim==='mesh'?14:C.rim==='disc'?6:C.rim==='five'?5:10;
+      const inner=rad*.16,outer=rad*.61;
+      const spokeGeometry=new THREE.BoxGeometry(.018,.022,outer-inner);
+      const spokes=new THREE.Group();spokes.position.x=faceX-.012;
       for(let k=0;k<n;k++){
-        const a=k*2*Math.PI/n,rd=rad*.57;
-        const spoke=new THREE.Mesh(new THREE.BoxGeometry(.015,.025,rd*.55),k%2?material.trim:material.carbon);
-        spoke.position.set(half*.5+.015,Math.sin(a)*rd*.47,Math.cos(a)*rd*.47);
+        const a=k*2*Math.PI/n;
+        const spoke=new THREE.Mesh(spokeGeometry,k%2?material.trim:material.carbon);
+        // Spokes lie within the YZ face of the rim, rotate around the X axle.
+        const radius=(inner+outer)*.5;
+        spoke.position.set(0,Math.sin(a)*radius,Math.cos(a)*radius);
         spoke.rotation.x=-a;
-        wh.spin.add(spoke);
+        spokes.add(spoke);
       }
+      const hub=new THREE.Mesh(
+        new THREE.CylinderGeometry(rad*.095,rad*.095,.023,20),
+        material.trim);
+      hub.rotation.z=Math.PI/2;hub.position.x=.005;spokes.add(hub);
+      wh.spin.add(spokes);
     }
+  }
+  // Protect silhouettes from flying mirrors: the mirror housings are
+  // tightly anchored inside the fender envelope rather than on a free arm.
+  // Add a narrow metal roof centerline to reinforce the canopy geometry.
+  if(high){
+    curve([[0,M.K.top(z0-.2)+.008,z0-.2],
+      [0,M.K.top(roofMid)+.01,roofMid],
+      [0,M.K.top(z1+.2)+.008,z1+.2]],material.carbon,.012);
   }
   // Preserve the game's steering wheel, nitro flames and animation references.
   const keep=new Set([P.wheelSt,...(P.flames||[])].filter(Boolean));
