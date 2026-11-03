@@ -166,8 +166,8 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     }
     const flowMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,
       uniforms:{uT:{value:0}},
-      vertexShader:\`varying vec2 vUv;uniform float uT;void main(){vUv=uv;vec3 p=position;p.z+=sin(vUv.y*18.+uT*2.)*.12;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}\`,
-      fragmentShader:\`varying vec2 vUv;uniform float uT;void main(){float a=sin(vUv.y*48.-uT*6.+sin(vUv.x*26.)*2.);float b=sin(vUv.y*76.-uT*8.-vUv.x*31.);vec3 c=mix(vec3(.13,.42,.53),vec3(.85,.96,1.),.42+.38*a*a);gl_FragColor=vec4(c,.53+.28*a*a+.09*b*b);}\`});
+      vertexShader:`varying vec2 vUv;uniform float uT;void main(){vUv=uv;vec3 p=position;p.z+=sin(vUv.y*18.+uT*2.)*.12;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+      fragmentShader:`varying vec2 vUv;uniform float uT;void main(){float a=sin(vUv.y*48.-uT*6.+sin(vUv.x*26.)*2.);float b=sin(vUv.y*76.-uT*8.-vUv.x*31.);vec3 c=mix(vec3(.13,.42,.53),vec3(.85,.96,1.),.42+.38*a*a);gl_FragColor=vec4(c,.53+.28*a*a+.09*b*b);}`});
     for(let k=0;k<4;k++){
       const flow=new THREE.Mesh(new THREE.PlaneGeometry(3.25,height,6,32),flowMat);
       flow.position.set((k-1.5)*1.35,height*.5,4.35+.1*k);group.add(flow);
