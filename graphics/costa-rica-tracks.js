@@ -111,14 +111,18 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const pos=[],uv=[],idx=[],stride=Math.max(4,Math.floor((end-start)/190));
     for(let j=start;j<=end;j+=stride){
       for(const d of [offset,offset+width]){
-        const p=node(j%N,side,d,-1.5);
-        pos.push(p.x,p.y,p.z);uv.push(d/width,j/120);
+        const p=node(j%N,side,d,.23);
+        pos.push(p.x,p.y,p.z);uv.push((d-offset)/width,j/120);
       }
     }
     let rows=pos.length/6;for(let j=0;j<rows-1;j++){const a=j*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
     if(rows<2)return;
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
-    const shore=new THREE.Mesh(g,mats.aqua);shore.receiveShadow=true;world.add(shore);
+    const seaMat=new THREE.ShaderMaterial({side:THREE.DoubleSide,uniforms:{uT:{value:0}},
+      vertexShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){vAcross=uv.x;vec3 p=position;p.y+=.15*sin(p.x*.16+uT*.85)*cos(p.z*.09-uT*.64);vW=p;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+      fragmentShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){float wave=sin(vW.x*.25+uT*.75)*cos(vW.z*.24-uT*.48);float foam=pow(max(0.,sin(vW.x*.46+vW.z*.3+uT*.75)),13.);vec3 c=mix(vec3(.025,.17,.27),vec3(.07,.45,.55),.55+.32*wave);c+=vec3(.24,.31,.29)*foam*.25;float shoreline=(1.-smoothstep(.0,.09,vAcross))*sin(vW.x*.65+uT*.55)*.07;c+=max(0.,shoreline)*vec3(.5,.72,.78);gl_FragColor=vec4(c,1.);}`});
+    const shore=new THREE.Mesh(g,seaMat);shore.receiveShadow=true;
+    shore.onBeforeRender=()=>{seaMat.uniforms.uT.value=performance.now()*.001;};world.add(shore);
   }
   function kiosk(i,side,dist,color=0xbca483){
     const g=new THREE.Group(),walls=new THREE.MeshStandardMaterial({color,roughness:.85});
@@ -129,10 +133,106 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     place(g,i,side,dist);
   }
 
+
+  // Coastal scene accents. These are positioned outside the playable roadway
+  // and never participate in physics or collision detection.
+  function boat(i,side=1,distance=85,sail=false){
+    const boatGroup=new THREE.Group();
+    const hull=new THREE.Mesh(new THREE.SphereGeometry(3.4,20,12),
+      new THREE.MeshPhysicalMaterial({color:0xf0f1e8,metalness:.15,roughness:.33,clearcoat:.9}));
+    hull.scale.set(1.4,.22,.51);hull.position.y=.45;boatGroup.add(hull);
+    const edge=cube(5.7,.13,2.8,mats.black,0,.96,0);boatGroup.add(edge);
+    const cabin=cube(2.25,1.35,1.8,mats.wall,-.35,1.53,0);boatGroup.add(cabin);
+    const glass=cube(.04,.69,1.4,mats.black,.81,1.72,0);boatGroup.add(glass);
+    const mast=new THREE.Mesh(new THREE.CylinderGeometry(.055,.075,3.7,8),mats.black);
+    mast.position.set(.96,2.55,0);boatGroup.add(mast);
+    if(sail){
+      const geom=new THREE.BufferGeometry();
+      geom.setAttribute('position',new THREE.Float32BufferAttribute([.9,4.7,0, .9,1.5,0, 3.5,1.55,0],3));
+      geom.computeVertexNormals();
+      const cloth=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color:0xf5e9d2,side:THREE.DoubleSide,roughness:.86}));
+      boatGroup.add(cloth);
+    }
+    place(boatGroup,i,side,distance,.56);
+    boatGroup.rotation.y+=Math.PI*.5;
+  }
+  function waterfall(i,side=1,distance=37,height=18){
+    const group=new THREE.Group();
+    const cliffMaterial=new THREE.MeshStandardMaterial({color:0x536154,roughness:.97,flatShading:true});
+    for(let k=0;k<4;k++){
+      const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(5.3,0),cliffMaterial);
+      rock.scale.set(1.2,.95+Math.sin(k+2)*.12,.65);rock.position.set((k-1.5)*3.9,height*.68,0);
+      group.add(rock);
+    }
+    const flowMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,
+      uniforms:{uT:{value:0}},
+      vertexShader:`varying vec2 vUv;uniform float uT;void main(){vUv=uv;vec3 p=position;p.z+=sin(vUv.y*18.+uT*2.)*.12;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+      fragmentShader:`varying vec2 vUv;uniform float uT;void main(){float a=sin(vUv.y*48.-uT*6.+sin(vUv.x*26.)*2.);float b=sin(vUv.y*76.-uT*8.-vUv.x*31.);vec3 c=mix(vec3(.13,.42,.53),vec3(.85,.96,1.),.42+.38*a*a);gl_FragColor=vec4(c,.53+.28*a*a+.09*b*b);}`});
+    for(let k=0;k<4;k++){
+      const flow=new THREE.Mesh(new THREE.PlaneGeometry(3.25,height,6,32),flowMat);
+      flow.position.set((k-1.5)*1.35,height*.5,4.35+.1*k);group.add(flow);
+      flow.onBeforeRender=()=>{flowMat.uniforms.uT.value=performance.now()*.001;};
+    }
+    const sprayMat=new THREE.MeshBasicMaterial({color:0xe0f7ff,transparent:true,opacity:.38,depthWrite:false});
+    for(let k=0;k<7;k++){
+      const mist=new THREE.Mesh(new THREE.IcosahedronGeometry(.73,1),sprayMat);
+      mist.scale.set(1.5,.4,1);mist.position.set((k-3)*1.05,.4,5+Math.sin(k)*.45);
+      group.add(mist);
+    }
+    place(group,i,side,distance,.1);
+  }
+  function lighthouse(i){
+    const g=new THREE.Group();
+    const white=new THREE.MeshStandardMaterial({color:0xf5eee3,roughness:.78});
+    const red=new THREE.MeshStandardMaterial({color:0xbf4a3a,roughness:.75});
+    const tower=new THREE.Mesh(new THREE.CylinderGeometry(2.35,3.35,19,20),white);
+    tower.position.y=9.5;tower.castShadow=true;g.add(tower);
+    for(const y of [5.0,11.1,16.6]){
+      const band=new THREE.Mesh(new THREE.CylinderGeometry(2.8-y*.018,3.15-y*.024,1.3,20),red);
+      band.position.y=y;g.add(band);
+    }
+    const deck=new THREE.Mesh(new THREE.CylinderGeometry(3.35,3.35,.55,20),mats.black);
+    deck.position.y=19.4;g.add(deck);
+    const lantern=new THREE.Mesh(new THREE.CylinderGeometry(1.72,1.72,2.65,16),
+      new THREE.MeshPhysicalMaterial({color:0xc8e9f9,roughness:.07,metalness:.05,transparent:true,opacity:.65,depthWrite:false}));
+    lantern.position.y=20.95;g.add(lantern);
+    const light=new THREE.Mesh(new THREE.SphereGeometry(.9,12,8),new THREE.MeshBasicMaterial({color:0xffebba}));
+    light.position.y=21;g.add(light);
+    const roof=new THREE.Mesh(new THREE.ConeGeometry(2.25,1.8,20),mats.black);
+    roof.position.y=23.2;g.add(roof);
+    // A softly illuminated beam is a visible part of the lighthouse silhouette.
+    // MeshBasicMaterial avoids an expensive dynamic shadow-casting spotlight.
+    const beamPivot=new THREE.Group();beamPivot.position.y=21.0;
+    const beam=new THREE.Mesh(new THREE.ConeGeometry(3.3,24,16,1,true),
+      new THREE.MeshBasicMaterial({color:0xffe9ba,transparent:true,opacity:.10,
+        depthWrite:false,side:THREE.DoubleSide}));
+    beam.rotation.x=-Math.PI/2;beam.position.z=11.5;beamPivot.add(beam);
+    beamPivot.onBeforeRender=()=>{beamPivot.rotation.y=performance.now()*.00022;};
+    // Group callbacks are not invoked by the renderer: attach the callback
+    // to the beam mesh itself, while rotating its parent.
+    beam.onBeforeRender=()=>{beamPivot.rotation.y=performance.now()*.00022;};
+    g.add(beamPivot);
+    place(g,Math.floor(N*.15),1,42,.1);
+  }
+  function ferns(count){
+    const mat=new THREE.MeshStandardMaterial({color:0x327445,roughness:.94,side:THREE.DoubleSide});
+    const geometry=new THREE.ConeGeometry(1.55,2.4,7);
+    geometry.translate(0,1.25,0);
+    const mesh=new THREE.InstancedMesh(geometry,mat,count),d=new THREE.Object3D();
+    for(let k=0;k<count;k++){
+      const idx=(Math.floor(k*N/count)+13)%N;
+      const p=node(idx,k%2?-1:1,23+8*Math.abs(Math.sin(k*2.3)),-.6);
+      d.position.copy(p);d.rotation.y=k*1.52;const scale=.6+.45*Math.abs(Math.sin(k*.7));
+      d.scale.set(scale,scale,scale);d.updateMatrix();mesh.setMatrixAt(k,d.matrix);
+    }
+    world.add(mesh);
+  }
+
   if(id==='zurqui'){
-    rainforestTrees(hi?240:95);
+    rainforestTrees(hi?350:145);ferns(hi?230:90);
     sign('RUTA 32 · ZURQUI',Math.floor(N*.07),1,20);
     sign('BRAULIO CARRILLO',Math.floor(N*.46),-1,20);
+    for(const [f,side,h] of [[.15,-1,18],[.56,1,15],[.70,-1,21]])waterfall(Math.floor(N*f),side,39,h);
     // Open-ended 3D tunnel follows the actual track, approx. 550 m.
     // Double-sided geometry yields a convincing concrete roof interior.
     const start=Math.floor(N*.28),length=points[(start+1)%N].distanceTo(points[start]);
@@ -185,6 +285,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('PACIFICO CENTRAL',Math.floor(N*.55),1,20);
     for(let j=0;j<12;j++)kiosk(Math.floor(N*(.40+j*.021)),1,37, j%2?0xdecda8:0xe1bb8a);
     streetlights(Math.floor(N*.34),Math.floor(N*.54),-1,84);
+    for(let k=0;k<14;k++)boat(Math.floor(N*(k+.4)/17),k%2?1:-1,82+16*(k%3),k%4===0);
   } else if(id==='puntarenas'){
     // Roadside city promenade, with sea on one side and storefronts on other.
     roadShore(0,N,1,26,85);
@@ -196,6 +297,8 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     }
     sign('PASEO DE LOS TURISTAS',Math.floor(N*.06),-1,20);
     sign('PUNTARENAS',Math.floor(N*.50),-1,20);
+    lighthouse();
+    for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
     // Low coastal guard wall along the beach, broken into individual meshes.
     const wallGeo=new THREE.BoxGeometry(12,.5,.48);
     const nWall=Math.floor(N/26);
