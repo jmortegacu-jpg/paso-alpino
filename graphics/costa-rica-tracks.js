@@ -119,8 +119,8 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     if(rows<2)return;
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const seaMat=new THREE.ShaderMaterial({side:THREE.DoubleSide,uniforms:{uT:{value:0}},
-      vertexShader:`varying vec3 vW;uniform float uT;void main(){vec3 p=position;p.y+=.15*sin(p.x*.16+uT*.85)*cos(p.z*.09-uT*.64);vW=p;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
-      fragmentShader:`varying vec3 vW;uniform float uT;void main(){float wave=sin(vW.x*.25+uT*.75)*cos(vW.z*.24-uT*.48);float foam=pow(max(0.,sin(vW.x*.46+vW.z*.3+uT*.75)),13.);vec3 c=mix(vec3(.025,.17,.27),vec3(.07,.45,.55),.55+.32*wave);c+=vec3(.24,.31,.29)*foam*.25;gl_FragColor=vec4(c,1.);}`});
+      vertexShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){vAcross=uv.x;vec3 p=position;p.y+=.15*sin(p.x*.16+uT*.85)*cos(p.z*.09-uT*.64);vW=p;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+      fragmentShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){float wave=sin(vW.x*.25+uT*.75)*cos(vW.z*.24-uT*.48);float foam=pow(max(0.,sin(vW.x*.46+vW.z*.3+uT*.75)),13.);vec3 c=mix(vec3(.025,.17,.27),vec3(.07,.45,.55),.55+.32*wave);c+=vec3(.24,.31,.29)*foam*.25;float shoreline=(1.-smoothstep(.0,.09,vAcross))*sin(vW.x*.65+uT*.55)*.07;c+=max(0.,shoreline)*vec3(.5,.72,.78);gl_FragColor=vec4(c,1.);}`});
     const shore=new THREE.Mesh(g,seaMat);shore.receiveShadow=true;
     shore.onBeforeRender=()=>{seaMat.uniforms.uT.value=performance.now()*.001;};world.add(shore);
   }
@@ -153,7 +153,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       const cloth=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color:0xf5e9d2,side:THREE.DoubleSide,roughness:.86}));
       boatGroup.add(cloth);
     }
-    place(boatGroup,i,side,distance,-1.0);
+    place(boatGroup,i,side,distance,.56);
     boatGroup.rotation.y+=Math.PI*.5;
   }
   function waterfall(i,side=1,distance=37,height=18){
@@ -200,6 +200,18 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     light.position.y=21;g.add(light);
     const roof=new THREE.Mesh(new THREE.ConeGeometry(2.25,1.8,20),mats.black);
     roof.position.y=23.2;g.add(roof);
+    // A softly illuminated beam is a visible part of the lighthouse silhouette.
+    // MeshBasicMaterial avoids an expensive dynamic shadow-casting spotlight.
+    const beamPivot=new THREE.Group();beamPivot.position.y=21.0;
+    const beam=new THREE.Mesh(new THREE.ConeGeometry(3.3,24,16,1,true),
+      new THREE.MeshBasicMaterial({color:0xffe9ba,transparent:true,opacity:.10,
+        depthWrite:false,side:THREE.DoubleSide}));
+    beam.rotation.x=-Math.PI/2;beam.position.z=11.5;beamPivot.add(beam);
+    beamPivot.onBeforeRender=()=>{beamPivot.rotation.y=performance.now()*.00022;};
+    // Group callbacks are not invoked by the renderer: attach the callback
+    // to the beam mesh itself, while rotating its parent.
+    beam.onBeforeRender=()=>{beamPivot.rotation.y=performance.now()*.00022;};
+    g.add(beamPivot);
     place(g,Math.floor(N*.15),1,42,.1);
   }
   function ferns(count){
