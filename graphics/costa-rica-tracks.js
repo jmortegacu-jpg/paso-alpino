@@ -112,7 +112,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     for(let j=start;j<=end;j+=stride){
       for(const d of [offset,offset+width]){
         const p=node(j%N,side,d,.23);
-        pos.push(p.x,p.y,p.z);uv.push(d/width,j/120);
+        pos.push(p.x,p.y,p.z);uv.push((d-offset)/width,j/120);
       }
     }
     let rows=pos.length/6;for(let j=0;j<rows-1;j++){const a=j*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
