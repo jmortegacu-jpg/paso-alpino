@@ -832,11 +832,22 @@ function ribbon(a,b,ya,yb,mat,o={}){
   const m=new THREE.Mesh(g,mat);m.receiveShadow=true;world.add(m);return m;}
 function roadInfo(x,z){const cx=Math.floor(x/CELL),cz=Math.floor(z/CELL);let bd=Infinity,bi=-1;
   for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const l=grid.get((cx+a)+','+(cz+b));if(!l)continue;for(const i of l){const p=pts[i],dx=p.x-x,dz=p.z-z,d=dx*dx+dz*dz;if(d<bd){bd=d;bi=i;}}}
-  return bi<0?{d:Infinity,y:0}:{d:Math.sqrt(bd),y:pts[bi].y};}
+  return bi<0?{d:Infinity,y:0,i:-1}:{d:Math.sqrt(bd),y:pts[bi].y,i:bi};}
 function heightAt(x,z){const r=roadInfo(x,z),cd=Math.hypot(x-center.x,z-center.z);
   let m=Math.pow(ridged(x*0.0017+11.3,z*0.0017-7.1),1.7)*250*theme.amp+fbm(x*0.008,z*0.008)*18-30;
   m+=smooth(TR+250,TR+1100,cd)*330;
   if(theme.lake)m-=75*(1-smooth(TR*0.2,TR*0.8,cd));
+  // On coastal roads, lower only the seaward roadside terrain so the ocean
+  // remains visible beyond the shoulder. The drivable ribbon is unchanged.
+  if(r.i>=0 && r.d>23 && (theme.cr==='costanera'||theme.cr==='puntarenas')){
+    const i=r.i,p=pts[i],n=S[i];
+    const lateral=(x-p.x)*n.x+(z-p.z)*n.z;
+    const shoreSide=theme.cr==='puntarenas'?1:i<N*.35?1:i>N*.67?-1:0;
+    if(shoreSide*lateral>25){
+      const beachBottom=r.y-3.5-Math.min(8,(Math.abs(lateral)-25)*.035);
+      m=lerp(m,Math.min(m,beachBottom),smooth(27,65,Math.abs(lateral)));
+    }
+  }
   return lerp(r.y-1.5,m,smooth(30,165,r.d));}
 
 function buildWorld(def){
@@ -2765,7 +2776,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261102-costa-rica-01';
+const BUILD='20261103-visual-debug-v5';
 const GOAT='pasoalpino';   // GoatCounter code of the owner's account (the part before .goatcounter.com); empty = off
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
