@@ -258,6 +258,36 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       return [x,roof(z)+styleRidge(z,x,w)+rise+.012,z];
     });
   }
+  // Continuous wheel-arch lip follows the real wheel envelope instead of
+  // bolting polygon blocks around it. This lives in the BODY group only:
+  // pivot, steering, suspension, wheel spin and collision are untouched.
+  const archLipMaterial=new THREE.MeshPhysicalMaterial({
+    color:0x11171e,metalness:.64,roughness:.27,clearcoat:.65,
+    clearcoatRoughness:.11,side:THREE.DoubleSide
+  });
+  for(const side of [-1,1])for(const [wheelZ,radius] of [[W.zf,W.rf],[W.zr,W.rr]]){
+    const outer=radius+(W.gap||.06)+C.arch+.025;
+    const nodes=[];
+    for(let k=0;k<=22;k++){
+      const ang=Math.PI*k/22;
+      const dz=-outer*Math.cos(ang);
+      const z=wheelZ+dz;
+      const x=side*cw(z)*.993;
+      const y=radius+Math.sin(ang)*outer+.022;
+      nodes.push([x,y,z]);
+    }
+    curve(nodes,archLipMaterial,high?.017:.012);
+  }
+  // Two precise pressed-metal bonnet crease lines guide highlights to the
+  // front lights; subtle enough not to look like external plastic trim.
+  for(const side of [-1,1]){
+    const stations=[W.zf-.32,W.zf+.04,W.zf+.42,F-.19]
+      .filter(z=>z<=F-.06&&z>=R+.12);
+    if(stations.length>=2)curve(stations.map((z,i)=>{
+      const w=cw(z),x=side*w*(.51+i*.055);
+      return [x,roof(z)+styleRidge(z,x,w)+.025,z];
+    }),material.trim,high?.008:.006);
+  }
   // Strong shoulder and door lines provide large-scale surface detail. These
   // curves emphasize the side silhouette without projecting into wheel space.
   const mids=[W.zf-.55,.15,W.zr+.60];
@@ -304,6 +334,22 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   }
 
 
+  // Dark multi-piece lower aero intake, shaped with a real curve rather than
+  // a flat decal. Matches the true bumper width of each car variant.
+  for(const side of [-1,1]){
+    const noseZ=F-.065,w=cw(noseZ),yy=M.B.ys(noseZ)-.12;
+    const outline=[
+      [side*w*.26,yy+.09,noseZ+.019],
+      [side*w*.46,yy+.06,noseZ+.022],
+      [side*w*.70,yy-.045,noseZ+.015],
+      [side*w*.77,yy-.17,noseZ],
+    ];
+    curve(outline,material.carbon,high?.025:.018);
+    if(high){
+      const floor=box(.025,.058,.33,material.mesh,side*w*.57,yy-.092,noseZ+.025);
+      floor.rotation.y=side*.13;
+    }
+  }
   // Recessed lens housings share the car's front fender proportions.
   for(const sign of [-1,1]){
     const z=F-.28,x=sign*cw(z)*.69,y=M.B.ye(z)+.012;
@@ -388,6 +434,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const ring=new THREE.Mesh(
       new THREE.TorusGeometry(rimR,.009,8,high?48:24),material.trim);
     ring.rotation.y=Math.PI/2;ring.position.x=faceX;wh.spin.add(ring);
+    if(high){
+      // Brake rotor and hub concentric details stay INSIDE the wheel face,
+      // not outside the rubber's lateral envelope.
+      const rotor=new THREE.Mesh(new THREE.TorusGeometry(rad*.51,.008,6,36),material.trim);
+      rotor.rotation.y=Math.PI/2;rotor.position.x=faceX-.041;wh.spin.add(rotor);
+      for(let t=0;t<8;t++){
+        const a=2*Math.PI*t/8;
+        const hole=new THREE.Mesh(new THREE.SphereGeometry(rad*.018,6,4),material.vent);
+        hole.scale.set(.25,1,1);
+        hole.position.set(faceX-.028,Math.sin(a)*rad*.43,Math.cos(a)*rad*.43);
+        wh.spin.add(hole);
+      }
+    }
     if(high){
       const n=C.rim==='turbine'?11:C.rim==='mesh'?14:C.rim==='disc'?6:C.rim==='five'?5:10;
       const inner=rad*.16,outer=rad*.61;
