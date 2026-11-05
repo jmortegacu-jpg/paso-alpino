@@ -491,6 +491,12 @@ select.field option{color:#111}
         <div class="note">En automático usted solo dirige, frena y usa el nitro.</div>
       </div>
       <div class="sec" style="margin-top:12px">
+        <div class="label">Estilo de conducción</div>
+        <div class="seg" id="driveSeg"></div>
+        <div class="note" id="driveNote">Seleccione cómo responde el auto a la dirección, el freno y los derrapes.</div>
+      </div>
+
+      <div class="sec" style="margin-top:12px">
         <label class="label" for="pilotName">Su nombre de piloto</label>
         <input id="pilotName" class="field" type="text" maxlength="14" autocomplete="nickname" spellcheck="false" placeholder="Escriba su nombre">
         <div class="note">Así aparece en el ranking mundial, en los retos y en las carreras en línea.</div>
@@ -1685,7 +1691,16 @@ function updateSmoke(dt){for(let k=0;k<SM;k++){if(smL[k]<=0){smA[k]=0;continue;}
 
 /* ---------- game state ---------- */
 const DIFFS={solo:{name:'Sin rivales',n:0},facil:{name:'Fácil',n:5,skill:[.8,.87],nitro:false},normal:{name:'Normal',n:5,skill:[.88,.95],nitro:false},dificil:{name:'Difícil',n:5,skill:[.99,1.05],nitro:true}};
-const cfg=Object.assign({track:'alpino',laps:3,color:0,quality,diff:'normal',autoGas:coarse},store.get('paso-alpino-config',{}));
+// Three original handling profiles inspired by arcade, street and simulation racing.
+const DRIVING={
+  clasico:{name:'Clásico',note:'La conducción original de Paso Alpino, sin cambios.',steerRate:1,turn:1,grip:1,brake:1,drift:1,driftThreshold:1,driftYaw:1,camera:1},
+  arcade:{name:'Arcade',note:'Dirección más inmediata, mayor agarre y derrapes sencillos.',steerRate:1.3,turn:1.12,grip:1.18,brake:1.06,drift:1.12,driftThreshold:.78,driftYaw:1.08,camera:1.12},
+  callejero:{name:'Callejero',note:'Derrapes más largos, contravolante y cámara dinámica.',steerRate:1.14,turn:1.05,grip:.96,brake:1.03,drift:1.23,driftThreshold:.88,driftYaw:1.22,camera:1.16},
+  precision:{name:'Precisión',note:'Volante gradual, frenada potente y derrapes exigentes.',steerRate:.82,turn:.86,grip:1.05,brake:1.14,drift:.91,driftThreshold:1.18,driftYaw:.85,camera:.9}
+};
+const cfg=Object.assign({track:'alpino',laps:3,color:0,quality,diff:'normal',autoGas:coarse,driving:'clasico'},store.get('paso-alpino-config',{}));
+if(!DRIVING[cfg.driving])cfg.driving='clasico';
+const driveSetup=()=>DRIVING[cfg.driving]||DRIVING.clasico;
 if(!DIFFS[cfg.diff])cfg.diff='normal';
 if(!allTracks().some(t=>t.id===cfg.track))cfg.track='alpino';
 let starMap=store.get('paso-alpino-estrellas',{});if(!starMap||typeof starMap!=='object')starMap={};
@@ -1898,25 +1913,25 @@ function fireNitro(){if(mode!=='race'||state.boostT>0)return;if(state.nitro<1/3-
 function endDrift(){if(state.drift&&state.driftT>.7&&mode==='race')popup('Derrape '+state.driftT.toFixed(1).replace('.',',')+' s','nitro');state.drift=false;state.driftT=0;}
 function respawn(){placeOnRoad(state.idx,clamp(state.lat,-6,6));state.wrongT=0;popup('De vuelta en la pista','warn');}
 function stepPlayer(dt){
-  const live=mode==='race',c=readControls(),sp=SP();
+  const live=mode==='race',c=readControls(),sp=SP(),handling=driveSetup();
   const target=live?c.target:0,brakeIn=live&&c.down;
   const throttle=live&&!brakeIn&&(c.up||cfg.autoGas)?1:0;
-  state.steer+=(target-state.steer)*(1-Math.exp(-dt*(target===0?11:9)));
+  state.steer+=(target-state.steer)*(1-Math.exp(-dt*(target===0?11:9)*handling.steerRate));
   let v=state.v;
-  if(live&&!state.drift&&brakeIn&&Math.abs(state.steer)>sp.driftS&&v>sp.driftV){state.drift=true;state.driftT=0;state.driftDir=Math.sign(state.steer);}
+  if(live&&!state.drift&&brakeIn&&Math.abs(state.steer)>sp.driftS*handling.driftThreshold&&v>sp.driftV){state.drift=true;state.driftT=0;state.driftDir=Math.sign(state.steer);}
   if(state.drift&&(!live||Math.abs(state.steer)<.2||v<13||Math.sign(state.steer)!==state.driftDir))endDrift();
   if(state.boostT>0)state.boostT-=dt;
   const boosting=state.boostT>0,top=boosting?sp.boostTop:sp.top+(state.draft?3:0);
   if(throttle){if(v>=0)v+=(sp.acc*Math.pow(Math.max(0,1-v/top),sp.exp)+.4)*(state.drift?.75:1)*dt;else v+=26*dt;}
   if(boosting&&v>=0&&v<top)v+=sp.boostAcc*dt;
   if(v>top)v-=(v-top)*2.8*dt;
-  if(brakeIn){if(state.drift)v-=4*dt;else if(v>.4)v-=sp.brake*dt;else v=Math.max(v-6.5*dt,-9);}
+  if(brakeIn){if(state.drift)v-=4*dt;else if(v>.4)v-=sp.brake*handling.brake*dt;else v=Math.max(v-6.5*dt,-9);}
   if(mode==='done')v=Math.max(0,v-9*dt);
   if(!throttle&&!brakeIn&&!boosting){const f=(1.1+.00028*v*v)*dt;v=Math.abs(v)<=f?0:v-Math.sign(v)*f;}else v-=Math.sign(v)*.00016*v*v*dt;
   // steering is limited by tyre grip, so fast corners need a lift, a brake or a drift
-  const grip=((state.drift?sp.dgrip:sp.grip)+sp.gripV*Math.abs(v))*CW.grip;
-  let yr=-state.steer*(sp.steer/(1+Math.abs(v)/30))*v/2.6;const cap=grip/Math.max(Math.abs(v),4);yr=clamp(yr,-cap,cap);
-  if(state.drift)yr-=state.driftDir*.22*Math.min(1,v/30);
+  const grip=((state.drift?sp.dgrip*handling.drift:sp.grip*handling.grip)+sp.gripV*Math.abs(v))*CW.grip;
+  let yr=-state.steer*handling.turn*(sp.steer/(1+Math.abs(v)/30))*v/2.6;const cap=grip/Math.max(Math.abs(v),4);yr=clamp(yr,-cap,cap);
+  if(state.drift)yr-=state.driftDir*.22*handling.driftYaw*Math.min(1,v/30);
   state.yaw+=yr*dt;state.yr=yr;
   state.ang=lerp(state.ang,state.drift?-state.driftDir*.42:0,clamp(dt*(state.drift?5:7),0,1));
   state.x+=Math.sin(state.yaw)*v*dt;state.z+=Math.cos(state.yaw)*v*dt;
@@ -2053,11 +2068,12 @@ function towerHUD(dt){towerT-=dt;if(towerT>0)return;towerT=.25;
 const camPos=new THREE.Vector3(),camLook=new THREE.Vector3();let camInit=false;
 function updateCamera(dt){
   const fwd=new THREE.Vector3(Math.sin(state.yaw),0,Math.cos(state.yaw)),cp=new THREE.Vector3(state.x,state.y,state.z);let fov=60;
-  const tall=camera.aspect<.85,boost=state.boostT>0;
-  if(camMode===0){const want=cp.clone().addScaledVector(fwd,tall?-10.5:-8.4).add(new THREE.Vector3(0,tall?3.5:2.9,0));
+  const tall=camera.aspect<.85,boost=state.boostT>0,cinema=driveSetup().camera;
+  if(camMode===0){const chase=tall?-10.5:-8.4;
+    const want=cp.clone().addScaledVector(fwd,chase-(boost?1.1*cinema:0)).add(new THREE.Vector3(0,tall?3.5:2.9,0));
     if(!camInit){camPos.copy(want);camLook.copy(cp);camInit=true;}
     camPos.lerp(want,1-Math.exp(-dt*6.5));camLook.lerp(cp.clone().addScaledVector(fwd,5).add(new THREE.Vector3(0,1.05,0)),1-Math.exp(-dt*12));
-    camera.position.copy(camPos);camera.lookAt(camLook);fov=(tall?66:58)+Math.abs(state.v)*3.6*.045+(boost?10:0);}
+    camera.position.copy(camPos);camera.lookAt(camLook);fov=(tall?66:58)+Math.min(15,Math.abs(state.v)*.17)*cinema+(boost?10*cinema:0)+(state.drift?2.5*(cinema-0.5):0);}
   else if(camMode===1){car.updateMatrixWorld();const I=carModel.interior||{x:.33,y:.45,z:-.4};camera.position.copy(car.localToWorld(new THREE.Vector3(-I.x,I.y+.5,I.z+.08)));
     camera.lookAt(car.localToWorld(new THREE.Vector3(-I.x,I.y+.44,12)));fov=(tall?82:70)+(boost?8:0);camInit=false;}
   else{orbitA+=dt*(gOpen?.22:.32);const orr=gOpen?gDist:tall?12:9.5;camera.position.set(state.x+Math.cos(orbitA)*orr,state.y+(gOpen?orr*.2+.4:2.6),state.z+Math.sin(orbitA)*orr);
@@ -2188,13 +2204,16 @@ function renderLaps(){segControl('lapSeg',[1,2,3,5,10].map(n=>[n,String(n),n+(n=
 function renderDiff(){segControl('diffSeg',Object.entries(DIFFS).map(([k,d])=>[k,d.name]),cfg.diff,v=>{cfg.diff=v;saveCfg();renderDiff();renderTrackList();dropPause();});
   $('diffNote').textContent=cfg.diff==='solo'?'Contrarreloj: usted contra el reloj, sin estrellas.':'Compita contra 5 rivales. Gane estrellas en cada dificultad: 1 por terminar, 2 por el podio, 3 por ganar. Difícil paga más créditos.';}
 function renderGas(){segControl('gasSeg',[[true,'Automático'],[false,'Manual']],!!cfg.autoGas,v=>{cfg.autoGas=v;saveCfg();document.body.classList.toggle('autogas',v);renderGas();});}
+function renderDriving(){segControl('driveSeg',Object.entries(DRIVING).map(([k,v])=>[k,v.name]),cfg.driving,k=>{
+  cfg.driving=k;saveCfg();renderDriving();dropPause();
+});$('driveNote').textContent=driveSetup().note;}
 function renderSwatches(){const box=$('swatches');box.textContent='';const ts=totalStars(),cur=paintIdx();
   [[-1,{n:'Original',c:carModel.paint,stars:0}],...COLORS.map((c,i)=>[i,c])].forEach(([i,col])=>{const locked=col.stars>ts,b=document.createElement('button');b.type='button';b.className='sw'+(locked?' locked':'');b.style.background=col.c;
     b.setAttribute('aria-label',(i<0?'Color original del '+carModel.name:col.n)+(locked?', se desbloquea con '+col.stars+' estrellas':''));b.setAttribute('aria-pressed',i===cur);if(locked)b.dataset.need=col.stars+'★';
     b.addEventListener('click',()=>{if(locked){toast('Consiga '+col.stars+' estrellas en total para desbloquear «'+col.n+'». Lleva '+ts+'.');return;}cfg.carPaint[carModel.id]=i;applyPaint();saveCfg();renderSwatches();});box.appendChild(b);});
   $('colorName').textContent=cur>=0?COLORS[cur].n:'Color original';}
 function renderQuality(){segControl('qSeg',Object.entries(QUAL).map(([k,q])=>[k,q.name]),quality,k=>{quality=k;cfg.quality=k;dyn=1;applyPR();applyShadows();resize();saveCfg();setHdQuality();renderQuality();});}
-function renderMenu(){renderDaily();renderWx();renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderQuality();renderCarPick();}
+function renderMenu(){renderDaily();renderWx();renderChallenge();renderWR();renderTrackList();renderLaps();renderDiff();renderSwatches();renderGas();renderDriving();renderQuality();renderCarPick();}
 /* ---------- garage: credits, buying cars and duels ----------
    Every race pays credits (place, difficulty and length, plus drifts, overtakes, clean laps and records).
    Three cars are bought with credits; the other three are won by beating a track's boss in a one-on-one duel. */
