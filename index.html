@@ -725,7 +725,14 @@ const PRESETS=[
 let customs=store.get('paso-alpino-pistas',[]);
 if(!Array.isArray(customs))customs=[];
 const allTracks=()=>[...PRESETS,...customs.map(c=>({...c,custom:true,theme:{amp:1,snow:140,lake:false,trees:1}}))];
-function ctrlOf(def){return def.ctrl.map(([x,z,y])=>new THREE.Vector3(x,y??(fbm(x*0.0015+3,z*0.0015-2)-0.5)*70+14,z));}
+function ctrlOf(def){return def.ctrl.map(([x,z,y])=>{
+  // User-drawn tracks are 2D. Old code assigned large, independent noise
+  // elevations to every point: the resulting 3D spline could dive into
+  // terrain or rise steeply and disappear. Give handmade tracks a coherent,
+  // gentle base elevation while preserving explicit heights on presets.
+  const safeY=def.custom?(9+3*(fbm(x*.0006+3,z*.0006-2)-.5)):(fbm(x*.0015+3,z*.0015-2)-.5)*70+14;
+  return new THREE.Vector3(x,Number.isFinite(y)?y:safeY,z);
+});}
 
 /* ---------- renderer / scene ---------- */
 if(!(()=>{try{return!!document.createElement('canvas').getContext('webgl2');}catch(e){return false;}})()){
@@ -848,10 +855,14 @@ function heightAt(x,z){const r=roadInfo(x,z),cd=Math.hypot(x-center.x,z-center.z
       m=lerp(m,Math.min(m,beachBottom),smooth(27,65,Math.abs(lateral)));
     }
   }
-  return lerp(r.y-1.5,m,smooth(30,165,r.d));}
+  // Smooth a wide roadbed beneath custom tracks so coarse terrain triangles
+  // cannot poke through the asphalt between mesh vertices (especially on
+  // phones using the low-quality terrain grid).
+  const roadbed=theme.custom?{inner:72,outer:235,depth:4.5}:{inner:30,outer:165,depth:1.5};
+  return lerp(r.y-roadbed.depth,m,smooth(roadbed.inner,roadbed.outer,r.d));}
 
 function buildWorld(def){
-  disposeWorld();theme=def.theme;builtId=def.id+'|'+quality;
+  disposeWorld();theme={...def.theme,custom:!!def.custom};builtId=def.id+'|'+quality;
   const curve=new THREE.CatmullRomCurve3(ctrlOf(def),true,'centripetal');
   N=clamp(Math.round(curve.getLength()/1.4),1200,6500);
   pts=curve.getSpacedPoints(N);pts.pop();T=[];S=[];D=new Float32Array(N);
@@ -894,7 +905,7 @@ function buildWorld(def){
     ban.wrapS=ban.wrapT=THREE.ClampToEdgeWrapping;const bm=new THREE.MeshStandardMaterial({map:ban,roughness:.6});
     const beam=new THREE.Mesh(new THREE.BoxGeometry(29.6,1.7,.4),[steel,steel,steel,steel,bm,bm]);beam.position.y=7.2;beam.castShadow=true;g.add(beam);}
   // terrain
-  const TS=2*(TR+1700),SEG=QUAL[quality].seg;
+  const TS=2*(TR+1700),SEG=def.custom?Math.max(220,QUAL[quality].seg):QUAL[quality].seg;
   const tg=new THREE.PlaneGeometry(TS,TS,SEG,SEG).rotateX(-Math.PI/2).translate(center.x,0,center.z);
   {const p=tg.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,heightAt(p.getX(i),p.getZ(i)));
     tg.computeVertexNormals();const n=tg.attributes.normal,col=new Float32Array(p.count*3);
@@ -2362,18 +2373,27 @@ function edCurve(n){if(ed.pts.length<3)return null;return new THREE.CatmullRomCu
 function validate(){
   const n=ed.pts.length;if(n<5)return{ok:false,msg:'Agregue al menos 5 puntos (lleva '+n+').'};
   const c=edCurve(),len=c.getLength();const km=(len/1000).toFixed(1).replace('.',',')+' km';
+  if(!Number.isFinite(len))return{ok:false,msg:'No se pudo calcular el trazado. Revise los puntos.'};
   if(len<1200)return{ok:false,msg:'La pista mide '+km+'. Necesita al menos 1,2 km: separe más los puntos.'};
   if(len>10000)return{ok:false,msg:'La pista mide '+km+'. El máximo es 10 km.'};
-  const M=Math.ceil(len/6),p=c.getSpacedPoints(M);p.pop();const step=len/M;
+  // Use the same high-resolution path as the actual driveable surface.
+  // An evenly sampled low-resolution preview can miss short kinks and
+  // intersections that become malformed full-width road triangles.
+  const M=Math.max(640,Math.ceil(len/3)),p=c.getSpacedPoints(M);p.pop();const step=len/M;
+  for(let j=0;j<ed.pts.length;j++){
+    const [x,z]=ed.pts[j],[bx,bz]=ed.pts[(j+1)%n];
+    if(!Number.isFinite(x)||!Number.isFinite(z))return{ok:false,msg:'Hay coordenadas inválidas. Mueva los puntos de la pista.'};
+    if(Math.hypot(x-bx,z-bz)<45)return{ok:false,msg:'Los puntos '+(j+1)+' y '+((j+1)%n+1)+' están demasiado juntos: sepárelos al menos 45 m.'};
+  }
   // tightest bend
   const k=Math.max(2,Math.round(12/step));let worst=Infinity,wi=0;
   for(let i=0;i<M;i++){const a=p[(i-k+M)%M],b=p[i],d=p[(i+k)%M];const v1x=b.x-a.x,v1z=b.z-a.z,v2x=d.x-b.x,v2z=d.z-b.z;
     const ang=Math.abs(Math.atan2(v1x*v2z-v1z*v2x,v1x*v2x+v1z*v2z));const rad=ang>1e-4?(k*step)/ang:Infinity;if(rad<worst){worst=rad;wi=i;}}
-  if(worst<26){const q=p[wi];let ni=0,nd=Infinity;ed.pts.forEach(([x,z],j)=>{const dd=(x-q.x)**2+(z-q.z)**2;if(dd<nd){nd=dd;ni=j;}});
+  if(worst<45){const q=p[wi];let ni=0,nd=Infinity;ed.pts.forEach(([x,z],j)=>{const dd=(x-q.x)**2+(z-q.z)**2;if(dd<nd){nd=dd;ni=j;}});
     return{ok:false,msg:'Hay una curva demasiado cerrada cerca del punto '+(ni+1)+'. Aleje un poco los puntos de esa zona.',bad:wi,p};}
-  const gap=Math.ceil(90/step);
+  const gap=Math.ceil(110/step);
   for(let i=0;i<M;i++)for(let j=i+gap;j<M;j++){if(M-(j-i)<gap)continue;const dx=p[i].x-p[j].x,dz=p[i].z-p[j].z;
-    if(dx*dx+dz*dz<38*38)return{ok:false,msg:'La carretera se cruza o pasa demasiado cerca de sí misma. Mueva los puntos para abrir espacio.',bad:i,p};}
+    if(dx*dx+dz*dz<50*50)return{ok:false,msg:'Dos partes de la carretera se cruzan o quedan a menos de 50 m. Abra más espacio para evitar deformaciones.',bad:i,p};}
   return{ok:true,msg:'Lista para guardar: '+km+', '+n+' puntos.'};}
 function edDraw(res){const W=edc.width,H=edc.height,dpr=W/(edc.getBoundingClientRect().width||1);eg.clearRect(0,0,W,H);
   eg.fillStyle='#16201f';eg.fillRect(0,0,W,H);
