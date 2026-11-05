@@ -1693,7 +1693,7 @@ function updateSmoke(dt){for(let k=0;k<SM;k++){if(smL[k]<=0){smA[k]=0;continue;}
 const DIFFS={solo:{name:'Sin rivales',n:0},facil:{name:'Fácil',n:5,skill:[.8,.87],nitro:false},normal:{name:'Normal',n:5,skill:[.88,.95],nitro:false},dificil:{name:'Difícil',n:5,skill:[.99,1.05],nitro:true}};
 // Three original handling profiles inspired by arcade, street and simulation racing.
 const DRIVING={
-  clasico:{name:'Clásico',note:'La conducción original de Paso Alpino, sin cambios.',steerRate:1,turn:1,grip:1,brake:1,drift:1,driftThreshold:1,driftYaw:1,camera:1},
+  clasico:{name:'Clásico',note:'Conducción original. Único perfil válido para los récords mundiales.',steerRate:1,turn:1,grip:1,brake:1,drift:1,driftThreshold:1,driftYaw:1,camera:1},
   arcade:{name:'Arcade',note:'Dirección más inmediata, mayor agarre y derrapes sencillos.',steerRate:1.3,turn:1.12,grip:1.18,brake:1.06,drift:1.12,driftThreshold:.78,driftYaw:1.08,camera:1.12},
   callejero:{name:'Callejero',note:'Derrapes más largos, contravolante y cámara dinámica.',steerRate:1.14,turn:1.05,grip:.96,brake:1.03,drift:1.23,driftThreshold:.88,driftYaw:1.22,camera:1.16},
   precision:{name:'Precisión',note:'Volante gradual, frenada potente y derrapes exigentes.',steerRate:.82,turn:.86,grip:1.05,brake:1.14,drift:.91,driftThreshold:1.18,driftYaw:.85,camera:.9}
@@ -2206,7 +2206,7 @@ function renderDiff(){segControl('diffSeg',Object.entries(DIFFS).map(([k,d])=>[k
 function renderGas(){segControl('gasSeg',[[true,'Automático'],[false,'Manual']],!!cfg.autoGas,v=>{cfg.autoGas=v;saveCfg();document.body.classList.toggle('autogas',v);renderGas();});}
 function renderDriving(){segControl('driveSeg',Object.entries(DRIVING).map(([k,v])=>[k,v.name]),cfg.driving,k=>{
   cfg.driving=k;saveCfg();renderDriving();dropPause();
-});$('driveNote').textContent=driveSetup().note;}
+});$('driveNote').textContent=driveSetup().note;renderWR();}
 function renderSwatches(){const box=$('swatches');box.textContent='';const ts=totalStars(),cur=paintIdx();
   [[-1,{n:'Original',c:carModel.paint,stars:0}],...COLORS.map((c,i)=>[i,c])].forEach(([i,col])=>{const locked=col.stars>ts,b=document.createElement('button');b.type='button';b.className='sw'+(locked?' locked':'');b.style.background=col.c;
     b.setAttribute('aria-label',(i<0?'Color original del '+carModel.name:col.n)+(locked?', se desbloquea con '+col.stars+' estrellas':''));b.setAttribute('aria-pressed',i===cur);if(locked)b.dataset.need=col.stars+'★';
@@ -2903,14 +2903,14 @@ function rkRender(d,myPos){const ol=$('rkList');ol.textContent='';(d.top||[]).fo
     b.append(dot,document.createTextNode(cleanName(e.n)||'Piloto'));if(typeof e.a==='string'&&CARS.some(m=>m.id===e.a)){const sm=document.createElement('small');sm.className='rkcar';sm.textContent=' · '+carById(e.a).name;b.appendChild(sm);}
     const c=document.createElement('span');c.textContent=fmt((+e.t||0)/1000);li.append(a,b,c);ol.appendChild(li);});}
 async function rkAfterRace(){
-  $('rkSec').hidden=true;lastRank=null;if(!hosted||!vid||!raceDef||!isPreset(raceDef.id)||wxKey==='lluvia')return;
+  $('rkSec').hidden=true;lastRank=null;if(!hosted||!vid||!raceDef||!isPreset(raceDef.id)||wxKey==='lluvia'||cfg.driving!=='clasico')return;
   $('rkTitle').textContent=raceDef.name+' · '+lapsTxt(raceLaps);
   try{const r=await fetch('/api/ranking',{method:'POST',headers:{'content-type':'application/json'},
       body:JSON.stringify({pista:raceDef.id,vueltas:raceLaps,t:Math.round(lap.total*1000),n:cleanName(cfg.name)||'Piloto',c:myColor(),a:carModel.id,id:vid})});
     const d=r.ok?await r.json():null;if(!d||!d.ok)return;lastRank=d;rkCache.delete(raceDef.id+'-'+raceLaps);
     rkRender(d,d.pos);$('rkNote').textContent=(d.pos?'Usted está en el puesto '+d.pos+' de '+d.total+'. ':'')+(d.improved?'¡Mejoró su marca!':'Su mejor marca sigue siendo '+fmt(d.best/1000)+'.')+' Aparece como «'+(cleanName(cfg.name)||'Piloto')+'»; cambie su nombre en Ajustes.';
     $('rkSec').hidden=false;}catch(e){}}
-async function renderWR(){const el=$('wrLine');if(!hosted||!isPreset(cfg.track)){el.hidden=true;return;}
+async function renderWR(){const el=$('wrLine');if(cfg.driving!=='clasico'){el.hidden=false;el.textContent='Este estilo de conducción es recreativo; los récords mundiales se registran solo con Clásico.';return;}if(!hosted||!isPreset(cfg.track)){el.hidden=true;return;}
   try{const d=await rkTop(cfg.track,cfg.laps);const e=d&&d.top&&d.top[0];if(!e){el.hidden=false;el.textContent='Nadie ha marcado récord mundial aquí con '+lapsTxt(cfg.laps)+'. ¡Sea el primero!';return;}
     el.hidden=false;el.textContent='Récord mundial con '+lapsTxt(cfg.laps)+': '+fmt(e.t/1000)+' · '+(cleanName(e.n)||'Piloto')+(typeof e.a==='string'&&CARS.some(m=>m.id===e.a)?' en '+carById(e.a).name:'');}catch(e){el.hidden=true;}}
 
