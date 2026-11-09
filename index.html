@@ -741,9 +741,17 @@ if(!(()=>{try{return!!document.createElement('canvas').getContext('webgl2');}cat
 const canvas=$('scene');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 // Cine 4K renders at up to 8.3M pixels when enabled; never forces this load on mobile.
-const applyPR=()=>{const pixelCap=Math.sqrt(8294400/Math.max(1,innerWidth*innerHeight));
-  const target=quality==='cine'&&!coarse?Math.max(devicePixelRatio,Math.min(3840/innerWidth,2160/innerHeight)):Math.min(devicePixelRatio,QUAL[quality].pr);
-  renderer.setPixelRatio(Math.min(pixelCap,QUAL[quality].pr,target)*dyn);};applyPR();
+// Match the 4K budget to the actual viewport and GPU; avoid supersampling
+// beyond 3840x2160 and keep adaptive scaling available under load.
+const applyPR=()=>{
+  const w=Math.max(1,innerWidth),h=Math.max(1,innerHeight);
+  const pixelCap=Math.sqrt(8294400/(w*h));
+  const gpuCap=Math.max(1,renderer.capabilities.maxTextureSize)/Math.max(w,h);
+  const cine=quality==='cine'&&!coarse;
+  const target=cine?Math.min(3840/w,2160/h):Math.min(devicePixelRatio,QUAL[quality].pr);
+  const pr=Math.max(.5,Math.min(pixelCap,gpuCap,QUAL[quality].pr,target)*dyn);
+  renderer.setPixelRatio(pr);
+};applyPR();
 renderer.setSize(innerWidth,innerHeight,false);
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
