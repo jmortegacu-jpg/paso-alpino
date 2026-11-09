@@ -2460,41 +2460,95 @@ async function roomTransport(code){
     list(){return r.peers().filter(x=>x.kind==='viewer').map(x=>({id:x.peer,me:x.sameTab,p:x.presence||{},t:x.updatedAt||Date.now()}));},
     closed:()=>dead,leave(){dead=true;r.leave().catch(()=>{});}};}
 
-// --- transport 2: direct browser-to-browser (PeerJS public broker; host relays)
+// --- transport 3: relay through a public MQTT server over secure WebSocket (works on any network, even when
+// phones cannot reach each other directly). Used automatically when the direct connection does not open.
+const MQTT_URLS=['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt'];
+function loadMqttLib(){if(window.mqtt)return Promise.resolve();return new Promise((res,rej)=>{const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/mqtt@5.10.4/dist/mqtt.min.js';s.onload=()=>window.mqtt?res():rej(fail('lib'));s.onerror=()=>rej(fail('lib'));document.head.appendChild(s);});}
+async function relayConnect(){await loadMqttLib();
+  for(const url of(window.PASO_MQTT||MQTT_URLS)){
+    const c=await new Promise(res=>{let cl;try{cl=window.mqtt.connect(url,{clientId:'pa_'+Math.random().toString(36).slice(2,12),clean:true,connectTimeout:6000,reconnectPeriod:2000,keepalive:30});}catch(e){res(null);return;}
+      const to=setTimeout(()=>{try{cl.end(true);}catch(e){}res(null);},7000);
+      cl.once('connect',()=>{clearTimeout(to);res(cl);});}).catch(()=>null);
+    if(c)return c;}
+  throw fail('server');}
+const relayTopic=code=>'pasoalpino/v1/'+code.toLowerCase();
+const relayOut=(c,topic,obj)=>{try{if(c&&c.connected)c.publish(topic,JSON.stringify(obj),{qos:0});}catch(e){}};
+const relayIn=buf=>{try{const d=JSON.parse(typeof buf==='string'?buf:new TextDecoder().decode(buf));return d&&typeof d==='object'&&!Array.isArray(d)?d:null;}catch(e){return null;}};
+const okState=p=>p&&typeof p==='object'&&!Array.isArray(p);
+const okId=id=>typeof id==='string'&&id.length>2&&id.length<64;
+
+// --- transport 2: direct browser-to-browser (PeerJS public broker; host relays) with the MQTT relay as a safety net.
+// The host listens on both at once; each guest tries the direct link first and falls back to the relay.
 function loadPeerLib(){if(window.Peer)return Promise.resolve();return new Promise((res,rej)=>{const s=document.createElement('script');
   s.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';s.onload=()=>window.Peer?res():rej(fail('lib'));s.onerror=()=>rej(fail('lib'));document.head.appendChild(s);});}
+// opens a PeerJS peer; resolves {peer,id} or null when the broker cannot be reached (an id already in use is an error)
+async function openPeer(id){try{await loadPeerLib();}catch(e){return null;}
+  const opts=Object.assign({debug:0},window.PASO_PEER||{});let peer;try{peer=id?new window.Peer(id,opts):new window.Peer(opts);}catch(e){return null;}
+  return new Promise((res,rej)=>{const to=setTimeout(()=>{try{peer.destroy();}catch(e){}res(null);},9000);
+    peer.once('open',pid=>{clearTimeout(to);res({peer,id:pid});});
+    peer.once('error',e=>{clearTimeout(to);try{peer.destroy();}catch(x){}if(e&&e.type==='unavailable-id')rej(fail('unavailable-id'));else res(null);});});}
 async function p2pTransport(code,host){
-  await loadPeerLib();
-  const opts=Object.assign({debug:0},window.PASO_PEER||{}),hid='pasoalpino-'+code.toLowerCase();
-  let peer;try{peer=host?new window.Peer(hid,opts):new window.Peer(opts);}catch(e){throw fail('browser-incompatible');}
-  const kill=()=>{try{peer.destroy();}catch(e){}};
-  const myId=await new Promise((res,rej)=>{const to=setTimeout(()=>rej(fail('server')),12000);
-    peer.once('open',id=>{clearTimeout(to);res(id);});peer.once('error',e=>{clearTimeout(to);rej(fail(e&&e.type||'server'));});}).catch(e=>{kill();throw e;});
-  const states=new Map(),conns=new Map();let mine={},dead=false,timer=null,conn=null;
-  peer.on('disconnected',()=>{if(!dead)try{peer.reconnect();}catch(e){}});
-  peer.on('call',c=>{if(dead){try{c.close();}catch(e){}return;}voiceIncoming(c);});
+  const hid='pasoalpino-'+code.toLowerCase(),topic=relayTopic(code);
+  const states=new Map(),conns=new Map();let mine={},dead=false,timers=[],conn=null,relay=null,viaRelay=false,lastRelaySeen=0;
+  // PeerJS (for the direct link and for voice) and the relay start together so joining is quick either way
+  const peerP=openPeer(host?hid:null),relayP=relayConnect().catch(()=>null);
+  let po=null;try{po=await peerP;}catch(e){relayP.then(c=>{try{c&&c.end(true);}catch(x){}});throw e;}
+  const peer=po&&po.peer,myId=po?po.id:(host?hid:'r-'+Math.random().toString(36).slice(2,12));
+  const kill=()=>{dead=true;for(const t of timers)clearInterval(t);try{peer&&peer.destroy();}catch(e){}try{relay&&relay.end(true);}catch(e){}};
+  if(peer){peer.on('disconnected',()=>{if(!dead)try{peer.reconnect();}catch(e){}});
+    peer.on('call',c=>{if(dead){try{c.close();}catch(e){}return;}voiceIncoming(c);});}
+  const allMsg=()=>{const all={[myId]:mine};for(const[id,s]of states)all[id]=s.p;return{t:'all',all};};
+  const takeAll=d=>{const now=Date.now(),seen=new Set();
+    for(const id of Object.keys(d.all).slice(0,NET_MAX+1)){if(id===myId)continue;const p=d.all[id];if(!okState(p))continue;seen.add(id);states.set(id,{p,t:now});}
+    for(const id of[...states.keys()])if(!seen.has(id))states.delete(id);};
   if(host){
-    peer.on('connection',c=>{
-      c.on('open',()=>{if(conns.size>=NET_MAX-1){try{c.send({t:'full'});}catch(e){}setTimeout(()=>c.close(),400);return;}conns.set(c.peer,c);});
-      c.on('data',d=>{if(conns.has(c.peer)&&d&&d.t==='st'&&d.p&&typeof d.p==='object'&&!Array.isArray(d.p))states.set(c.peer,{p:d.p,t:Date.now()});});
+    if(peer)peer.on('connection',c=>{
+      c.on('open',()=>{if(states.size>=NET_MAX-1&&!states.has(c.peer)){try{c.send({t:'full'});}catch(e){}setTimeout(()=>c.close(),400);return;}conns.set(c.peer,c);});
+      c.on('data',d=>{if(conns.has(c.peer)&&d&&d.t==='st'&&okState(d.p))states.set(c.peer,{p:d.p,t:Date.now(),via:'p2p'});});
       const drop=()=>{conns.delete(c.peer);states.delete(c.peer);};c.on('close',drop);c.on('error',drop);});
-    timer=setInterval(()=>{const all={[myId]:mine};for(const[id,s]of states)all[id]=s.p;
-      for(const c of conns.values())if(c.open)try{c.send({t:'all',all});}catch(e){}},80);
+    relay=await relayP;
+    if(!peer&&!relay)throw fail('server');
+    if(relay){relay.subscribe(topic+'/g');
+      relay.on('message',(tp,buf)=>{const d=relayIn(buf);if(!d||d.t!=='st'||!okId(d.id)||!okState(d.p)||d.id===myId)return;
+        const old=states.get(d.id);if(old&&old.via==='p2p')return;
+        if(!old&&states.size>=NET_MAX-1){relayOut(relay,topic+'/h',{t:'full',to:d.id});return;}
+        if(d.bye){states.delete(d.id);return;}
+        states.set(d.id,{p:d.p,t:Date.now(),via:'relay'});lastRelaySeen=Date.now();});}
+    timers.push(setInterval(()=>{const now=Date.now();
+      for(const[id,s]of states)if(s.via==='relay'&&now-s.t>6000)states.delete(id);
+      const m=allMsg();for(const c of conns.values())if(c.open)try{c.send(m);}catch(e){}
+      // the relay only carries traffic while someone is actually using it
+      if(relay&&now-lastRelaySeen<6000)relayOut(relay,topic+'/h',m);},90));
   }else{
-    conn=peer.connect(hid,{serialization:'json'});
-    await new Promise((res,rej)=>{const to=setTimeout(()=>rej(fail('timeout')),15000);
-      conn.on('open',()=>{clearTimeout(to);res();});peer.on('error',e=>{clearTimeout(to);rej(fail(e&&e.type||'server'));});}).catch(e=>{kill();throw e;});
-    conn.on('data',d=>{if(!d)return;if(d.t==='full'){net.fullErr=true;dead=true;return;}
-      if(d.t==='all'&&d.all&&typeof d.all==='object'){const now=Date.now(),seen=new Set();
-        for(const id of Object.keys(d.all).slice(0,NET_MAX+1)){if(id===myId)continue;const p=d.all[id];if(!p||typeof p!=='object')continue;seen.add(id);states.set(id,{p,t:now});}
-        for(const id of[...states.keys()])if(!seen.has(id))states.delete(id);}});
-    conn.on('close',()=>{dead=true;});conn.on('error',()=>{dead=true;});
+    // 1) direct link to the host
+    if(peer&&!window.PASO_FORCE_RELAY){
+      conn=peer.connect(hid,{serialization:'json'});
+      const ok=await new Promise(res=>{const to=setTimeout(()=>res(false),7000);
+        conn.on('open',()=>{clearTimeout(to);res(true);});conn.on('error',()=>{clearTimeout(to);res(false);});
+        peer.on('error',e=>{if(e&&e.type==='peer-unavailable'){clearTimeout(to);res(false);}});});
+      if(!ok){try{conn.close();}catch(e){}conn=null;}}
+    if(conn){relayP.then(c=>{try{c&&c.end(true);}catch(e){}});
+      conn.on('data',d=>{if(!d)return;if(d.t==='full'){net.fullErr=true;dead=true;return;}if(d.t==='all'&&okState(d.all))takeAll(d);});
+      conn.on('close',()=>{dead=true;});conn.on('error',()=>{dead=true;});
+    }else{
+      // 2) the relay: say hello and wait for the host's table
+      relay=await relayP;if(!relay){kill();throw fail('timeout');}
+      viaRelay=true;relay.subscribe(topic+'/h');let gotHost=false;
+      relay.on('message',(tp,buf)=>{const d=relayIn(buf);if(!d)return;
+        if(d.t==='full'&&d.to===myId){net.fullErr=true;dead=true;return;}
+        if(d.t==='all'&&okState(d.all)){gotHost=true;lastRelaySeen=Date.now();takeAll(d);}});
+      const hello=()=>relayOut(relay,topic+'/g',{t:'st',id:myId,p:mine});
+      timers.push(setInterval(()=>{if(!dead)hello();if(gotHost&&Date.now()-lastRelaySeen>8000)dead=true;},100));
+      const t0=Date.now();while(!gotHost&&!dead&&Date.now()-t0<9000)await new Promise(r=>setTimeout(r,150));
+      if(dead&&net.fullErr){kill();throw fail('full');}
+      if(!gotHost){kill();throw fail('notfound');}}
   }
-  return{kind:'p2p',
-    call(id,stream){if(dead)return null;try{return peer.call(id,stream)||null;}catch(e){return null;}},
+  return{kind:'p2p',relay:viaRelay,
+    call(id,stream){if(dead||!peer||id.startsWith('r-'))return null;try{return peer.call(id,stream)||null;}catch(e){return null;}},
     send(p){mine=p;if(!host&&conn&&conn.open)try{conn.send({t:'st',p});}catch(e){}},
     list(){const out=[{id:myId,me:true,p:mine,t:Date.now()}];for(const[id,s]of states)out.push({id,me:false,p:s.p,t:s.t});return out;},
-    closed:()=>dead,leave(){dead=true;clearInterval(timer);kill();}};}
+    closed:()=>dead,leave(){if(viaRelay)relayOut(relay,topic+'/g',{t:'st',id:myId,p:mine,bye:1});setTimeout(kill,150);dead=true;}};}
 
 const WHY={noroom:'Dentro de Claude, para jugar en línea cada jugador debe iniciar sesión en Claude y tener acceso a esta página (compártala desde el menú Compartir). Para jugar con cualquier persona, use la versión pública del archivo.',
   lib:'No se pudo cargar el módulo de conexión. Revise su internet e intente de nuevo.',
@@ -2796,7 +2850,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261105-road-editor-visual-v6';
+const BUILD='20261108-en-linea-relevo';
 const GOAT='pasoalpino';   // GoatCounter code of the owner's account (the part before .goatcounter.com); empty = off
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
