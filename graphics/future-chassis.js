@@ -433,18 +433,18 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const faceX=Math.max(.045,half-.052),rimR=rad*.685;
     const ring=new THREE.Mesh(
       new THREE.TorusGeometry(rimR,.009,8,high?48:24),material.trim);
-    ring.rotation.y=Math.PI/2;ring.position.x=faceX;wh.spin.add(ring);
+    ring.rotation.y=Math.PI/2;ring.position.x=faceX;ring.userData.fcDetail=1;wh.spin.add(ring);
     if(high){
       // Brake rotor and hub concentric details stay INSIDE the wheel face,
       // not outside the rubber's lateral envelope.
       const rotor=new THREE.Mesh(new THREE.TorusGeometry(rad*.51,.008,6,36),material.trim);
-      rotor.rotation.y=Math.PI/2;rotor.position.x=faceX-.041;wh.spin.add(rotor);
+      rotor.rotation.y=Math.PI/2;rotor.position.x=faceX-.041;rotor.userData.fcDetail=1;wh.spin.add(rotor);
       for(let t=0;t<8;t++){
         const a=2*Math.PI*t/8;
         const hole=new THREE.Mesh(new THREE.SphereGeometry(rad*.018,6,4),material.vent);
         hole.scale.set(.25,1,1);
         hole.position.set(faceX-.028,Math.sin(a)*rad*.43,Math.cos(a)*rad*.43);
-        wh.spin.add(hole);
+        hole.userData.fcDetail=1;wh.spin.add(hole);
       }
     }
     if(high){
@@ -459,12 +459,12 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
         const radius=(inner+outer)*.5;
         spoke.position.set(0,Math.sin(a)*radius,Math.cos(a)*radius);
         spoke.rotation.x=-a;
-        spokes.add(spoke);
+        spoke.userData.fcDetail=1;spokes.add(spoke);
       }
       const hub=new THREE.Mesh(
         new THREE.CylinderGeometry(rad*.095,rad*.095,.023,20),
         material.trim);
-      hub.rotation.z=Math.PI/2;hub.position.x=.005;spokes.add(hub);
+      hub.rotation.z=Math.PI/2;hub.position.x=.005;hub.userData.fcDetail=1;spokes.add(hub);
       wh.spin.add(spokes);
     }
   }
@@ -480,6 +480,10 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   const keep=new Set([P.wheelSt,...(P.flames||[])].filter(Boolean));
   for(const old of [...body.children]){if(!keep.has(old))old.visible=false;}
   body.add(group);
+  // Performance: the body is made of ~100 small pieces. Phones pay per piece drawn, so the static pieces are
+  // baked into one mesh per material (about 10 per car) and the wheel details into one per material per wheel.
+  bakeByMaterial(THREE,group);
+  for(const wh of P.wheels)if(wh.spin)bakeByMaterial(THREE,wh.spin,true);
   // Attach the existing brake-light animation to the original rear LEDs.
   // The simulation writes P.tailMat.emissiveIntensity every frame.
   P.tailMat={
@@ -488,6 +492,38 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   };
   P.futureChassis={group,material,theme:C,player};
   return P.futureChassis;
+}
+// Merges every plain mesh under `root` that uses the same material into one mesh (positions baked relative to root).
+// onlyNew: inside a wheel, keep the original carKit wheel meshes as they are and bake only the added details.
+function bakeByMaterial(THREE,root,onlyNew=false){
+  root.updateMatrixWorld(true);
+  const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(),groups=new Map(),victims=[];
+  root.traverse(o=>{
+    if(!o.isMesh||o===root||o.isInstancedMesh||o.isSkinnedMesh||!o.visible||Array.isArray(o.material))return;
+    if(onlyNew&&!o.userData.fcDetail)return;
+    let a=o.parent;while(a&&a!==root){if(!a.visible)return;a=a.parent;}
+    const m=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld);
+    let g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();
+    if(!g.attributes.normal)g.computeVertexNormals();
+    g.applyMatrix4(m);
+    if(m.determinant()<0){const a=g.attributes.position.array,nn=g.attributes.normal.array,u=g.attributes.uv&&g.attributes.uv.array;
+      // a mirrored piece: swap two corners of every triangle so it still faces outward
+      for(let t=0;t<a.length;t+=9){for(let c=0;c<3;c++){const x=a[t+3+c];a[t+3+c]=a[t+6+c];a[t+6+c]=x;const y=nn[t+3+c];nn[t+3+c]=nn[t+6+c];nn[t+6+c]=y;}
+        if(u){const q=t/9*6;for(let c=0;c<2;c++){const x=u[q+2+c];u[q+2+c]=u[q+4+c];u[q+4+c]=x;}}}}
+    if(!groups.has(o.material))groups.set(o.material,{list:[],cast:false,recv:false});
+    const e=groups.get(o.material);e.list.push(g);e.cast=e.cast||o.castShadow;e.recv=e.recv||o.receiveShadow;victims.push(o);});
+  if(victims.length<2)return;
+  const parents=new Set();for(const o of victims){parents.add(o.parent);o.parent.remove(o);}
+  // drop the little groups that only held baked pieces
+  for(const g of parents)if(g!==root&&g.isGroup&&!g.children.length&&g.parent)g.parent.remove(g);
+  for(const[mat,e]of groups){
+    let n=0;for(const g of e.list)n+=g.attributes.position.count;
+    const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=new Float32Array(n*2);let k=0;
+    for(const g of e.list){const c=g.attributes.position.count;pos.set(g.attributes.position.array,k*3);nor.set(g.attributes.normal.array,k*3);
+      if(g.attributes.uv)uv.set(g.attributes.uv.array.subarray(0,c*2),k*2);k+=c;g.dispose();}
+    const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.BufferAttribute(pos,3));bg.setAttribute('normal',new THREE.BufferAttribute(nor,3));
+    bg.setAttribute('uv',new THREE.BufferAttribute(uv,2));bg.computeBoundingSphere();
+    const mesh=new THREE.Mesh(bg,mat);mesh.castShadow=e.cast;mesh.receiveShadow=e.recv;mesh.name='fc-baked';root.add(mesh);}
 }
 export function syncFuturePaint(P,sourceMaterial){
   if(!P?.futureChassis?.material?.paint||!sourceMaterial)return;
