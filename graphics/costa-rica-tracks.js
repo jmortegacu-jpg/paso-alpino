@@ -124,6 +124,26 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const shore=new THREE.Mesh(g,seaMat);shore.receiveShadow=true;
     shore.onBeforeRender=()=>{seaMat.uniforms.uT.value=performance.now()*.001;};world.add(shore);
   }
+  // Coastal bird silhouettes: original low-poly meshes, deliberately kept off
+  // the racing ribbon. Static instancing avoids animation and draw-call overhead.
+  function shoreBirds(count,from=0,to=N,side=1,distance=40){
+    const vertices=[-1.05,0,0, -.16,.14,0, 0,0,.15,
+                     0,0,.15, .16,.14,0, 1.05,0,0,
+                     -.13,0,.12, .13,0,.12, 0,-.12,.22];
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+    geo.computeVertexNormals();
+    const mat=new THREE.MeshStandardMaterial({color:0xd9ddd9,roughness:.96,side:THREE.DoubleSide});
+    const birds=new THREE.InstancedMesh(geo,mat,count),dummy=new THREE.Object3D();
+    for(let j=0;j<count;j++){
+      const k=Math.floor(from+(to-from)*(j+.37)/count)%N;
+      const p=node(k,side,distance+8*Math.sin(j*2.19),5+3*Math.abs(Math.sin(j*.81)));
+      dummy.position.copy(p);dummy.rotation.set(.12*Math.sin(j),j*1.37,.16*Math.sin(j*.7));
+      const scale=.8+.45*Math.abs(Math.sin(j*1.73));dummy.scale.setScalar(scale);
+      dummy.updateMatrix();birds.setMatrixAt(j,dummy.matrix);
+    }
+    birds.instanceMatrix.needsUpdate=true;world.add(birds);
+  }
   function kiosk(i,side,dist,color=0xbca483){
     const g=new THREE.Group(),walls=new THREE.MeshStandardMaterial({color,roughness:.85});
     g.add(cube(5.6,3.2,4.3,walls,0,1.6,0));
@@ -299,6 +319,8 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('PUNTARENAS',Math.floor(N*.50),-1,20);
     lighthouse();
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
+    // A few coastal birds near the waterfront, not on the road.
+    shoreBirds(hi?32:quality==='media'?18:8,0,N,1,48);
     // Low coastal guard wall along the beach, broken into individual meshes.
     const wallGeo=new THREE.BoxGeometry(12,.5,.48);
     const nWall=Math.floor(N/26);
