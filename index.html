@@ -2850,7 +2850,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261108-en-linea-relevo';
+const BUILD='20261108-en-linea-rendimiento';
 const GOAT='pasoalpino';   // GoatCounter code of the owner's account (the part before .goatcounter.com); empty = off
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
