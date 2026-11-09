@@ -2475,15 +2475,27 @@ async function p2pTransport(code,host){
   peer.on('call',c=>{if(dead){try{c.close();}catch(e){}return;}voiceIncoming(c);});
   if(host){
     peer.on('connection',c=>{
-      c.on('open',()=>{if(conns.size>=NET_MAX-1){try{c.send({t:'full'});}catch(e){}setTimeout(()=>c.close(),400);return;}conns.set(c.peer,c);});
+      c.on('open',()=>{if(conns.size>=NET_MAX-1){try{c.send({t:'full'});}catch(e){}setTimeout(()=>c.close(),400);return;}conns.set(c.peer,c);try{c.send({t:'welcome',room:code});}catch(e){} });
       c.on('data',d=>{if(conns.has(c.peer)&&d&&d.t==='st'&&d.p&&typeof d.p==='object'&&!Array.isArray(d.p))states.set(c.peer,{p:d.p,t:Date.now()});});
       const drop=()=>{conns.delete(c.peer);states.delete(c.peer);};c.on('close',drop);c.on('error',drop);});
     timer=setInterval(()=>{const all={[myId]:mine};for(const[id,s]of states)all[id]=s.p;
       for(const c of conns.values())if(c.open)try{c.send({t:'all',all});}catch(e){}},80);
   }else{
-    conn=peer.connect(hid,{serialization:'json'});
-    await new Promise((res,rej)=>{const to=setTimeout(()=>rej(fail('timeout')),15000);
-      conn.on('open',()=>{clearTimeout(to);res();});peer.on('error',e=>{clearTimeout(to);rej(fail(e&&e.type||'server'));});}).catch(e=>{kill();throw e;});
+    conn=peer.connect(hid,{serialization:'json',reliable:true});
+    // A socket opening is not proof that the host admitted this player.
+    // Install listeners before connecting and wait for the host's acknowledgement.
+    await new Promise((res,rej)=>{
+      let settled=false;
+      const done=(err)=>{if(settled)return;settled=true;clearTimeout(to);err?rej(err):res();};
+      const to=setTimeout(()=>done(fail('timeout')),15000);
+      conn.on('data',d=>{
+        if(d&&d.t==='welcome'&&d.room===code)done();
+        else if(d&&d.t==='full')done(fail('full'));
+      });
+      conn.on('error',e=>done(fail(e&&e.type||'connection-error')));
+      conn.on('close',()=>done(fail('connection-closed')));
+      peer.on('error',e=>done(fail(e&&e.type||'server')));
+    }).catch(e=>{kill();throw e;});
     conn.on('data',d=>{if(!d)return;if(d.t==='full'){net.fullErr=true;dead=true;return;}
       if(d.t==='all'&&d.all&&typeof d.all==='object'){const now=Date.now(),seen=new Set();
         for(const id of Object.keys(d.all).slice(0,NET_MAX+1)){if(id===myId)continue;const p=d.all[id];if(!p||typeof p!=='object')continue;seen.add(id);states.set(id,{p,t:now});}
@@ -2498,9 +2510,11 @@ async function p2pTransport(code,host){
 
 const WHY={noroom:'Dentro de Claude, para jugar en línea cada jugador debe iniciar sesión en Claude y tener acceso a esta página (compártala desde el menú Compartir). Para jugar con cualquier persona, use la versión pública del archivo.',
   lib:'No se pudo cargar el módulo de conexión. Revise su internet e intente de nuevo.',
-  'peer-unavailable':'No encontramos esa sala. Revise el código o pida uno nuevo.',notfound:'No encontramos esa sala. Revise el código o pida uno nuevo.',
+  'peer-unavailable':'No se encuentra al anfitrión en el servidor PeerJS. Compruebe que sigue conectado, que ambos usan la misma versión pública y vuelva a crear la sala.',notfound:'No encontramos esa sala. Revise el código o pida uno nuevo.',
   'browser-incompatible':'Este navegador no permite conexiones en línea. Pruebe con Chrome, Safari, Edge o Firefox actualizados.',
-  timeout:'La sala no respondió. Puede que el anfitrión se haya ido o que su red bloquee la conexión.',
+  timeout:'La sala no confirmó la conexión. Revise que el anfitrión siga en línea y pruebe otra red.',
+  'connection-closed':'El anfitrión cerró la conexión antes de aceptar su entrada.',
+  'connection-error':'Falló la conexión directa entre los dispositivos. Pruebe otra red o desactive temporalmente una VPN.',
   busy:'El servidor de salas está ocupado. Intente de nuevo en un momento.',full:'Esa sala ya está llena (máximo 6 jugadores).'};
 const whyText=e=>WHY[e&&e.why]||'No se pudo conectar con el servidor de salas. Revise su internet o intente más tarde.';
 
