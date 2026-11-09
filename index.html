@@ -929,8 +929,7 @@ function buildWorld(def){
   {const COUNT=Math.round(2500*QUAL[quality].trees*theme.trees);
     // Tiered spruce silhouettes replace single low-poly cones; still one instanced draw call.
     const spruceProfile=[[0,8.9],[.15,8.3],[.95,7.0],[.26,7.0],[1.4,5.7],[.38,5.7],[1.9,4.1],[.48,4.1],[2.35,2.4],[.55,2.4],[.35,1.7],[0,1.7]];
-    // fewer sides on modest phones: the silhouette stays, the triangle count drops by half or more
-    const spruce=new THREE.LatheGeometry(spruceProfile.map(([rad,y])=>new THREE.Vector2(rad,y)),quality==='baja'?5:quality==='media'?7:11);
+    const spruce=new THREE.LatheGeometry(spruceProfile.map(([rad,y])=>new THREE.Vector2(rad,y)),11);
     const fol=new THREE.InstancedMesh(spruce,new THREE.MeshStandardMaterial({roughness:.94,metalness:0,envMapIntensity:.32,flatShading:true}),COUNT);
     const trunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(.28,.38,2,5).translate(0,1,0),new THREE.MeshStandardMaterial({color:'#4a3626',roughness:1}),COUNT);
     const o=new THREE.Object3D(),c=new THREE.Color();let k=0,tries=0;const maxH=Math.min(115,theme.snow*.75);
