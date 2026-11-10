@@ -1128,7 +1128,7 @@ function canvasTex(W,H,draw,srgb=true){const c=document.createElement('canvas');
     for(const f of[.445,.5,.555])g.fillRect(0,H*f-1.5,W,3);
     for(let i=0;i<90;i++){const x=i/90*W;g.fillRect(x,y0,2.5,H*.04);g.fillRect(x+5,y1-H*.04,2.5,H*.04);}
     g.fillStyle='#e6e6e6';for(const f of[.18,.82])g.fillRect(0,H*f-1,W,2);},false);
-  MAT.tire.bumpMap=tread;MAT.tire.bumpScale=1.2;MAT.tire.roughnessMap=tread;
+  MAT.tire.bumpMap=tread;MAT.tire.bumpScale=.12;MAT.tire.roughnessMap=tread;
   MAT.disc.map=canvasTex(256,256,(g,W,H)=>{g.fillStyle='#8d9096';g.fillRect(0,0,W,H);g.fillStyle='#2b2d31';g.beginPath();g.arc(W/2,H/2,W*.3,0,7);g.fill();
     g.fillStyle='#3a3c40';for(let k=0;k<3;k++)for(let i=0;i<24;i++){const a=i/24*Math.PI*2+k*.13,r=W*(.36+k*.045);g.beginPath();g.arc(W/2+Math.cos(a)*r,H/2+Math.sin(a)*r,3.2,0,7);g.fill();}
     g.strokeStyle='rgba(60,62,66,.5)';g.lineWidth=1;for(let i=0;i<60;i++){g.beginPath();g.arc(W/2,H/2,W*(.33+i*.0028),0,7);g.stroke();}});}
