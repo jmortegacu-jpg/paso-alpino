@@ -107,6 +107,50 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     }
     world.add(post,heads);
   }
+  // Ruta 34: low-profile raised pavement markers ("ojos de gato").
+  // MOPT, 2 June 2025: Dominical–Uvita / Punta Mala resurfacing, edge/centre
+  // markings and installation of reflectors. This is a stylized circuit,
+  // not a surveyed reproduction of the exact real-world marker positions.
+  // https://www.mopt.go.cr/noticias/2025/35-km-de-costanera-sur-ya-cuentan-con-superficie-de-ruedo-nueva-entre-dominical-y
+  function roadReflectors(){
+    const spacing=hi?15:quality==='media'?24:36,indices=[];
+    let distance=0,next=spacing;
+    for(let k=1;k<N;k++){
+      distance+=points[k].distanceTo(points[k-1]);
+      if(distance<next)continue;
+      next=distance+spacing;
+      // Leave the start/finish paint clear.
+      if(points[k].distanceTo(points[0])>4)indices.push(k);
+    }
+    const count=indices.length*3;if(!count)return;
+    const base=new THREE.InstancedMesh(new THREE.BoxGeometry(.22,.045,.20),
+      new THREE.MeshStandardMaterial({color:0x3d4144,roughness:.74}),count);
+    const lens=new THREE.InstancedMesh(new THREE.BoxGeometry(.16,.025,.14),
+      new THREE.MeshStandardMaterial({color:0xffffff,roughness:.28,metalness:.12,envMapIntensity:.8}),count);
+    base.name='cr-costanera-reflector-bases';lens.name='cr-costanera-reflector-lenses';
+    const o=new THREE.Object3D(),basis=new THREE.Matrix4();
+    const right=new THREE.Vector3(),forward=new THREE.Vector3(),up=new THREE.Vector3();
+    const amber=new THREE.Color(0xf1bb39),white=new THREE.Color(0xe9eef1);
+    let j=0;
+    for(const k of indices){
+      // Match the same horizontal cross-section and longitudinal grade as
+      // the road ribbon; the visual-only markers never alter collision data.
+      right.copy(normals[k]).negate();forward.copy(tangents[k]).normalize();
+      up.crossVectors(forward,right).normalize();
+      basis.makeBasis(right,up,forward);o.quaternion.setFromRotationMatrix(basis);
+      for(const offset of [0,-11.525,11.525]){
+        const p=node(k,Math.sign(offset),Math.abs(offset),.02);
+        o.position.copy(p).addScaledVector(up,.0275);o.updateMatrix();base.setMatrixAt(j,o.matrix);
+        o.position.copy(p).addScaledVector(up,.0625);o.updateMatrix();lens.setMatrixAt(j,o.matrix);
+        lens.setColorAt(j,offset===0?amber:white);j++;
+      }
+    }
+    base.instanceMatrix.needsUpdate=true;lens.instanceMatrix.needsUpdate=true;
+    lens.instanceColor.needsUpdate=true;
+    base.computeBoundingSphere();lens.computeBoundingSphere();
+    // Two draw calls for all markers, no extra lights or shadow passes.
+    world.add(base,lens);
+  }
   function roadShore(start,end,side=1,offset=27,width=90){
     const pos=[],uv=[],idx=[],stride=Math.max(4,Math.floor((end-start)/190));
     for(let j=start;j<=end;j+=stride){
@@ -155,6 +199,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     }
     place(boatGroup,i,side,distance,.56);
     boatGroup.rotation.y+=Math.PI*.5;
+    return boatGroup;
   }
   function waterfall(i,side=1,distance=37,height=18){
     const group=new THREE.Group();
@@ -285,7 +330,19 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('PACIFICO CENTRAL',Math.floor(N*.55),1,20);
     for(let j=0;j<12;j++)kiosk(Math.floor(N*(.40+j*.021)),1,37, j%2?0xdecda8:0xe1bb8a);
     streetlights(Math.floor(N*.34),Math.floor(N*.54),-1,84);
-    for(let k=0;k<14;k++)boat(Math.floor(N*(k+.4)/17),k%2?1:-1,82+16*(k%3),k%4===0);
+    roadReflectors();
+    // Only place boats inside the two existing seaward water ribbons.
+    // The previous alternating sides put several boats on the inland side.
+    // Keep them clear of the ribbon ends and reduce boat count on mobile.
+    const boatsPerSector=hi?7:quality==='media'?5:3;
+    for(const sector of [{from:.035,to:.315,side:1,near:65,far:110},
+                         {from:.70,to:.96,side:-1,near:68,far:124}]){
+      for(let j=0;j<boatsPerSector;j++){
+        const k=Math.floor(N*(sector.from+(sector.to-sector.from)*(j+.5)/boatsPerSector));
+        const dist=sector.near+(sector.far-sector.near)*(.5+.5*Math.sin((j+1)*2.399+sector.side));
+        boat(k,sector.side,dist,hi&&j%4===0).name='cr-costanera-boat';
+      }
+    }
   } else if(id==='puntarenas'){
     // Roadside city promenade, with sea on one side and storefronts on other.
     roadShore(0,N,1,26,85);
