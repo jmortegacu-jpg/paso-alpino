@@ -673,7 +673,7 @@ select.field option{color:#111}
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { buildFutureChassis, syncFuturePaint } from './graphics/future-chassis.js';
+import { buildFutureChassis, syncFuturePaint, updateFutureCockpit } from './graphics/future-chassis.js';
 import { addCostaRicaScenery } from './graphics/costa-rica-tracks.js';
 
 const $=id=>document.getElementById(id);
@@ -2069,8 +2069,8 @@ function updateCamera(dt){
     if(!camInit){camPos.copy(want);camLook.copy(cp);camInit=true;}
     camPos.lerp(want,1-Math.exp(-dt*6.5));camLook.lerp(cp.clone().addScaledVector(fwd,5).add(new THREE.Vector3(0,1.05,0)),1-Math.exp(-dt*12));
     camera.position.copy(camPos);camera.lookAt(camLook);fov=(tall?66:58)+Math.abs(state.v)*3.6*.045+(boost?10:0);}
-  else if(camMode===1){car.updateMatrixWorld();const I=carModel.interior||{x:.33,y:.45,z:-.4};camera.position.copy(car.localToWorld(new THREE.Vector3(-I.x,I.y+.5,I.z+.08)));
-    camera.lookAt(car.localToWorld(new THREE.Vector3(-I.x,I.y+.44,12)));fov=(tall?82:70)+(boost?8:0);camInit=false;}
+  else if(camMode===1){car.updateMatrixWorld();const I=carModel.interior||{x:.33,y:.45,z:-.4},eyeY=P?.futureChassis?.cockpitLayout?.eyeY??(I.y+.5);camera.position.copy(car.localToWorld(new THREE.Vector3(-I.x,eyeY,I.z+.08)));
+    camera.lookAt(car.localToWorld(new THREE.Vector3(-I.x,eyeY-.06,12)));fov=(tall?82:70)+(boost?8:0);camInit=false;}
   else{orbitA+=dt*(gOpen?.22:.32);const orr=gOpen?gDist:tall?12:9.5;camera.position.set(state.x+Math.cos(orbitA)*orr,state.y+(gOpen?orr*.2+.4:2.6),state.z+Math.sin(orbitA)*orr);
     camera.lookAt(cp.clone().add(new THREE.Vector3(0,gOpen?.55:.7,0)));fov=gOpen?(tall?40:30):tall?58:50;camInit=false;}
   if(shake>0){camera.position.x+=(Math.random()-.5)*shake*.5;camera.position.y+=(Math.random()-.5)*shake*.4;shake=Math.max(0,shake-dt*1.6);}
@@ -2124,6 +2124,7 @@ function frame(){
     if(rain.visible){const u=rain.material.uniforms;u.uT.value=clock.elapsedTime%600;u.uC.value.copy(camera.position);}
     // HUD
     const kmh=state.v*3.6,gi=gearInfo(kmh);
+    if(camMode===1)updateFutureCockpit(P,kmh,gi.g,gi.f);
     $('speed').textContent=Math.round(Math.abs(kmh));const gEl=$('gear');gEl.textContent=gi.g;gEl.classList.toggle('r',gi.g==='R');
     const lit=Math.round((gi.g==='N'?(out.throttle?.35:.08):.12+gi.f*.88)*24);segs.forEach((s,k)=>s.classList.toggle('lit',k<lit));
     nitroHUD();
