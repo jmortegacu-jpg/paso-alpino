@@ -83,7 +83,7 @@ export function enhanceFutureCar(THREE, body, model, { detailed = true } = {}) {
   }
   // Individual front signatures — recognizable profiles, no borrowed manufacturer logos.
   const z=F+.012;
-  const lamp=(x,y)=>[x,y,z];
+  const lamp=(x,y)=>[x*forwardW,y,z];
   for(const side of [-1,1]){
     const W=forwardW;
     if(style.front==='blade'){
@@ -98,7 +98,7 @@ export function enhanceFutureCar(THREE, body, model, { detailed = true } = {}) {
       tube([lamp(side*.3,.62),lamp(side*.49,.59),lamp(side*.7,.60)],led,.015);
       tube([lamp(side*.3,.55),lamp(side*.49,.52),lamp(side*.71,.53)],led,.012);
     } else if(style.front==='pixel'){
-      for(let k=0;k<4;k++)bar(side*(.37+.12*k),.6+(k%2)*.015,z,.09,.025,.025,led);
+      for(let k=0;k<4;k++)bar(side*forwardW*(.37+.12*k),.6+(k%2)*.015,z,.09*forwardW,.025,.025,led);
       tube([lamp(side*.37,.46),lamp(side*.8,.46)],led,.01);
     } else if(style.front==='stack'){
       tube([lamp(side*.32,.77),lamp(side*.8,.77)],led,.018);
