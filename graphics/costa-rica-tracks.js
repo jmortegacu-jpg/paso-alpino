@@ -173,12 +173,21 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       flow.position.set((k-1.5)*1.35,height*.5,4.35+.1*k);group.add(flow);
       flow.onBeforeRender=()=>{flowMat.uniforms.uT.value=performance.now()*.001;};
     }
-    const sprayMat=new THREE.MeshBasicMaterial({color:0xe0f7ff,transparent:true,opacity:.38,depthWrite:false});
-    for(let k=0;k<7;k++){
-      const mist=new THREE.Mesh(new THREE.IcosahedronGeometry(.73,1),sprayMat);
-      mist.scale.set(1.5,.4,1);mist.position.set((k-3)*1.05,.4,5+Math.sin(k)*.45);
-      group.add(mist);
+    // Instanced spray puffs: one draw call per waterfall, with fewer
+    // particles on mobile. No lights, shadow maps or downloaded textures.
+    const sprayMat=new THREE.MeshBasicMaterial({color:0xe0f7ff,transparent:true,opacity:.32,depthWrite:false});
+    const sprayCount=hi?7:4;
+    const spray=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.73,1),sprayMat,sprayCount);
+    const sprayDummy=new THREE.Object3D();
+    for(let k=0;k<sprayCount;k++){
+      const u=sprayCount===1?0:k/(sprayCount-1);
+      sprayDummy.position.set((u-.5)*6.3,.4,5+Math.sin(k*1.7)*.45);
+      sprayDummy.scale.set(1.5,.4,1);
+      sprayDummy.updateMatrix();spray.setMatrixAt(k,sprayDummy.matrix);
     }
+    spray.instanceMatrix.needsUpdate=true;
+    spray.frustumCulled=false;
+    group.add(spray);
     place(group,i,side,distance,.1);
   }
   function lighthouse(i){
