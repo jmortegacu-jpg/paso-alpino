@@ -285,7 +285,19 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('PACIFICO CENTRAL',Math.floor(N*.55),1,20);
     for(let j=0;j<12;j++)kiosk(Math.floor(N*(.40+j*.021)),1,37, j%2?0xdecda8:0xe1bb8a);
     streetlights(Math.floor(N*.34),Math.floor(N*.54),-1,84);
-    for(let k=0;k<14;k++)boat(Math.floor(N*(k+.4)/17),k%2?1:-1,82+16*(k%3),k%4===0);
+    // Keep boats on the same side as the two modeled sea strips.
+    // These are artistic coastal sectors, not georeferenced boat positions.
+    // Avoid the terrestrial middle section and both shoreline endpoints.
+    const coastalBoatZones=[
+      {from:.04,to:.31,side:1,count:7},
+      {from:.70,to:.96,side:-1,count:7}
+    ];
+    for(const zone of coastalBoatZones){
+      for(let k=0;k<zone.count;k++){
+        const fraction=zone.from+(zone.to-zone.from)*(k+.5)/zone.count;
+        boat(Math.floor(N*fraction),zone.side,82+16*(k%3),k%4===0);
+      }
+    }
   } else if(id==='puntarenas'){
     // Roadside city promenade, with sea on one side and storefronts on other.
     roadShore(0,N,1,26,85);
