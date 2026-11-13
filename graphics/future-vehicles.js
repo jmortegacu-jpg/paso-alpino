@@ -24,7 +24,10 @@ export function enhanceFutureCar(THREE, body, model, { detailed = true } = {}) {
   const wheelbase=Math.max(2.2,model.wheels.zf-model.wheels.zr);
   const trim=new THREE.MeshPhysicalMaterial({color:style.accent, metalness:.38,roughness:.3,clearcoat:.75,clearcoatRoughness:.12});
   const carbon=new THREE.MeshPhysicalMaterial({color:0x090c10, metalness:.48,roughness:.28,clearcoat:.8,clearcoatRoughness:.07});
-  const satin=new THREE.MeshStandardMaterial({color:0x85949e,metalness:.94,roughness:.25});
+  // Satin metal keeps a broader highlight than mirror-like chrome.
+  const satin=new THREE.MeshPhysicalMaterial({color:0x85949e,metalness:.88,roughness:.32,clearcoat:.24,clearcoatRoughness:.24});
+  // Reuse the marker material on both sides to avoid redundant GPU resources.
+  const markerMat=new THREE.MeshStandardMaterial({color:0x52351a,emissive:0xf39a36,emissiveIntensity:1.05,roughness:.38});
   const led=new THREE.MeshStandardMaterial({color:0xffffff,emissive:style.light,emissiveIntensity:2.15,roughness:.15});
   const tail=new THREE.MeshStandardMaterial({color:0x601010,emissive:0xff2525,emissiveIntensity:1.8,roughness:.22});
   const group=new THREE.Group();
@@ -72,8 +75,7 @@ export function enhanceFutureCar(THREE, body, model, { detailed = true } = {}) {
     tube([[side*forwardW*.95,.44,z1],[side*(forwardW+.025),.49,(z1+z0)/2],
       [side*forwardW*.91,.67,z0]],satin,.009);
     // Amber motorsport side marker.
-    const marker=new THREE.MeshStandardMaterial({color:0x52351a,emissive:0xf39a36,emissiveIntensity:1.05});
-    bar(side*(forwardW*.84),.55,F-.24,.018,.023,.11,marker);
+    bar(side*(forwardW*.84),.55,F-.24,.018,.023,.11,markerMat);
   }
   // Rear undertray fins are mounted beneath the rear bumper rather than on the wheels.
   wingSection(R-.035,.23,rearW*.91,.26);
