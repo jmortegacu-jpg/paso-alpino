@@ -214,6 +214,35 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     g.add(beamPivot);
     place(g,Math.floor(N*.15),1,42,.1);
   }
+  // Stylized cruise pier: structural cues from INCOP's Puntarenas terminal.
+  // Not a surveyed/georeferenced replica; no third-party images or textures.
+  function puntarenasPier(){
+    const g=new THREE.Group();
+    const steel=new THREE.MeshStandardMaterial({color:0x697981,metalness:.72,roughness:.42});
+    const deckMat=new THREE.MeshStandardMaterial({color:0x999d97,metalness:.08,roughness:.84});
+    // The local X axis points out toward the sea after place() rotates the group.
+    g.add(cube(76,.9,7.5,deckMat,0,2.4,0));
+    const pileGeo=new THREE.CylinderGeometry(.48,.57,6.5,7);
+    const piles=new THREE.InstancedMesh(pileGeo,steel,20),dummy=new THREE.Object3D();
+    let n=0;
+    for(let j=0;j<10;j++)for(const side of [-1,1]){
+      dummy.position.set(-34+j*7.5,-1.1,side*2.65);
+      dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();
+      piles.setMatrixAt(n++,dummy.matrix);
+    }
+    piles.instanceMatrix.needsUpdate=true;g.add(piles);
+    // Two low truss sections; no dynamic lights or costly transparent materials.
+    for(const side of [-1,1]){
+      g.add(cube(76,.14,.14,steel,0,4.1,side*3.4));
+      for(let j=0;j<9;j++){
+        const post=cube(.13,1.5,.13,steel,-32+j*8,3.3,side*3.4);
+        g.add(post);
+      }
+    }
+    const platform=cube(15,.9,17,deckMat,34,2.4,0);g.add(platform);
+    // Position is illustrative within the fictional circuit, not a GPS claim.
+    place(g,Math.floor(N*.62),1,66,0);
+  }
   function ferns(count){
     const mat=new THREE.MeshStandardMaterial({color:0x327445,roughness:.94,side:THREE.DoubleSide});
     const geometry=new THREE.ConeGeometry(1.55,2.4,7);
@@ -298,6 +327,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('PASEO DE LOS TURISTAS',Math.floor(N*.06),-1,20);
     sign('PUNTARENAS',Math.floor(N*.50),-1,20);
     lighthouse();
+    puntarenasPier();
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
     // Low coastal guard wall along the beach, broken into individual meshes.
     const wallGeo=new THREE.BoxGeometry(12,.5,.48);
