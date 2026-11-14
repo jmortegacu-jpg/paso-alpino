@@ -112,7 +112,9 @@ export function enhanceFutureCar(THREE, body, model, { detailed = true } = {}) {
       [rearW*.5,.74,rearZ],[rearW*.82,.74,rearZ]],tail,.019);
   } else {
     for(const side of [-1,1]){
-      tube([[side*.25,.77,rearZ],[side*.56,.76,rearZ],[side*rearW*.89,.7,rearZ]],tail,.019);
+      // Scale the inner and middle lamp anchors to each body's rear width.
+      // Prevents the signature from extending beyond narrow rear fascias.
+      tube([[side*rearW*.28,.77,rearZ],[side*rearW*.62,.76,rearZ],[side*rearW*.89,.7,rearZ]],tail,.019);
     }
   }
   // Wings intentionally keep their supports on the body, not the rotating wheel assembly.
