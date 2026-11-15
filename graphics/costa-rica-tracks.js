@@ -231,6 +231,34 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
 
   // Identity-only additions for adapted arcade circuits. These are not GIS road replicas.
   // Reuse procedural road signs, preserving road meshes, collision and car physics.
+  // Small original low-poly pedestrians, placed behind the promenade wall.
+  // Animated limbs use mesh callbacks; no texture downloads or per-frame allocations.
+  function beachWalkers(count){
+    const skin=new THREE.MeshStandardMaterial({color:0xb68a6a,roughness:1});
+    const shirt=[0x1d83a2,0xe4a34a,0x6d9b73,0xd45f63].map(color=>new THREE.MeshStandardMaterial({color,roughness:.94}));
+    const shorts=new THREE.MeshStandardMaterial({color:0x343c47,roughness:.95});
+    const sphere=new THREE.SphereGeometry(.34,7,5);
+    const torso=new THREE.BoxGeometry(.85,1.1,.42);
+    const limb=new THREE.BoxGeometry(.22,.9,.25);
+    for(let j=0;j<count;j++){
+      const i=Math.floor(N*(j+.4)/count),g=new THREE.Group();
+      const head=new THREE.Mesh(sphere,skin);head.position.y=2.38;g.add(head);
+      const body=new THREE.Mesh(torso,shirt[j%shirt.length]);body.position.y=1.52;g.add(body);
+      const limbs=[];
+      for(const side of [-1,1]){
+        const leg=new THREE.Mesh(limb,shorts);leg.position.set(side*.22,.64,0);g.add(leg);limbs.push(leg);
+        const arm=new THREE.Mesh(limb,skin);arm.position.set(side*.56,1.46,0);g.add(arm);limbs.push(arm);
+      }
+      const speed=.0012+(j%3)*.0002,phase=j*2.1;
+      body.onBeforeRender=()=>{
+        const step=Math.sin(performance.now()*speed+phase)*.25;
+        limbs[0].rotation.x=step;limbs[2].rotation.x=-step;
+        limbs[1].rotation.x=-step*.7;limbs[3].rotation.x=step*.7;
+      };
+      place(g,i,1,37+j%3*3,.25);
+      g.scale.setScalar(.85+(j%3)*.09);
+    }
+  }
   if(id==='ruta1'){
     sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
@@ -321,6 +349,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('EL FARO · LA PUNTA',Math.floor(N*.16),-1,22);
     sign('MUELLE DE CRUCEROS',Math.floor(N*.70),-1,22);
     lighthouse();
+    beachWalkers(hi?18:8);
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
     // Low coastal guard wall along the beach, broken into individual meshes.
     const wallGeo=new THREE.BoxGeometry(12,.5,.48);
