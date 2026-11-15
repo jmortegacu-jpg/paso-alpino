@@ -321,11 +321,62 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
     sign('HACIA GUANACASTE',Math.floor(N*.79),1,23);
   } else if(id==='ruta27'){
+    // Fictional race loop inspired by Ruta 27: overhead gantries leave the whole
+    // racing ribbon unobstructed. These are not surveyed toll locations.
+    const green=new THREE.MeshStandardMaterial({color:0x275c35,roughness:.84});
+    const steel=new THREE.MeshStandardMaterial({color:0x89959b,metalness:.55,roughness:.47});
+    const grass=new THREE.MeshStandardMaterial({color:0x7eaa5e,roughness:1,side:THREE.DoubleSide});
+    const rock=new THREE.MeshStandardMaterial({color:0x667a62,roughness:1});
+    const span=(i,kind,label)=>{
+      const group=new THREE.Group();
+      // Supports outside a 32-metre-wide clear road corridor.
+      for(const x of [-20,20])group.add(cube(1.1,kind==='bridge'?12:9,1.3,steel,x,(kind==='bridge'?12:9)/2,0));
+      if(kind==='bridge'){
+        group.add(cube(42,1.2,8.5,mats.concrete,0,12,0));
+        for(const z of [-3.8,3.8])group.add(cube(42,1.3,.3,steel,0,13,z));
+      }else{
+        group.add(cube(42,.65,2.1,steel,0,9,0));
+        // All toll lanes remain open: no barriers, booths or colliders.
+        for(const x of [-9,0,9]){
+          const light=cube(2.4,.5,.3,new THREE.MeshBasicMaterial({color:0x3be071}),x,8.35,1.15);
+          group.add(light);
+        }
+      }
+      // Gantry/bridge centered on the road, rotated with its local tangent.
+      place(group,i,1,0,.1);
+      sign(label,i+Math.floor(N*.008),1,22);
+    };
+    span(Math.floor(N*.16),'toll','PEAJE ABIERTO · RUTA 27');
+    span(Math.floor(N*.62),'bridge','PUENTE · RUTA 27');
+    span(Math.floor(N*.85),'toll','PASO LIBRE · RUTA 27');
+    // Distant ridges, pasture patches and roadside shade vegetation.
+    const hills=hi?75:28, hillGeo=new THREE.ConeGeometry(15,26,6);
+    const hillMesh=new THREE.InstancedMesh(hillGeo,rock,hills);
+    const dummy=new THREE.Object3D();
+    for(let j=0;j<hills;j++){
+      const k=Math.floor(N*(j+.3)/hills),side=j%2?1:-1;
+      dummy.position.copy(node(k,side,120+38*Math.abs(Math.sin(j*2.2)),8));
+      dummy.rotation.set(0,j*.83,0);
+      dummy.scale.set(1.2+.7*Math.abs(Math.sin(j*3.1)),1+.55*Math.abs(Math.cos(j)),1.2);
+      dummy.updateMatrix();hillMesh.setMatrixAt(j,dummy.matrix);
+    }
+    world.add(hillMesh);
+    const fieldGeo=new THREE.PlaneGeometry(40,70),fields=hi?24:10;
+    const fieldMesh=new THREE.InstancedMesh(fieldGeo,grass,fields);
+    for(let j=0;j<fields;j++){
+      const k=Math.floor(N*(j+.5)/fields),side=j%2?1:-1;
+      dummy.position.copy(node(k,side,65,-.38));
+      dummy.rotation.set(-Math.PI/2,0,-Math.atan2(tangents[k].x,tangents[k].z));
+      dummy.scale.set(1,1,1);dummy.updateMatrix();fieldMesh.setMatrixAt(j,dummy.matrix);
+    }
+    world.add(fieldMesh);
+    streetlights(0,N,1,80);
     sign('RUTA 27 · CALDERA',Math.floor(N*.08),1,22);
     sign('SAN JOSE · OROTINA',Math.floor(N*.55),-1,23);
     sign('SANTA ANA',Math.floor(N*.28),1,23);
     sign('ESCAZU',Math.floor(N*.74),-1,23);
-    // Toll plazas are intentionally not modeled: no invented placement or traffic obstruction.
+    sign('CIUDAD COLON',Math.floor(N*.42),1,24);
+    sign('HACIA CALDERA',Math.floor(N*.93),-1,23);
   } else if(id==='ruta2'){
     sign('RUTA 2 · CERRO DE LA MUERTE',Math.floor(N*.08),1,23);
     sign('HACIA PEREZ ZELEDON',Math.floor(N*.55),-1,23);
