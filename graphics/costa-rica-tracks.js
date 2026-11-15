@@ -7,7 +7,7 @@
  */
 export function addCostaRicaScenery(THREE, world, def, points, tangents, normals, quality) {
   const id=def.theme?.cr;
-  if(!['zurqui','costanera','puntarenas'].includes(id))return;
+  if(!['zurqui','costanera','puntarenas','ruta1','ruta2','ruta27'].includes(id))return;
   const N=points.length, hi=quality==='alta'||quality==='cine';
   const step=hi?16:quality==='media'?24:36;
   const mats={
@@ -229,10 +229,58 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     world.add(mesh);
   }
 
-  if(id==='zurqui'){
+  // Identity-only additions for adapted arcade circuits. These are not GIS road replicas.
+  // Reuse procedural road signs, preserving road meshes, collision and car physics.
+  // Small original low-poly pedestrians, placed behind the promenade wall.
+  // Animated limbs use mesh callbacks; no texture downloads or per-frame allocations.
+  function beachWalkers(count){
+    const skin=new THREE.MeshStandardMaterial({color:0xb68a6a,roughness:1});
+    const shirt=[0x1d83a2,0xe4a34a,0x6d9b73,0xd45f63].map(color=>new THREE.MeshStandardMaterial({color,roughness:.94}));
+    const shorts=new THREE.MeshStandardMaterial({color:0x343c47,roughness:.95});
+    const sphere=new THREE.SphereGeometry(.34,7,5);
+    const torso=new THREE.BoxGeometry(.85,1.1,.42);
+    const limb=new THREE.BoxGeometry(.22,.9,.25);
+    for(let j=0;j<count;j++){
+      const i=Math.floor(N*(j+.4)/count),g=new THREE.Group();
+      const head=new THREE.Mesh(sphere,skin);head.position.y=2.38;g.add(head);
+      const body=new THREE.Mesh(torso,shirt[j%shirt.length]);body.position.y=1.52;g.add(body);
+      const limbs=[];
+      for(const side of [-1,1]){
+        const leg=new THREE.Mesh(limb,shorts);leg.position.set(side*.22,.64,0);g.add(leg);limbs.push(leg);
+        const arm=new THREE.Mesh(limb,skin);arm.position.set(side*.56,1.46,0);g.add(arm);limbs.push(arm);
+      }
+      const speed=.0012+(j%3)*.0002,phase=j*2.1;
+      body.onBeforeRender=()=>{
+        const step=Math.sin(performance.now()*speed+phase)*.25;
+        limbs[0].rotation.x=step;limbs[2].rotation.x=-step;
+        limbs[1].rotation.x=-step*.7;limbs[3].rotation.x=step*.7;
+      };
+      place(g,i,1,37+j%3*3,.25);
+      g.scale.setScalar(.85+(j%3)*.09);
+    }
+  }
+  if(id==='ruta1'){
+    sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
+    sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
+    sign('HACIA GUANACASTE',Math.floor(N*.79),1,23);
+  } else if(id==='ruta27'){
+    sign('RUTA 27 · CALDERA',Math.floor(N*.08),1,22);
+    sign('SAN JOSE · OROTINA',Math.floor(N*.55),-1,23);
+    sign('SANTA ANA',Math.floor(N*.28),1,23);
+    sign('ESCAZU',Math.floor(N*.74),-1,23);
+    // Toll plazas are intentionally not modeled: no invented placement or traffic obstruction.
+  } else if(id==='ruta2'){
+    sign('RUTA 2 · CERRO DE LA MUERTE',Math.floor(N*.08),1,23);
+    sign('HACIA PEREZ ZELEDON',Math.floor(N*.55),-1,23);
+    sign('PARAMO · ALTA MONTANA',Math.floor(N*.27),1,24);
+    sign('FAUNA SILVESTRE',Math.floor(N*.77),-1,24);
+  }
+    if(id==='zurqui'){
     rainforestTrees(hi?350:145);ferns(hi?230:90);
     sign('RUTA 32 · ZURQUI',Math.floor(N*.07),1,20);
-    sign('BRAULIO CARRILLO',Math.floor(N*.46),-1,20);
+    sign('PARQUE BRAULIO CARRILLO',Math.floor(N*.46),-1,20);
+    sign('TUNEL ZURQUI',Math.floor(N*.25),1,22);
+    sign('PRECAUCION · FAUNA',Math.floor(N*.79),-1,23);
     for(const [f,side,h] of [[.15,-1,18],[.56,1,15],[.70,-1,21]])waterfall(Math.floor(N*f),side,39,h);
     // Open-ended 3D tunnel follows the actual track, approx. 550 m.
     // Double-sided geometry yields a convincing concrete roof interior.
@@ -298,7 +346,10 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     }
     sign('PASEO DE LOS TURISTAS',Math.floor(N*.06),-1,20);
     sign('PUNTARENAS',Math.floor(N*.50),-1,20);
+    sign('EL FARO · LA PUNTA',Math.floor(N*.16),-1,22);
+    sign('MUELLE DE CRUCEROS',Math.floor(N*.70),-1,22);
     lighthouse();
+    beachWalkers(hi?18:8);
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
     // Low coastal guard wall along the beach, broken into individual meshes.
     const wallGeo=new THREE.BoxGeometry(12,.5,.48);
