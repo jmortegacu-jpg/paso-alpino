@@ -60,7 +60,10 @@ export function enhanceFutureCar(THREE, body, model, { detailed = true } = {}) {
   for(const side of [-1,1]){
     const sx=side*forwardW;
     // Aero surfaces follow the wheel arches instead of extending to the axle.
-    const canard=mesh(new THREE.BoxGeometry(.29,.02,.21),carbon,side*(forwardW-.10),.29,F-.20);
+    // Keep the entire canard inside the front body envelope, including narrow models.
+    const canardWidth=Math.min(.29,Math.max(.12,forwardW*.22));
+    const canardX=Math.max(0,forwardW-canardWidth*.5-.025);
+    const canard=mesh(new THREE.BoxGeometry(canardWidth,.02,.21),carbon,side*canardX,.29,F-.20);
     canard.rotation.y=side*.28;
     canard.rotation.z=side*.11;
     // Continuous side blade tucked inside the front and rear wheel.
