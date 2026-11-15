@@ -439,13 +439,23 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       // not outside the rubber's lateral envelope.
       const rotor=new THREE.Mesh(new THREE.TorusGeometry(rad*.51,.008,6,36),material.trim);
       rotor.rotation.y=Math.PI/2;rotor.position.x=faceX-.041;rotor.userData.fcDetail=1;wh.spin.add(rotor);
+      // One instanced draw call instead of eight separate brake perforation
+      // meshes per wheel. Positions are wheel-local, so they spin with the hub.
+      const holeGeometry=new THREE.SphereGeometry(rad*.018,6,4);
+      const holes=new THREE.InstancedMesh(holeGeometry,material.vent,8);
+      const holeDummy=new THREE.Object3D();
       for(let t=0;t<8;t++){
         const a=2*Math.PI*t/8;
-        const hole=new THREE.Mesh(new THREE.SphereGeometry(rad*.018,6,4),material.vent);
-        hole.scale.set(.25,1,1);
-        hole.position.set(faceX-.028,Math.sin(a)*rad*.43,Math.cos(a)*rad*.43);
-        hole.userData.fcDetail=1;wh.spin.add(hole);
+        holeDummy.position.set(faceX-.028,Math.sin(a)*rad*.43,Math.cos(a)*rad*.43);
+        holeDummy.rotation.set(0,0,0);
+        holeDummy.scale.set(.25,1,1);
+        holeDummy.updateMatrix();
+        holes.setMatrixAt(t,holeDummy.matrix);
       }
+      holes.instanceMatrix.needsUpdate=true;
+      holes.frustumCulled=false;
+      holes.name='Wheel-local brake rotor perforations';
+      wh.spin.add(holes);
     }
     if(high){
       const n=C.rim==='turbine'?11:C.rim==='mesh'?14:C.rim==='disc'?6:C.rim==='five'?5:10;
