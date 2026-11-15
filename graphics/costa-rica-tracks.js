@@ -416,6 +416,52 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('CIUDAD COLON',Math.floor(N*.42),1,24);
     sign('HACIA CALDERA',Math.floor(N*.93),-1,23);
   } else if(id==='ruta2'){
+    // Parque Eolico Los Santos: 15 actual turbines near Casa Mata/La Paz.
+    // Positions below are scenic approximations along a fictional loop, NOT GPS.
+    // The landmark is deliberately near the first part of the route, before the
+    // high-altitude forest/páramo sector; all parts remain outside the roadway.
+    const windWhite=new THREE.MeshStandardMaterial({color:0xe6e9e7,metalness:.12,roughness:.53});
+    const windDark=new THREE.MeshStandardMaterial({color:0x56656b,metalness:.3,roughness:.62});
+    const windCount=hi?15:7;
+    const towerGeo=new THREE.CylinderGeometry(1.1,2.1,44,8);
+    const towerMesh=new THREE.InstancedMesh(towerGeo,windWhite,windCount);
+    const hubGeo=new THREE.SphereGeometry(1.6,8,6);
+    const hubMesh=new THREE.InstancedMesh(hubGeo,windDark,windCount);
+    const rotorGeo=new THREE.BoxGeometry(1.45,25,.42);
+    rotorGeo.translate(0,12.2,0);
+    const rotors=[];
+    const marker=new THREE.Object3D();
+    for(let j=0;j<windCount;j++){
+      const fraction=.09+.18*(j+.35)/windCount;
+      const k=Math.floor(N*fraction),side=j%2?1:-1;
+      const offset=65+24*Math.abs(Math.sin(j*2.8));
+      const p=node(k,side,offset,-.3);
+      marker.position.copy(p);marker.position.y+=22;
+      marker.rotation.set(0,0,0);marker.scale.set(1,1,1);
+      marker.updateMatrix();towerMesh.setMatrixAt(j,marker.matrix);
+      marker.position.y=p.y+45;marker.updateMatrix();hubMesh.setMatrixAt(j,marker.matrix);
+      // One group per visible rotor, three simple blades, slow rotation.
+      // A per-mesh callback runs only while its rotor is actually rendered.
+      const rotor=new THREE.Group();
+      for(let b=0;b<3;b++){
+        const pivot=new THREE.Group();pivot.rotation.z=b*Math.PI*2/3;
+        const blade=new THREE.Mesh(rotorGeo,windWhite);pivot.add(blade);rotor.add(pivot);
+      }
+      rotor.position.copy(p);rotor.position.y+=45;
+      rotor.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      const visibleBlade=rotor.children[0].children[0];
+      visibleBlade.onBeforeRender=()=>{
+        rotor.rotation.z=performance.now()*.00024+j*.61;
+      };
+      world.add(rotor);rotors.push(rotor);
+    }
+    towerMesh.instanceMatrix.needsUpdate=true;hubMesh.instanceMatrix.needsUpdate=true;
+    towerMesh.frustumCulled=false;hubMesh.frustumCulled=false;
+    world.add(towerMesh,hubMesh);
+    // Driver-readable roadside identification, not a reproduction of a real sign.
+    sign('PARQUE EOLICO LOS SANTOS',Math.floor(N*.07),1,18);
+    sign('COOPESANTOS',Math.floor(N*.15),-1,18);
+    sign('CASA MATA · LA PAZ',Math.floor(N*.23),1,19);
     sign('RUTA 2 · CERRO DE LA MUERTE',Math.floor(N*.08),1,23);
     sign('HACIA PEREZ ZELEDON',Math.floor(N*.55),-1,23);
     sign('PARAMO · ALTA MONTANA',Math.floor(N*.27),1,24);
