@@ -327,28 +327,66 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const steel=new THREE.MeshStandardMaterial({color:0x89959b,metalness:.55,roughness:.47});
     const grass=new THREE.MeshStandardMaterial({color:0x7eaa5e,roughness:1,side:THREE.DoubleSide});
     const rock=new THREE.MeshStandardMaterial({color:0x667a62,roughness:1});
-    const span=(i,kind,label)=>{
-      const group=new THREE.Group();
-      // Supports outside a 32-metre-wide clear road corridor.
-      for(const x of [-20,20])group.add(cube(1.1,kind==='bridge'?12:9,1.3,steel,x,(kind==='bridge'?12:9)/2,0));
-      if(kind==='bridge'){
-        group.add(cube(42,1.2,8.5,mats.concrete,0,12,0));
-        for(const z of [-3.8,3.8])group.add(cube(42,1.3,.3,steel,0,13,z));
-      }else{
-        group.add(cube(42,.65,2.1,steel,0,9,0));
-        // All toll lanes remain open: no barriers, booths or colliders.
-        for(const x of [-9,0,9]){
-          const light=cube(2.4,.5,.3,new THREE.MeshBasicMaterial({color:0x3be071}),x,8.35,1.15);
-          group.add(light);
-        }
-      }
-      // Gantry/bridge centered on the road, rotated with its local tangent.
-      place(group,i,1,0,.1);
-      sign(label,i+Math.floor(N*.008),1,22);
+    const laneBoard=(title,accent=0x207744)=>{
+      const canvas=document.createElement('canvas');canvas.width=512;canvas.height=192;
+      const ctx=canvas.getContext('2d');
+      ctx.fillStyle='#173f32';ctx.fillRect(0,0,512,192);
+      ctx.strokeStyle='#e7f4eb';ctx.lineWidth=10;ctx.strokeRect(8,8,496,176);
+      ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font='bold 58px Arial';ctx.fillText(title,256,98,470);
+      const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+      const board=new THREE.Mesh(new THREE.PlaneGeometry(5.7,2.15),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));
+      return board;
     };
-    span(Math.floor(N*.16),'toll','PEAJE ABIERTO · RUTA 27');
-    span(Math.floor(N*.62),'bridge','PUENTE · RUTA 27');
-    span(Math.floor(N*.85),'toll','PASO LIBRE · RUTA 27');
+    const gantry=(i,labels)=>{
+      const group=new THREE.Group();
+      // Overhead signs are advisory. Do not close a playable lane or add collisions.
+      for(const x of [-20,20])group.add(cube(.8,10,.8,steel,x,5,0));
+      group.add(cube(41,.55,.9,steel,0,10,0));
+      labels.forEach((label,j)=>{
+        const x=(j-1)*11.2;
+        const board=laneBoard(label);board.position.set(x,8.4,.6);group.add(board);
+        const light=cube(2,.35,.4,new THREE.MeshBasicMaterial({color:label==='CERRADO'?0xf04c42:0x35dc73}),x,6.9,.6);
+        group.add(light);
+      });
+      place(group,i,1,0,.1);
+    };
+    const viaduct=(i)=>{
+      const group=new THREE.Group();
+      // Stylized mountain-to-mountain viaduct. The deck is above the race road,
+      // while its pillars stand outside the 32 m clear corridor.
+      group.add(cube(112,1.5,11,mats.concrete,0,22,0));
+      for(const z of [-5.2,5.2])group.add(cube(112,1.2,.3,steel,0,23.3,z));
+      for(const x of [-51,-35,35,51]){
+        group.add(cube(2.6,21,2.6,mats.concrete,x,10.5,0));
+      }
+      for(const x of [-44,44]){
+        const abutment=new THREE.Mesh(new THREE.ConeGeometry(17,22,7),rock);
+        abutment.position.set(x,5,0);group.add(abutment);
+      }
+      place(group,i,1,0,.2);
+    };
+    gantry(Math.floor(N*.16),['QUICK PASS','ABIERTO','CERRADO']);
+    viaduct(Math.floor(N*.62));
+    gantry(Math.floor(N*.85),['QUICK PASS','ABIERTO','CERRADO']);
+    sign('PEAJE · RUTA 27',Math.floor(N*.16),1,25);
+    sign('VIADUCTO · RUTA 27',Math.floor(N*.62),-1,25);
+    sign('QUICK PASS',Math.floor(N*.85),1,25);
+    // Suburban districts near the San Jose end: low-rise buildings, not
+    // claimed to be exact real-world structures.
+    const glass=new THREE.MeshPhysicalMaterial({color:0x789aa4,metalness:.12,roughness:.3,clearcoat:.18});
+    const walls=new THREE.MeshStandardMaterial({color:0xc6bfb0,roughness:.88});
+    const buildings=hi?40:16;
+    for(let j=0;j<buildings;j++){
+      const k=Math.floor(N*(.02+.35*(j+.5)/buildings)),side=j%2?1:-1;
+      const g=new THREE.Group(),h=7+(j%6)*3.2;
+      g.add(cube(8,h,8,walls,0,h/2,0));
+      for(let floor=0;floor<Math.floor(h/3);floor++){
+        for(const z of [-4.05,4.05])g.add(cube(5.5,1.3,.08,glass,0,2.2+floor*3,z));
+      }
+      g.add(cube(9,.5,9,steel,0,h+.25,0));
+      place(g,k,side,52+13*Math.abs(Math.sin(j*3.4)));
+    }
     // Distant ridges, pasture patches and roadside shade vegetation.
     const hills=hi?75:28, hillGeo=new THREE.ConeGeometry(15,26,6);
     const hillMesh=new THREE.InstancedMesh(hillGeo,rock,hills);
