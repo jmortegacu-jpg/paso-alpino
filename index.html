@@ -2573,8 +2573,12 @@ async function netJoin(raw){
   if(net.busy||net.tr)return;net.busy=true;olStatus('Entrando a la sala '+code+'…');
   try{const tr=inArtifact?await roomTransport(code):await p2pTransport(code,false);
     Object.assign(net,{tr,code,host:false,ph:'lobby',hr:0,inRace:false,seen:0,hostGoneT:0,fullErr:false});rosterReset(2000);tr.send(myPresence());
-    if(inArtifact){const t0=Date.now();while(Date.now()-t0<6000&&!tr.list().some(x=>x.p&&x.p.hv===1))await new Promise(r=>setTimeout(r,250));
-      if(!tr.list().some(x=>x.p&&x.p.hv===1)){tr.leave();net.tr=null;throw fail('notfound');}
+    // Both browser transports must confirm an actual host presence before showing a successful join.
+    // A PeerJS socket opening alone is not proof that the room host accepted the player.
+    {const t0=Date.now();while(Date.now()-t0<6500&&!tr.closed()&&!tr.list().some(x=>x.p&&x.p.hv===1)){
+      tr.send(myPresence());await new Promise(r=>setTimeout(r,150));}
+      if(net.fullErr){tr.leave();net.tr=null;throw fail('full');}
+      if(tr.closed()||!tr.list().some(x=>x.p&&x.p.hv===1)){tr.leave();net.tr=null;throw fail('notfound');}
       if(tr.list().length>NET_MAX){tr.leave();net.tr=null;throw fail('full');}}
     olStatus('');netTick();voiceUI();
   }catch(e){net.tr=null;olStatus(whyText(e),true);}finally{net.busy=false;renderLobby();}}
