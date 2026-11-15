@@ -13,7 +13,8 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
   const mats={
     concrete:new THREE.MeshStandardMaterial({color:0x777971,roughness:.93,side:THREE.DoubleSide}),
     stone:new THREE.MeshStandardMaterial({color:0x777060,roughness:.97,side:THREE.DoubleSide}),
-    tunnel:new THREE.MeshStandardMaterial({color:0x575d57,roughness:.86,side:THREE.DoubleSide}),
+    // Subtle damp concrete: a restrained PBR sheen, without reflection probes or new textures.
+    tunnel:new THREE.MeshPhysicalMaterial({color:0x575d57,metalness:0,roughness:.72,clearcoat:.16,clearcoatRoughness:.34,side:THREE.DoubleSide}),
     sand:new THREE.MeshStandardMaterial({color:0xb3a27a,roughness:1}),
     lamp:new THREE.MeshBasicMaterial({color:0xffd399}),
     foliage:new THREE.MeshStandardMaterial({color:0x1b5634,roughness:.94,side:THREE.DoubleSide}),
