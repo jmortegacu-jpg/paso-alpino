@@ -259,7 +259,64 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       g.scale.setScalar(.85+(j%3)*.09);
     }
   }
+  // Guanacaste-inspired landscape: open cattle pasture, shade trees and fenced herds.
+  // Scenery sits well outside the driving ribbon; instancing limits draw calls on mobile.
+  function guanacastePastures(){
+    const pastureMat=new THREE.MeshStandardMaterial({color:0x8caa57,roughness:1,side:THREE.DoubleSide});
+    const fieldGeo=new THREE.PlaneGeometry(46,68);
+    const fields=hi?28:12, fieldMesh=new THREE.InstancedMesh(fieldGeo,pastureMat,fields);
+    const obj=new THREE.Object3D();
+    for(let j=0;j<fields;j++){
+      const k=Math.floor(N*(j+.4)/fields),side=j%2?1:-1;
+      obj.position.copy(node(k,side,64,-.48));obj.rotation.set(-Math.PI/2,0,-Math.atan2(tangents[k].x,tangents[k].z));
+      obj.scale.set(1,1,1);obj.updateMatrix();fieldMesh.setMatrixAt(j,obj.matrix);
+    }
+    fieldMesh.receiveShadow=true;world.add(fieldMesh);
+    // Broadleaf shade trees, distinct from the dense rainforest.
+    const nTrees=hi?100:38;
+    const crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(4.8,1),new THREE.MeshStandardMaterial({color:0x447342,roughness:.95}),nTrees);
+    const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.48,.7,6,6),mats.bark,nTrees);
+    for(let j=0;j<nTrees;j++){
+      const k=Math.floor(N*(j+.2)/nTrees),side=j%2?1:-1,dist=49+24*Math.abs(Math.sin(j*9.7));
+      const p=node(k,side,dist,0);
+      obj.rotation.set(0,j*1.9,0);obj.scale.setScalar(.8+.35*Math.abs(Math.sin(j*2.3)));
+      obj.position.copy(p).add(new THREE.Vector3(0,3.2,0));obj.updateMatrix();trunks.setMatrixAt(j,obj.matrix);
+      obj.position.copy(p).add(new THREE.Vector3(0,8.5,0));obj.scale.multiplyScalar(1.5);obj.updateMatrix();crowns.setMatrixAt(j,obj.matrix);
+    }
+    world.add(trunks,crowns);
+    const white=new THREE.MeshStandardMaterial({color:0xe6e2d3,roughness:.95});
+    const dark=new THREE.MeshStandardMaterial({color:0x3d342e,roughness:.96});
+    const cowBody=new THREE.BoxGeometry(2.7,1.35,1.35);
+    const cowHead=new THREE.BoxGeometry(.9,.9,.85);
+    const cowLeg=new THREE.CylinderGeometry(.15,.2,1.15,5);
+    const cowCount=hi?20:8;
+    for(let j=0;j<cowCount;j++){
+      const k=Math.floor(N*(j+.7)/cowCount),side=j%2?1:-1;
+      const cow=new THREE.Group(),coat=j%3===0?dark:white;
+      const body=new THREE.Mesh(cowBody,coat);body.position.y=1.65;cow.add(body);
+      const head=new THREE.Mesh(cowHead,coat);head.position.set(1.55,1.88,0);cow.add(head);
+      for(const x of [-.9,.9])for(const z of [-.43,.43]){
+        const leg=new THREE.Mesh(cowLeg,coat);leg.position.set(x,.6,z);cow.add(leg);
+      }
+      const earGeo=new THREE.BoxGeometry(.38,.15,.26);
+      for(const z of [-.57,.57]){const ear=new THREE.Mesh(earGeo,coat);ear.position.set(1.5,2.19,z);cow.add(ear);}
+      // Cattle remain behind the roadside vegetation and never enter the road.
+      place(cow,k,side,60+11*Math.abs(Math.sin(j*3.7)),-.1);
+      cow.rotation.y+=Math.sin(j*4.7)*1.4;
+      cow.scale.setScalar(.8+.12*(j%3));
+    }
+    const fenceMat=new THREE.MeshStandardMaterial({color:0x766247,roughness:1});
+    const postGeo=new THREE.BoxGeometry(.2,1.7,.2),railGeo=new THREE.BoxGeometry(.12,.12,10);
+    const postCount=hi?90:38;
+    const posts=new THREE.InstancedMesh(postGeo,fenceMat,postCount);
+    for(let j=0;j<postCount;j++){
+      const k=Math.floor(N*j/postCount),side=j%2?1:-1;
+      obj.position.copy(node(k,side,42,.75));obj.rotation.set(0,0,0);obj.scale.set(1,1,1);obj.updateMatrix();posts.setMatrixAt(j,obj.matrix);
+    }
+    world.add(posts);
+  }
   if(id==='ruta1'){
+    guanacastePastures();
     sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
     sign('HACIA GUANACASTE',Math.floor(N*.79),1,23);
