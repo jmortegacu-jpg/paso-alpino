@@ -234,17 +234,25 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
   if(id==='ruta1'){
     sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
+    sign('HACIA GUANACASTE',Math.floor(N*.79),1,23);
   } else if(id==='ruta27'){
     sign('RUTA 27 · CALDERA',Math.floor(N*.08),1,22);
     sign('SAN JOSE · OROTINA',Math.floor(N*.55),-1,23);
+    sign('SANTA ANA',Math.floor(N*.28),1,23);
+    sign('ESCAZU',Math.floor(N*.74),-1,23);
+    // Toll plazas are intentionally not modeled: no invented placement or traffic obstruction.
   } else if(id==='ruta2'){
     sign('RUTA 2 · CERRO DE LA MUERTE',Math.floor(N*.08),1,23);
     sign('HACIA PEREZ ZELEDON',Math.floor(N*.55),-1,23);
+    sign('PARAMO · ALTA MONTANA',Math.floor(N*.27),1,24);
+    sign('FAUNA SILVESTRE',Math.floor(N*.77),-1,24);
   }
     if(id==='zurqui'){
     rainforestTrees(hi?350:145);ferns(hi?230:90);
     sign('RUTA 32 · ZURQUI',Math.floor(N*.07),1,20);
     sign('PARQUE BRAULIO CARRILLO',Math.floor(N*.46),-1,20);
+    sign('TUNEL ZURQUI',Math.floor(N*.25),1,22);
+    sign('PRECAUCION · FAUNA',Math.floor(N*.79),-1,23);
     for(const [f,side,h] of [[.15,-1,18],[.56,1,15],[.70,-1,21]])waterfall(Math.floor(N*f),side,39,h);
     // Open-ended 3D tunnel follows the actual track, approx. 550 m.
     // Double-sided geometry yields a convincing concrete roof interior.
@@ -310,6 +318,8 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     }
     sign('PASEO DE LOS TURISTAS',Math.floor(N*.06),-1,20);
     sign('PUNTARENAS',Math.floor(N*.50),-1,20);
+    sign('EL FARO · LA PUNTA',Math.floor(N*.16),-1,22);
+    sign('MUELLE DE CRUCEROS',Math.floor(N*.70),-1,22);
     lighthouse();
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
     // Low coastal guard wall along the beach, broken into individual meshes.
