@@ -7,7 +7,7 @@
  */
 export function addCostaRicaScenery(THREE, world, def, points, tangents, normals, quality) {
   const id=def.theme?.cr;
-  if(!['zurqui','costanera','puntarenas'].includes(id))return;
+  if(!['zurqui','costanera','puntarenas','ruta1','ruta2','ruta27'].includes(id))return;
   const N=points.length, hi=quality==='alta'||quality==='cine';
   const step=hi?16:quality==='media'?24:36;
   const mats={
@@ -229,10 +229,22 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     world.add(mesh);
   }
 
-  if(id==='zurqui'){
+  // Identity-only additions for adapted arcade circuits. These are not GIS road replicas.
+  // Reuse procedural road signs, preserving road meshes, collision and car physics.
+  if(id==='ruta1'){
+    sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
+    sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
+  } else if(id==='ruta27'){
+    sign('RUTA 27 · CALDERA',Math.floor(N*.08),1,22);
+    sign('SAN JOSE · OROTINA',Math.floor(N*.55),-1,23);
+  } else if(id==='ruta2'){
+    sign('RUTA 2 · CERRO DE LA MUERTE',Math.floor(N*.08),1,23);
+    sign('HACIA PEREZ ZELEDON',Math.floor(N*.55),-1,23);
+  }
+    if(id==='zurqui'){
     rainforestTrees(hi?350:145);ferns(hi?230:90);
     sign('RUTA 32 · ZURQUI',Math.floor(N*.07),1,20);
-    sign('BRAULIO CARRILLO',Math.floor(N*.46),-1,20);
+    sign('PARQUE BRAULIO CARRILLO',Math.floor(N*.46),-1,20);
     for(const [f,side,h] of [[.15,-1,18],[.56,1,15],[.70,-1,21]])waterfall(Math.floor(N*f),side,39,h);
     // Open-ended 3D tunnel follows the actual track, approx. 550 m.
     // Double-sided geometry yields a convincing concrete roof interior.
