@@ -284,6 +284,29 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       obj.position.copy(p).add(new THREE.Vector3(0,8.5,0));obj.scale.multiplyScalar(1.5);obj.updateMatrix();crowns.setMatrixAt(j,obj.matrix);
     }
     world.add(trunks,crowns);
+    // Guanacaste-inspired wide shade canopies: original stylized geometry,
+    // not an exact botanical model or a claim about a particular tree location.
+    // Two instanced meshes regardless of quality, no collisions or shadows.
+    const canopyCount=hi?26:quality==='media'?14:7;
+    const canopyMat=new THREE.MeshStandardMaterial({color:0x577c39,roughness:.98,side:THREE.DoubleSide});
+    const canopyGeo=new THREE.SphereGeometry(1,9,5);
+    const canopyMesh=new THREE.InstancedMesh(canopyGeo,canopyMat,canopyCount);
+    const canopyStems=new THREE.InstancedMesh(new THREE.CylinderGeometry(.38,.58,1,6),mats.bark,canopyCount);
+    const canopyObj=new THREE.Object3D();
+    for(let j=0;j<canopyCount;j++){
+      const k=Math.floor(N*(j+.45)/canopyCount),side=j%2?1:-1;
+      const p=node(k,side,75+8*Math.abs(Math.sin(j*4.9)),0);
+      const height=8+2*Math.abs(Math.sin(j*1.7)),spread=8+2*Math.abs(Math.sin(j*2.9));
+      canopyObj.position.copy(p);canopyObj.position.y+=height*.5;
+      canopyObj.rotation.set(0,j*.7,0);canopyObj.scale.set(.58,height,.58);
+      canopyObj.updateMatrix();canopyStems.setMatrixAt(j,canopyObj.matrix);
+      canopyObj.position.copy(p);canopyObj.position.y+=height+1.3;
+      canopyObj.scale.set(spread,2.5,spread*.87);
+      canopyObj.updateMatrix();canopyMesh.setMatrixAt(j,canopyObj.matrix);
+    }
+    canopyMesh.instanceMatrix.needsUpdate=true;canopyStems.instanceMatrix.needsUpdate=true;
+    canopyMesh.computeBoundingSphere();canopyStems.computeBoundingSphere();
+    world.add(canopyStems,canopyMesh);
     const white=new THREE.MeshStandardMaterial({color:0xe6e2d3,roughness:.95});
     const dark=new THREE.MeshStandardMaterial({color:0x3d342e,roughness:.96});
     const cowBody=new THREE.BoxGeometry(2.7,1.35,1.35);
