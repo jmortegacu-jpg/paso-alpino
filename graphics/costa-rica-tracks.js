@@ -327,16 +327,26 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const steel=new THREE.MeshStandardMaterial({color:0x89959b,metalness:.55,roughness:.47});
     const grass=new THREE.MeshStandardMaterial({color:0x7eaa5e,roughness:1,side:THREE.DoubleSide});
     const rock=new THREE.MeshStandardMaterial({color:0x667a62,roughness:1});
-    const laneBoard=(title,accent=0x207744)=>{
-      const canvas=document.createElement('canvas');canvas.width=512;canvas.height=192;
-      const ctx=canvas.getContext('2d');
-      ctx.fillStyle='#173f32';ctx.fillRect(0,0,512,192);
-      ctx.strokeStyle='#e7f4eb';ctx.lineWidth=10;ctx.strokeRect(8,8,496,176);
-      ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.font='bold 58px Arial';ctx.fillText(title,256,98,470);
-      const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
-      const board=new THREE.Mesh(new THREE.PlaneGeometry(5.7,2.15),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));
-      return board;
+    // One canvas texture per unique message, reused by both toll plazas.
+    // Larger board lettering and higher contrast for the chase/cockpit camera.
+    const tollTextures=new Map();
+    const laneBoard=(title)=>{
+      let tex=tollTextures.get(title);
+      if(!tex){
+        const canvas=document.createElement('canvas');canvas.width=512;canvas.height=192;
+        const ctx=canvas.getContext('2d');
+        ctx.fillStyle=title==='CERRADO'?'#752b28':'#165439';
+        ctx.fillRect(0,0,512,192);
+        ctx.strokeStyle='#f7f8f0';ctx.lineWidth=12;ctx.strokeRect(8,8,496,176);
+        ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.font='bold 66px Arial';ctx.fillText(title,256,98,472);
+        tex=new THREE.CanvasTexture(canvas);
+        tex.colorSpace=THREE.SRGBColorSpace;
+        tex.anisotropy=Math.min(4,world?.userData?.maxAnisotropy||4);
+        tollTextures.set(title,tex);
+      }
+      return new THREE.Mesh(new THREE.PlaneGeometry(7.8,2.5),
+        new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide,depthWrite:false}));
     };
     const gantry=(i,labels)=>{
       const group=new THREE.Group();
@@ -414,6 +424,11 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('SANTA ANA',Math.floor(N*.28),1,23);
     sign('ESCAZU',Math.floor(N*.74),-1,23);
     sign('CIUDAD COLON',Math.floor(N*.42),1,24);
+    // Roadside wayfinding: artistic sequence, not surveyed exit coordinates.
+    sign('SALIDA · GUACHIPELIN',Math.floor(N*.18),-1,25);
+    sign('SALIDA · LA GUACIMA',Math.floor(N*.48),1,25);
+    sign('ATENAS · OROTINA',Math.floor(N*.67),-1,25);
+    sign('CALDERA · PUNTARENAS',Math.floor(N*.89),1,25);
     sign('HACIA CALDERA',Math.floor(N*.93),-1,23);
   } else if(id==='ruta2'){
     sign('RUTA 2 · CERRO DE LA MUERTE',Math.floor(N*.08),1,23);
