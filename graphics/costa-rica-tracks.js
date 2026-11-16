@@ -490,6 +490,29 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       const i=Math.floor(N*(j+.4)/36);
       kiosk(i,-1,31, j%3===0?0xf2d9aa:j%3===1?0xa0c7cf:0xf1bc91);
     }
+    // ICT documents kiosks, recreation spaces and beachfront lodging on the
+    // Paseo. These are original, stylized meshes, not copies of named buildings.
+    const coastalGlass=new THREE.MeshPhysicalMaterial({color:0x88b4bd,roughness:.27,metalness:.04,clearcoat:.24});
+    const shade=new THREE.MeshStandardMaterial({color:0xe6d7b6,roughness:.92});
+    for(let j=0;j<(hi?12:6);j++){
+      const k=Math.floor(N*(.05+(j+.4)*.85/(hi?12:6)));
+      const hotel=new THREE.Group(),height=9+(j%3)*3;
+      hotel.add(cube(12,height,8,shade,0,height/2,0));
+      for(let floor=0;floor<Math.floor(height/3);floor++){
+        for(const x of [-3.5,0,3.5])hotel.add(cube(2.1,1.6,.1,coastalGlass,x,2+floor*3,4.06));
+      }
+      hotel.add(cube(13,.55,9,mats.roof,0,height+.25,0));
+      place(hotel,k,-1,55+3*(j%3));
+    }
+    // Small resting areas remain outside the road and have no collision.
+    for(let j=0;j<(hi?18:8);j++){
+      const k=Math.floor(N*(j+.35)/(hi?18:8));
+      const bench=new THREE.Group();
+      bench.add(cube(2.8,.2,.75,mats.bark,0,1.1,0));
+      bench.add(cube(2.8,1,.18,mats.bark,0,1.6,-.35));
+      for(const x of [-1.1,1.1])bench.add(cube(.18,1.05,.65,mats.black,x,.53,0));
+      place(bench,k,1,23,.2);
+    }
     sign('PASEO DE LOS TURISTAS',Math.floor(N*.06),-1,20);
     sign('PUNTARENAS',Math.floor(N*.50),-1,20);
     sign('EL FARO · LA PUNTA',Math.floor(N*.16),-1,22);
