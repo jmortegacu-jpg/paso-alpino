@@ -35,3 +35,12 @@ Fuente de continuidad: PR #33 Ruta 2, PR #34 Ruta 27, y este PR Ruta 32. Los PR 
 - [ ] Autorización expresa de publicación en Netlify
 
 **No listo para Netlify.** No fusionar ni desplegar automáticamente.
+
+## Segunda vuelta — 2026-11-16, Ruta 32 Zurquí (turno 9)
+- **Pista trabajada:** Ruta 32 / identificador `zurqui`. **Siguiente:** Paseo de los Turistas / `puntarenas`.
+- **Cambio:** las luminarias del techo del túnel que antes eran meshes separados ahora comparten una sola geometría y un `THREE.InstancedMesh`, con cantidad adaptada a calidad alta/cine o baja/media. Se conservan posiciones, orientación y dimensiones; no hay nuevas luces dinámicas, colisiones ni alteraciones de carretera, vehículos, física o red.
+- **Commit:** `b37a4eadbc70532d30c46c335f5704e251ae9a16`; PR #35: https://github.com/jmortegacu-jpg/paso-alpino/pull/35 . Cambio sobre rama borrador, sin fusionar.
+- **Fuentes geográficas:** SINAC https://www.sinac.go.cr/ES/ac/accvc/pnbc/Paginas/default.aspx/ ; MOPT https://www.mopt.go.cr/node/1031 . No se importaron fotografías ni se afirmó georreferenciación.
+- **Verificación:** escritura confirmada en GitHub; pendiente parser automatizado, WebGL, capturas desde conductor, FPS y memoria móvil/PC, pruebas de conducción y multijugador. La reducción de llamadas de dibujo es estructural, no un FPS medido.
+- **Riesgo de integración:** revisar conflictos de `graphics/costa-rica-tracks.js` con PR #17, #25, #33, #34, #36–38; el archivo de seguimiento está duplicado en varias ramas y requiere consolidación antes de fusionar.
+- **Publicación:** NO listo para Netlify; no fusionar ni desplegar sin autorización expresa.
