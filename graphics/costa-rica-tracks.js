@@ -458,6 +458,31 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     towerMesh.instanceMatrix.needsUpdate=true;hubMesh.instanceMatrix.needsUpdate=true;
     towerMesh.frustumCulled=false;hubMesh.frustumCulled=false;
     world.add(towerMesh,hubMesh);
+    // High-elevation landscape: compact, original wind-shaped shrubs.
+    // Restrict to the upper section of the fictional loop; keep roadside clear.
+    // Two instanced meshes regardless of plant count, with no collision bodies.
+    const shrubCount=hi?96:quality==='media'?48:24;
+    const shrubCrownMat=new THREE.MeshStandardMaterial({color:0x526b43,roughness:1,flatShading:true});
+    const shrubStemMat=new THREE.MeshStandardMaterial({color:0x655d4c,roughness:1});
+    const shrubCrown=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.4,0),shrubCrownMat,shrubCount);
+    const shrubStem=new THREE.InstancedMesh(new THREE.CylinderGeometry(.16,.23,1.2,5),shrubStemMat,shrubCount);
+    const shrubDummy=new THREE.Object3D();
+    for(let j=0;j<shrubCount;j++){
+      const k=Math.floor(N*(.34+.33*(j+.5)/shrubCount));
+      const side=j%2?1:-1,dist=31+12*Math.abs(Math.sin(j*2.39));
+      const p=node(k,side,dist,-.3),size=.65+.65*Math.abs(Math.sin(j*1.71));
+      shrubDummy.rotation.set(0,j*1.13,0);
+      shrubDummy.position.copy(p);shrubDummy.position.y+=1.15*size;
+      shrubDummy.scale.set(1.5*size,.55*size,1.2*size);
+      shrubDummy.updateMatrix();shrubCrown.setMatrixAt(j,shrubDummy.matrix);
+      shrubDummy.position.copy(p);shrubDummy.position.y+=.55*size;
+      shrubDummy.scale.set(size,size,size);shrubDummy.updateMatrix();
+      shrubStem.setMatrixAt(j,shrubDummy.matrix);
+    }
+    shrubCrown.instanceMatrix.needsUpdate=true;
+    shrubStem.instanceMatrix.needsUpdate=true;
+    shrubCrown.computeBoundingSphere();shrubStem.computeBoundingSphere();
+    world.add(shrubCrown,shrubStem);
     // Driver-readable roadside identification, not a reproduction of a real sign.
     sign('PARQUE EOLICO LOS SANTOS',Math.floor(N*.07),1,18);
     sign('COOPESANTOS',Math.floor(N*.15),-1,18);
