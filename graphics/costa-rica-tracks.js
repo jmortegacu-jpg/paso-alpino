@@ -454,11 +454,25 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     gg.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
     gg.setIndex(inds);gg.computeVertexNormals();
     const vault=new THREE.Mesh(gg,mats.tunnel);vault.receiveShadow=true;world.add(vault);
-    // Bright linear light strips and reinforced stone portal frames.
-    for(let k=0;k<=count;k+=hi?28:48){
-      const pt=node(start+k,0,0,9.96),m=new THREE.Mesh(new THREE.BoxGeometry(2.4,.12,2),mats.lamp);
-      m.position.copy(pt);m.rotation.y=Math.atan2(tangents[(start+k)%N].x,tangents[(start+k)%N].z);world.add(m);
+    // Batch ceiling light strips into a single draw call. These are emissive
+    // geometry only (not dynamic lights), preserving the original tunnel path.
+    const lightSpacing=hi?28:48;
+    const ceilingCount=Math.floor(count/lightSpacing)+1;
+    const ceilingStrips=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(2.4,.12,2),mats.lamp,ceilingCount);
+    const ceilingDummy=new THREE.Object3D();
+    for(let j=0;j<ceilingCount;j++){
+      const k=Math.min(count,j*lightSpacing),idx=(start+k)%N;
+      ceilingDummy.position.copy(node(idx,0,0,9.96));
+      ceilingDummy.rotation.set(0,Math.atan2(tangents[idx].x,tangents[idx].z),0);
+      ceilingDummy.scale.set(1,1,1);
+      ceilingDummy.updateMatrix();
+      ceilingStrips.setMatrixAt(j,ceilingDummy.matrix);
     }
+    ceilingStrips.instanceMatrix.needsUpdate=true;
+    ceilingStrips.frustumCulled=false;
+    world.add(ceilingStrips);
+    // Reinforced stone portal frames.
     for(const k of [start,start+count]){
       const frame=new THREE.Group(),seg=12;
       for(let j=0;j<seg;j++){
