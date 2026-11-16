@@ -376,6 +376,29 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       }
       place(group,i,1,0,.2);
     };
+    // Reflective roadside delineators announce both toll plazas without new lights
+    // or collisions. One instanced mesh per plaza, away from the racing ribbon.
+    const reflectorGeo=new THREE.BoxGeometry(.24,1.2,.18);
+    const reflectorMat=new THREE.MeshBasicMaterial({color:0xffe5a2});
+    const tollDelineators=(center)=>{
+      const count=20,mesh=new THREE.InstancedMesh(reflectorGeo,reflectorMat,count);
+      const marker=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const side=j%2===0?1:-1;
+        const offset=Math.floor(j/2)*7;
+        const k=(center-85+offset+N)%N;
+        marker.position.copy(node(k,side,24,.8));
+        marker.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+        marker.scale.set(1,1,1);
+        marker.updateMatrix();
+        mesh.setMatrixAt(j,marker.matrix);
+      }
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.frustumCulled=false;
+      world.add(mesh);
+    };
+    tollDelineators(Math.floor(N*.16));
+    tollDelineators(Math.floor(N*.85));
     gantry(Math.floor(N*.16),['QUICK PASS','ABIERTO','CERRADO']);
     viaduct(Math.floor(N*.62));
     gantry(Math.floor(N*.85),['QUICK PASS','ABIERTO','CERRADO']);
