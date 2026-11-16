@@ -472,6 +472,27 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     }
     streetlights(0,start-50,1,85);
   } else if(id==='costanera'){
+    // Coastal foothills beyond the drivable ribbon. Two instanced meshes,
+    // quality-scaled and without collision or additional dynamic lights.
+    // Artistic placement: these are not surveyed landmarks.
+    const coastalHills=hi?42:quality==='media'?24:12;
+    const coastalRock=new THREE.MeshStandardMaterial({color:0x537b58,roughness:1,flatShading:true});
+    const coastalHillGeo=new THREE.IcosahedronGeometry(1,1);
+    const coastalHillMesh=new THREE.InstancedMesh(coastalHillGeo,coastalRock,coastalHills);
+    const hillDummy=new THREE.Object3D();
+    for(let j=0;j<coastalHills;j++){
+      const k=Math.floor(N*(j+.5)/coastalHills);
+      // Keep the sea-facing shore sectors clear; hills sit inland.
+      const side=k<N*.35?-1:k>N*.67?1:(j%2?1:-1);
+      const dist=115+25*Math.abs(Math.sin(j*2.17));
+      const h=13+15*Math.abs(Math.sin(j*1.31));
+      hillDummy.position.copy(node(k,side,dist,h*.24));
+      hillDummy.rotation.set(0,j*.77,0);
+      hillDummy.scale.set(23+8*Math.abs(Math.cos(j)),h,19+6*Math.abs(Math.sin(j)));
+      hillDummy.updateMatrix();coastalHillMesh.setMatrixAt(j,hillDummy.matrix);
+    }
+    coastalHillMesh.receiveShadow=true;
+    world.add(coastalHillMesh);
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
     palms(hi?140:65,Math.floor(N*.49),N,-1,32);
     roadShore(0,Math.floor(N*.35),1,28,100);
