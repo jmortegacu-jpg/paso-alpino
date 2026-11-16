@@ -470,6 +470,30 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       }
       place(frame,k,1,0,.15);
     }
+    // Reflective tunnel-wall delineators. Geometry is batched and does not
+    // introduce real lights, shadows, road colliders or extra physics objects.
+    // Their position is relative to this fictional circuit, not surveyed road data.
+    const reflectorCount=Math.floor(count/(hi?12:22));
+    if(reflectorCount>0){
+      const markerGeo=new THREE.BoxGeometry(.14,.48,.32);
+      const markerMat=new THREE.MeshBasicMaterial({color:0xffd99b});
+      const markers=new THREE.InstancedMesh(markerGeo,markerMat,reflectorCount*2);
+      const dummy=new THREE.Object3D();
+      let instance=0;
+      for(let j=0;j<reflectorCount;j++){
+        const k=(start+Math.floor((j+.5)*count/reflectorCount))%N;
+        for(const side of [-1,1]){
+          dummy.position.copy(node(k,side,14.25,2.35));
+          dummy.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+          dummy.scale.set(1,1,1);dummy.updateMatrix();
+          markers.setMatrixAt(instance++,dummy.matrix);
+        }
+      }
+      markers.instanceMatrix.needsUpdate=true;
+      markers.frustumCulled=false;
+      world.add(markers);
+    }
+    sign('SALIDA TUNEL ZURQUI',start+count+Math.floor(N*.018),1,22);
     streetlights(0,start-50,1,85);
   } else if(id==='costanera'){
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
