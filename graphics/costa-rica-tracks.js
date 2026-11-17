@@ -471,13 +471,28 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       place(frame,k,1,0,.15);
     }
     streetlights(0,start-50,1,85);
+  // Generic mangrove-inspired grove for Route 34 coastal environments.
+  // The circuit is fictional: these are not surveyed tree positions.
+  function coastalMangroves(){
+    const count=hi?80:28,root=new THREE.InstancedMesh(new THREE.CylinderGeometry(.2,.3,4.5,5),mats.bark,count);
+    const crown=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(3.3,1),mats.foliage,count);
+    const o=new THREE.Object3D();
+    for(let j=0;j<count;j++){
+      const k=Math.floor(N*(.37+.24*(j+.5)/count)),p=node(k,1,56+24*Math.abs(Math.sin(j*5.7)),-.2);
+      o.rotation.set(0,j*2.4,0);o.scale.setScalar(.8+.3*Math.abs(Math.sin(j*1.9)));
+      o.position.copy(p).add(new THREE.Vector3(0,2.2,0));o.updateMatrix();root.setMatrixAt(j,o.matrix);
+      o.position.copy(p).add(new THREE.Vector3(0,5.8,0));o.scale.multiplyScalar(1.6);o.updateMatrix();crown.setMatrixAt(j,o.matrix);
+    }
+    world.add(root,crown);
+  }
   } else if(id==='costanera'){
+    coastalMangroves();
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
     palms(hi?140:65,Math.floor(N*.49),N,-1,32);
     roadShore(0,Math.floor(N*.35),1,28,100);
     roadShore(Math.floor(N*.67),N,-1,32,115);
     sign('RUTA 34 · COSTANERA',Math.floor(N*.10),-1,20);
-    sign('PACIFICO CENTRAL',Math.floor(N*.55),1,20);
+    sign('COSTA PACIFICA',Math.floor(N*.55),1,20);
     for(let j=0;j<12;j++)kiosk(Math.floor(N*(.40+j*.021)),1,37, j%2?0xdecda8:0xe1bb8a);
     streetlights(Math.floor(N*.34),Math.floor(N*.54),-1,84);
     for(let k=0;k<14;k++)boat(Math.floor(N*(k+.4)/17),k%2?1:-1,82+16*(k%3),k%4===0);
