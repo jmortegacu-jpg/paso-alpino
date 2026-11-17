@@ -261,10 +261,20 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     gg.setIndex(inds);gg.computeVertexNormals();
     const vault=new THREE.Mesh(gg,mats.tunnel);vault.receiveShadow=true;world.add(vault);
     // Bright linear light strips and reinforced stone portal frames.
-    for(let k=0;k<=count;k+=hi?28:48){
-      const pt=node(start+k,0,0,9.96),m=new THREE.Mesh(new THREE.BoxGeometry(2.4,.12,2),mats.lamp);
-      m.position.copy(pt);m.rotation.y=Math.atan2(tangents[(start+k)%N].x,tangents[(start+k)%N].z);world.add(m);
+    // Shared tunnel-light geometry/material; one draw call instead of one per strip.
+    const lampStep=hi?28:48, lampCount=Math.floor(count/lampStep)+1;
+    const strips=new THREE.InstancedMesh(new THREE.BoxGeometry(2.4,.12,2),mats.lamp,lampCount);
+    const stripTransform=new THREE.Object3D();
+    for(let j=0;j<lampCount;j++){
+      const k=start+j*lampStep,pt=node(k,0,0,9.96);
+      stripTransform.position.copy(pt);
+      stripTransform.rotation.set(0,Math.atan2(tangents[k%N].x,tangents[k%N].z),0);
+      stripTransform.updateMatrix();
+      strips.setMatrixAt(j,stripTransform.matrix);
     }
+    strips.instanceMatrix.needsUpdate=true;
+    strips.computeBoundingSphere();
+    world.add(strips);
     for(const k of [start,start+count]){
       const frame=new THREE.Group(),seg=12;
       for(let j=0;j<seg;j++){
