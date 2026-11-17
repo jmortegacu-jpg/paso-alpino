@@ -394,7 +394,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
         mesh.setMatrixAt(j,marker.matrix);
       }
       mesh.instanceMatrix.needsUpdate=true;
-      mesh.frustumCulled=false;
+      // Rebuild instance bounds after placement so off-screen toll markers can be culled.
+      // This affects rendering only; markers have no collision bodies.
+      mesh.computeBoundingSphere();
       world.add(mesh);
     };
     tollDelineators(Math.floor(N*.16));
