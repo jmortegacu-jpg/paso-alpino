@@ -491,7 +491,12 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       hillDummy.scale.set(23+8*Math.abs(Math.cos(j)),h,19+6*Math.abs(Math.sin(j)));
       hillDummy.updateMatrix();coastalHillMesh.setMatrixAt(j,hillDummy.matrix);
     }
+    // Commit all transforms before frustum culling. The hills are spread
+    // along a long coastal route; their bounds must include every instance.
+    coastalHillMesh.instanceMatrix.needsUpdate=true;
+    coastalHillMesh.computeBoundingSphere();
     coastalHillMesh.receiveShadow=true;
+    coastalHillMesh.castShadow=false;
     world.add(coastalHillMesh);
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
     palms(hi?140:65,Math.floor(N*.49),N,-1,32);
