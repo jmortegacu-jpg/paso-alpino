@@ -300,8 +300,12 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       canopyObj.position.copy(p);canopyObj.position.y+=height*.5;
       canopyObj.rotation.set(0,j*.7,0);canopyObj.scale.set(.58,height,.58);
       canopyObj.updateMatrix();canopyStems.setMatrixAt(j,canopyObj.matrix);
+      // Vary canopy silhouette deterministically; preserve a fixed GPU instance budget.
+      // Place foliage above the trunk and keep the road corridor free.
       canopyObj.position.copy(p);canopyObj.position.y+=height+1.3;
-      canopyObj.scale.set(spread,2.5,spread*.87);
+      canopyObj.rotation.set(0,j*.7,0);
+      const crownHeight=2.1+0.65*Math.abs(Math.sin(j*2.13));
+      canopyObj.scale.set(spread,crownHeight,spread*(.78+.16*Math.abs(Math.sin(j*1.31))));
       canopyObj.updateMatrix();canopyMesh.setMatrixAt(j,canopyObj.matrix);
     }
     canopyMesh.instanceMatrix.needsUpdate=true;canopyStems.instanceMatrix.needsUpdate=true;
