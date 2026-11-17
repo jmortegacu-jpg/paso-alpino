@@ -29,3 +29,11 @@ Nota: las ramas PR #33-35 mantienen versiones independientes del archivo de segu
 - Referencias de contexto: ICT https://es.visitcostarica.com/where-to-go/guanacaste ; SINAC https://www.sinac.go.cr/ES/ac/act/Paginas/default.aspx . No se copiaron fotografías ni modelos.
 - Pruebas: reemplazo exacto del bloque y commit GitHub confirmados. Pendiente ejecutar parser JS, WebGL, FPS móvil/PC, cámara conductor, físicas y multijugador; no se atribuyen resultados no medidos.
 - Integración: el módulo graphics/costa-rica-tracks.js también es modificado por otros PR; requiere reconciliación antes de merge. Estado de lanzamiento: bloqueado, no fusionar ni desplegar.
+
+## Revisión incremental — 2026-11-17 15:04 Costa Rica
+- Pista trabajada: 5/6 Ruta 1 Interamericana Norte (ID `alpino`, tema `ruta1`); siguiente: 6/6 Ruta 34 Costanera Sur.
+- Cambio: recalcular `computeBoundingSphere()` y marcar `instanceMatrix.needsUpdate` en troncos y copas del arbolado existente, desactivar sombras de estos dos meshes para contener costo de renderizado. Sin alteración de carretera, vehículos, colisiones ni multijugador. Commit: `7988fa95841e366ae356ef4b7c63bc909230e09e`.
+- PR borrador existente: #37 https://github.com/jmortegacu-jpg/paso-alpino/pull/37; consultado como fusionable con main antes del cambio, no se certifica compatibilidad con otros PR. PR #39 Puntarenas continúa no fusionable con main; evitar merges hasta reconciliar.
+- Referencias contextuales: ICT https://es.visitcostarica.com/where-to-go/guanacaste ; SINAC https://www.sinac.go.cr/ES/ac/act/Paginas/default.aspx . No se copiaron fotografías, marcas ni modelos.
+- Pruebas: GitHub aceptó escritura; revisión estática del bloque sustituido. Pendientes parser JS ejecutado, WebGL, FPS móvil/PC, cámara de conducción, física, multijugador y comprobación de integración entre PR.
+- Checklist: [x] ajuste incremental de arbolado Ruta 1; [ ] prueba visual y FPS Ruta 1; [ ] cinco pistas restantes integradas y verificadas; [ ] vehículos y multijugador; [ ] compatibilidad de PR; [ ] autorización de publicación. Netlify sin publicar.
