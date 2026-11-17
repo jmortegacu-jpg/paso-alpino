@@ -494,6 +494,34 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('PUNTARENAS',Math.floor(N*.50),-1,20);
     sign('EL FARO · LA PUNTA',Math.floor(N*.16),-1,22);
     sign('MUELLE DE CRUCEROS',Math.floor(N*.70),-1,22);
+    // Original stylized pier: a recognizable coastal landmark, not a surveyed
+    // reconstruction. Keep it beyond the roadside wall and out of collisions.
+    // Reuse shared materials and instance the pilings to limit draw calls.
+    {
+      const pier=new THREE.Group();
+      const wood=new THREE.MeshStandardMaterial({color:0x92765a,roughness:.94});
+      const steel=new THREE.MeshStandardMaterial({color:0x6c777b,metalness:.35,roughness:.68});
+      const length=hi?58:42;
+      const deck=new THREE.Mesh(new THREE.BoxGeometry(length,.65,7),wood);
+      deck.position.set(length/2,2.8,0);deck.receiveShadow=true;pier.add(deck);
+      const count=hi?18:12;
+      const posts=new THREE.InstancedMesh(new THREE.CylinderGeometry(.32,.4,6,6),steel,count);
+      const d=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const side=j%2?-2.9:2.9;
+        d.position.set(4+(length-8)*Math.floor(j/2)/Math.max(1,count/2-1),.15,side);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        posts.setMatrixAt(j,d.matrix);
+      }
+      pier.add(posts);
+      for(const side of [-3.3,3.3]){
+        const rail=new THREE.Mesh(new THREE.BoxGeometry(length, .15,.12),steel);
+        rail.position.set(length/2,4.05,side);pier.add(rail);
+      }
+      // The promenade is a fictional racing circuit, so the pier position
+      // is approximate; its roadway clearance must be checked in WebGL.
+      place(pier,Math.floor(N*.70),1,36,-.1);
+    }
     lighthouse();
     beachWalkers(hi?18:8);
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
