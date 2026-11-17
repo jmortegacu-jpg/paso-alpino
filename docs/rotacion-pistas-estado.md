@@ -25,3 +25,13 @@ Fecha local: 2026-11-16 18:03, Costa Rica.
 - [ ] Aprobación explícita del usuario antes de fusionar y publicar en Netlify
 
 **Estado global: NO LISTO PARA PUBLICACIÓN.** Los PR pueden contener cambios solapados; ninguna prueba de rendimiento en dispositivo real fue verificada en este turno.
+
+## Turno 2026-11-17 12:01 (Costa Rica) — Puntarenas
+- Pista: 4/6, `theme.cr='puntarenas'`. Siguiente: 5/6 Ruta 1 Interamericana Norte.
+- PR borrador reutilizado: #39; rama `automation/puntarenas-muelle-20261116`.
+- Commit: `cb1561527a5b26398a15c6e3728a6bff06b8085f`.
+- Cambio: dos `InstancedMesh` de alas de aves marinas estilizadas (12 alta, 5 baja), fuera de la calzada y sin sombras. Se recalculan límites de visibilidad. No se importan recursos ajenos.
+- Fuente de referencia geográfica: paisaje costero del Paseo de los Turistas y terminal marítima INCOP (https://incop.go.cr/terminal-de-cruceros/); fauna decorativa plausible, no ubicación ni especie científicamente verificada.
+- Verificación: lectura de archivo y escritura de commit GitHub; PR #39 sigue borrador y GitHub lo informa fusionable con main al consultar metadata. PR #36 también modifica el módulo, compatibilidad mutua no demostrada.
+- Pendientes: sintaxis con runtime, inspección visual de orientación de alas, WebGL, FPS móvil/PC, físicas, multijugador, integración entre PR y revisión de vehículos.
+- Lanzamiento: NO LISTO. Sin merge, sin Netlify.
