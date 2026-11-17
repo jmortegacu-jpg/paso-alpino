@@ -283,6 +283,11 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       obj.position.copy(p).add(new THREE.Vector3(0,3.2,0));obj.updateMatrix();trunks.setMatrixAt(j,obj.matrix);
       obj.position.copy(p).add(new THREE.Vector3(0,8.5,0));obj.scale.multiplyScalar(1.5);obj.updateMatrix();crowns.setMatrixAt(j,obj.matrix);
     }
+    // Instance transforms are written after mesh construction: refresh their
+    // culling bounds to avoid disappearing groves at the driving-camera edge.
+    trunks.instanceMatrix.needsUpdate=true;crowns.instanceMatrix.needsUpdate=true;
+    trunks.computeBoundingSphere();crowns.computeBoundingSphere();
+    trunks.castShadow=false;crowns.castShadow=false;
     world.add(trunks,crowns);
     // Guanacaste-inspired wide shade canopies: original stylized geometry,
     // not an exact botanical model or a claim about a particular tree location.
