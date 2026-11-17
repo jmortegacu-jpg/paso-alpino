@@ -522,6 +522,35 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       // is approximate; its roadway clearance must be checked in WebGL.
       place(pier,Math.floor(N*.70),1,36,-.1);
     }
+    // Original low-poly coastal seabirds (pelican-like silhouettes), kept well
+    // beyond the driving corridor. Shared geometry and instancing for mobile.
+    {
+      const birdCount=hi?12:5;
+      const wingGeo=new THREE.ConeGeometry(1.65,5.4,3);
+      const wingMat=new THREE.MeshStandardMaterial({color:0xd7d0bd,roughness:.92,side:THREE.DoubleSide});
+      const left=new THREE.InstancedMesh(wingGeo,wingMat,birdCount);
+      const right=new THREE.InstancedMesh(wingGeo,wingMat,birdCount);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<birdCount;j++){
+        const k=Math.floor(N*(j+.45)/birdCount);
+        const center=node(k,1,62+9*Math.sin(j*2.7)**2,12+5*Math.sin(j*1.8)**2);
+        const yaw=Math.atan2(tangents[k].x,tangents[k].z);
+        for(const [mesh,side] of [[left,-1],[right,1]]){
+          dummy.position.copy(center);
+          dummy.position.x+=side*1.2*Math.cos(yaw);
+          dummy.position.z-=side*1.2*Math.sin(yaw);
+          dummy.rotation.set(0,yaw,side*(Math.PI/2.9));
+          dummy.scale.setScalar(.72+.14*(j%3));
+          dummy.updateMatrix();mesh.setMatrixAt(j,dummy.matrix);
+        }
+      }
+      for(const mesh of [left,right]){
+        mesh.instanceMatrix.needsUpdate=true;
+        mesh.computeBoundingSphere();
+        mesh.castShadow=false;
+        world.add(mesh);
+      }
+    }
     lighthouse();
     beachWalkers(hi?18:8);
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
