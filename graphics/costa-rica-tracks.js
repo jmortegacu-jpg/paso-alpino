@@ -456,7 +456,8 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       world.add(rotor);rotors.push(rotor);
     }
     towerMesh.instanceMatrix.needsUpdate=true;hubMesh.instanceMatrix.needsUpdate=true;
-    towerMesh.frustumCulled=false;hubMesh.frustumCulled=false;
+    // Recalculate bounds after setting instance transforms so off-screen turbines can be culled safely.
+    towerMesh.computeBoundingSphere();hubMesh.computeBoundingSphere();
     world.add(towerMesh,hubMesh);
     // High-elevation landscape: compact, original wind-shaped shrubs.
     // Restrict to the upper section of the fictional loop; keep roadside clear.
