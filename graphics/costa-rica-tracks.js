@@ -423,6 +423,33 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
   }
     if(id==='zurqui'){
     rainforestTrees(hi?350:145);ferns(hi?230:90);
+    // Lightweight humid mountain haze: camera-facing translucent wisps, NOT
+    // true volumetric fog. No lights, render targets, textures or road collisions.
+    // Inspired by the humid, forested Braulio Carrillo landscape documented by SINAC.
+    const hazeCount=hi?16:6;
+    const hazeCanvas=document.createElement('canvas');
+    hazeCanvas.width=128;hazeCanvas.height=128;
+    const hazeCtx=hazeCanvas.getContext('2d');
+    if(hazeCtx){
+      const grad=hazeCtx.createRadialGradient(64,64,8,64,64,63);
+      grad.addColorStop(0,'rgba(224,237,228,0.24)');
+      grad.addColorStop(.55,'rgba(219,235,227,0.12)');
+      grad.addColorStop(1,'rgba(219,235,227,0)');
+      hazeCtx.fillStyle=grad;hazeCtx.fillRect(0,0,128,128);
+      const hazeTex=new THREE.CanvasTexture(hazeCanvas);
+      const hazeMat=new THREE.SpriteMaterial({map:hazeTex,transparent:true,
+        depthWrite:false,opacity:.7,fog:true});
+      for(let j=0;j<hazeCount;j++){
+        const k=Math.floor(N*(j+.45)/hazeCount);
+        const side=j%2?1:-1;
+        const sprite=new THREE.Sprite(hazeMat);
+        sprite.position.copy(node(k,side,42+12*Math.abs(Math.sin(j*3.2)),8+5*Math.sin(j*.8)));
+        sprite.scale.set(35+12*(j%3),12+5*(j%2),1);
+        sprite.renderOrder=1;
+        world.add(sprite);
+      }
+    }
+
     sign('RUTA 32 · ZURQUI',Math.floor(N*.07),1,20);
     sign('PARQUE BRAULIO CARRILLO',Math.floor(N*.46),-1,20);
     sign('TUNEL ZURQUI',Math.floor(N*.25),1,22);
