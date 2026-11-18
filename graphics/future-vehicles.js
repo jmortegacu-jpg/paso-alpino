@@ -83,9 +83,10 @@ export function enhanceFutureCar(THREE, body, model, { detailed = true } = {}) {
   }
   // Individual front signatures — recognizable profiles, no borrowed manufacturer logos.
   const z=F+.012;
-  const lamp=(x,y)=>[x,y,z];
+  // Signature coordinates are normalized to the measured front half-width.
+  // This keeps the original LED shapes while preventing overhang on narrow bodies.
+  const lamp=(x,y)=>[x*forwardW,y,z];
   for(const side of [-1,1]){
-    const W=forwardW;
     if(style.front==='blade'){
       tube([lamp(side*.29,.57),lamp(side*.53,.56),lamp(side*.78,.64),lamp(side*.91,.48)],led,.017);
       tube([lamp(side*.76,.48),lamp(side*.72,.37)],led,.01);
@@ -98,7 +99,7 @@ export function enhanceFutureCar(THREE, body, model, { detailed = true } = {}) {
       tube([lamp(side*.3,.62),lamp(side*.49,.59),lamp(side*.7,.60)],led,.015);
       tube([lamp(side*.3,.55),lamp(side*.49,.52),lamp(side*.71,.53)],led,.012);
     } else if(style.front==='pixel'){
-      for(let k=0;k<4;k++)bar(side*(.37+.12*k),.6+(k%2)*.015,z,.09,.025,.025,led);
+      for(let k=0;k<4;k++)bar(side*(.37+.12*k)*forwardW,.6+(k%2)*.015,z,.09,.025,.025,led);
       tube([lamp(side*.37,.46),lamp(side*.8,.46)],led,.01);
     } else if(style.front==='stack'){
       tube([lamp(side*.32,.77),lamp(side*.8,.77)],led,.018);
