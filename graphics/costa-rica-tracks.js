@@ -349,6 +349,38 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
   }
   if(id==='ruta1'){
     guanacastePastures();
+    // Cortez amarillo (Handroanthus ochraceus): stylized seasonal flowering
+    // silhouette. Original procedural geometry, not a botanical reconstruction.
+    // Keep trees outside the driving ribbon and avoid new physics colliders.
+    {
+      const count=hi?12:quality==='media'?7:4;
+      const trunk=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.24,.43,6.4,6),
+        mats.bark,count);
+      const blossoms=new THREE.InstancedMesh(
+        new THREE.IcosahedronGeometry(3.6,1),
+        new THREE.MeshStandardMaterial({color:0xe9bb32,roughness:.92,flatShading:true}),
+        count);
+      const o=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const k=Math.floor(N*(j+.37)/count)%N;
+        const side=j%2?1:-1;
+        const p=node(k,side,53+6*Math.sin(j*2.1),0);
+        const scale=.8+.22*(.5+.5*Math.sin(j*3.7));
+        o.position.copy(p);o.position.y+=3.2*scale;
+        o.rotation.set(0,j*1.9,0);o.scale.setScalar(scale);o.updateMatrix();
+        trunk.setMatrixAt(j,o.matrix);
+        o.position.y+=5.1*scale;
+        o.scale.set(1.25*scale,.68*scale,1.18*scale);o.updateMatrix();
+        blossoms.setMatrixAt(j,o.matrix);
+      }
+      for(const mesh of [trunk,blossoms]){
+        mesh.instanceMatrix.needsUpdate=true;
+        mesh.computeBoundingSphere();
+        mesh.castShadow=false;
+        world.add(mesh);
+      }
+    }
     sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
     sign('HACIA GUANACASTE',Math.floor(N*.79),1,23);
