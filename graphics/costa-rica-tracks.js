@@ -96,6 +96,14 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       d.position.copy(p);d.position.y+=h;d.scale.set(1.2,1.15,1.25);d.updateMatrix();crown.setMatrixAt(i,d.matrix);
       e.position.copy(p);e.position.y+=2.1;e.scale.set(1,1,1);e.updateMatrix();trunk.setMatrixAt(i,e.matrix);
     }
+    // Matrices are authored once; bound the instanced forest after placement so
+    // off-screen stands can be culled without touching the driving physics.
+    for(const mesh of [crown,trunk]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;
+      mesh.receiveShadow=false;
+    }
     world.add(crown,trunk);
   }
   function streetlights(from,to,side=1,every=45){
@@ -226,6 +234,10 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       d.position.copy(p);d.rotation.y=k*1.52;const scale=.6+.45*Math.abs(Math.sin(k*.7));
       d.scale.set(scale,scale,scale);d.updateMatrix();mesh.setMatrixAt(k,d.matrix);
     }
+    mesh.instanceMatrix.needsUpdate=true;
+    mesh.computeBoundingSphere();
+    mesh.castShadow=false;
+    mesh.receiveShadow=false;
     world.add(mesh);
   }
 
