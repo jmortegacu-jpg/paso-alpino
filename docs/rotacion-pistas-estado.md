@@ -56,3 +56,13 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Pruebas: comprobación estática de sustitución de código y escritura GitHub; no se ejecutó parser, WebGL, FPS, física ni multijugador. Sin cambios de vehículos o carretera.
 - Checklist Ruta 2: [x] mejora de culling eólico; [ ] inspección desde cámara; [ ] quetzales y dantas plausibles; [ ] medición móvil/PC; [ ] integración PR #33. Global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] pruebas críticas; [ ] aprobación para Netlify.
 - Siguiente pista: **Ruta 27, San José–Caldera (2/6)**. No desplegar, fusionar ni consumir créditos Netlify.
+
+## Revisión incremental — 2026-11-17 20:56 Costa Rica (Ruta 2)
+- Historial: última pista Ruta 34 PR #38; turno actual Ruta 2 PR #33; siguiente Ruta 27 PR #34. ID `ruta2`, conservado.
+- Mejora: 18/10/6 siluetas de árboles de bosque montano según calidad; troncos y copas instanciados, fuera de carretera, sin sombras nuevas, colisiones, texturas ni cambios a vehículos o físicas. Geometría artística, no cartografía.
+- Referencias: Coopesantos https://www.coopesantos.com/servicios/generacion-de-energia/ y SINAC https://www.sinac.go.cr/ . Sin imágenes copiadas.
+- Compatibilidad: PR #33 reportó mergeable=false al consultar; otros PR #25, #34–40 modifican escenarios y requieren conciliación.
+- Pruebas: código guardado en GitHub; parser pendiente; pendientes parser JS, WebGL, FPS móvil/PC, cámara de conducción, físicas y multijugador.
+- Checklist Ruta 2: [x] árboles montanos ligeros; [ ] orientación de señales; [ ] fauna; [ ] pruebas visuales y FPS; [ ] integración. Global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] pruebas críticas; [ ] autorización Netlify.
+- Sin merge ni despliegue. Siguiente Ruta 27.
+- Commit gráfico: 43c65480b07365ad4197884c99ea94319ded37a5.
