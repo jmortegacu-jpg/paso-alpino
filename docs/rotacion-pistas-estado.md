@@ -37,3 +37,11 @@ Nota: las ramas PR #33-35 mantienen versiones independientes del archivo de segu
 - Referencias contextuales: ICT https://es.visitcostarica.com/where-to-go/guanacaste ; SINAC https://www.sinac.go.cr/ES/ac/act/Paginas/default.aspx . No se copiaron fotografías, marcas ni modelos.
 - Pruebas: GitHub aceptó escritura; revisión estática del bloque sustituido. Pendientes parser JS ejecutado, WebGL, FPS móvil/PC, cámara de conducción, física, multijugador y comprobación de integración entre PR.
 - Checklist: [x] ajuste incremental de arbolado Ruta 1; [ ] prueba visual y FPS Ruta 1; [ ] cinco pistas restantes integradas y verificadas; [ ] vehículos y multijugador; [ ] compatibilidad de PR; [ ] autorización de publicación. Netlify sin publicar.
+
+## Revisión incremental — 2026-11-18 08:56 Costa Rica
+- Pista: 5/6 Ruta 1 Interamericana Norte Guanacaste; identificador `alpino`, tema `ruta1`. Siguiente: 6/6 Ruta 34 Costanera Sur.
+- Cambio real: 12/7/4 cortez amarillo estilizados según calidad, troncos y copas de floración amarilla con dos `THREE.InstancedMesh`, geometría procedimental, PBR, límites de visibilidad recalculados y sin sombras ni colisiones nuevas. Fuera de calzada. Commit: `55875ed32ec6d67b4c3b89c44623933200a2dd63`.
+- Fuente botánica: Área de Conservación Guanacaste https://www.acguanacaste.ac.cr/arboretum/4814-cortez-amarillo (Handroanthus ochraceus, floración amarilla y uso en potreros); bosque seco https://www.acguanacaste.ac.cr/biodesarrollo/programa-sectores/sector-santa-rosa . Modelos originales, no se copiaron fotografías.
+- PR borrador reutilizado: #37 https://github.com/jmortegacu-jpg/paso-alpino/pull/37 . Consultado fusionable con main antes del commit; no implica compatibilidad con los demás PR. #34 y #39 consultados no fusionables; múltiples PR editan el mismo módulo.
+- Verificación: GitHub aceptó commit. No se ejecutaron parser JavaScript, WebGL, FPS, cámara de conducción, físicas ni multijugador; todos pendientes. Verificar posición visual y escala de árboles en navegador.
+- Checklist: [x] incorporación de flora reconocible con instancing; [ ] prueba visual y FPS Ruta 1; [ ] integración de seis pistas; [ ] vehículos; [ ] pruebas críticas; [ ] conflictos PR. **No listo para Netlify; no merge ni despliegue.**
