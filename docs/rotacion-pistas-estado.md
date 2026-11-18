@@ -66,3 +66,12 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Checklist Ruta 2: [x] árboles montanos ligeros; [ ] orientación de señales; [ ] fauna; [ ] pruebas visuales y FPS; [ ] integración. Global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] pruebas críticas; [ ] autorización Netlify.
 - Sin merge ni despliegue. Siguiente Ruta 27.
 - Commit gráfico: 43c65480b07365ad4197884c99ea94319ded37a5.
+
+## Rotación — 2026-11-18 15:00 Costa Rica (Ruta 2)
+- Historial consultado: turno previo Costanera Sur PR #38; siguiente Ruta 2 PR #33. Se reutiliza rama existente; ID de escenario `ruta2`.
+- Cambio: afloramientos rocosos originales de alta montaña con `THREE.InstancedMesh`, 24/12/6 instancias según calidad, alejados de la calzada; material PBR mate, límites de visibilidad calculados, sin sombras dinámicas ni colisiones. Se corrige un comentario de código que presentaba erróneamente el número de turbinas escenográficas como un dato real.
+- Código: commit `845f79fd0dbc1a42e0b8f5493be33ce569e21e8b`; PR borrador https://github.com/jmortegacu-jpg/paso-alpino/pull/33 .
+- Referencias para el contexto montano: SINAC https://www.sinac.go.cr/ ; Coopesantos https://www.coopesantos.com/servicios/generacion-de-energia/ . Rocas y posiciones artísticas, no cartografía exacta ni recursos copiados.
+- Verificación: escritura GitHub confirmada; falta parser JS, render WebGL, FPS móvil/PC, cámara conductor, física y multijugador. PR #33 reportó mergeable=true al consultar, pero la compatibilidad cruzada con PR #25 y #34–41 no está validada.
+- Checklist Ruta 2: [x] rocas de alta montaña LOD; [ ] letreros vistos desde conductor; [ ] fauna; [ ] FPS/WebGL; [ ] integración. Global: [ ] seis pistas integradas; [ ] vehículos; [ ] pruebas críticas; [ ] autorización.
+- Próxima pista: **Ruta 27, San José–Caldera**. No fusionar ni desplegar Netlify.
