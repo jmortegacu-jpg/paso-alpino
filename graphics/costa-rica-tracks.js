@@ -513,6 +513,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
         d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
         posts.setMatrixAt(j,d.matrix);
       }
+      posts.instanceMatrix.needsUpdate=true;
+      posts.computeBoundingSphere();
+      posts.castShadow=false;
       pier.add(posts);
       for(const side of [-3.3,3.3]){
         const rail=new THREE.Mesh(new THREE.BoxGeometry(length, .15,.12),steel);
@@ -563,6 +566,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       const k=j*26,p=node(k,1,24,.42);
       o.position.copy(p);o.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);o.updateMatrix();wall.setMatrixAt(j,o.matrix);
     }
+    wall.instanceMatrix.needsUpdate=true;
+    wall.computeBoundingSphere();
+    wall.castShadow=false;
     world.add(wall);
   }
 }
