@@ -490,6 +490,10 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       hillDummy.rotation.set(0,j*.77,0);
       hillDummy.scale.set(23+8*Math.abs(Math.cos(j)),h,19+6*Math.abs(Math.sin(j)));
       hillDummy.updateMatrix();coastalHillMesh.setMatrixAt(j,hillDummy.matrix);
+      // Deterministic tonal variation gives the coastal relief depth without
+      // extra meshes, textures, lights or draw calls (instanceColor attribute).
+      const shade=0.78+0.18*Math.abs(Math.sin(j*1.73));
+      coastalHillMesh.setColorAt(j,new THREE.Color().setRGB(shade,shade,shade));
     }
     // Commit all transforms before frustum culling. The hills are spread
     // along a long coastal route; their bounds must include every instance.
