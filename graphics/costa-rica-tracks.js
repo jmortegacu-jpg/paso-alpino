@@ -502,6 +502,34 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     coastalHillMesh.receiveShadow=true;
     coastalHillMesh.castShadow=false;
     world.add(coastalHillMesh);
+    // Roadside delineators inspired by RN34 reflective safety markings (MOPT).
+    // Purely decorative, outside the drivable corridor; no collision changes.
+    const markerCount=hi?48:quality==='media'?24:12;
+    const markerGeo=new THREE.BoxGeometry(.28,1.15,.20);
+    const markerMat=new THREE.MeshStandardMaterial({color:0xe9e8d8,roughness:.7,metalness:0});
+    const markerReflectorMat=new THREE.MeshBasicMaterial({color:0xffd88a});
+    const markers=new THREE.InstancedMesh(markerGeo,markerMat,markerCount);
+    const reflectors=new THREE.InstancedMesh(new THREE.BoxGeometry(.3,.23,.23),markerReflectorMat,markerCount);
+    const markerDummy=new THREE.Object3D();
+    for(let j=0;j<markerCount;j++){
+      const k=Math.floor(N*(j+.5)/markerCount);
+      const side=j%2?1:-1;
+      markerDummy.position.copy(node(k,side,29,.62));
+      markerDummy.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+      markerDummy.scale.set(1,1,1);markerDummy.updateMatrix();
+      markers.setMatrixAt(j,markerDummy.matrix);
+      markerDummy.position.y+=.32;markerDummy.updateMatrix();
+      reflectors.setMatrixAt(j,markerDummy.matrix);
+    }
+    for(const mesh of [markers,reflectors]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;mesh.receiveShadow=false;
+      world.add(mesh);
+    }
+    // Destination names are real; their positions on this arcade loop are illustrative.
+    sign('DOMINICAL · UVITA',Math.floor(N*.25),-1,24);
+    sign('RUTA 34 · HACIA PALMAR NORTE',Math.floor(N*.73),1,24);
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
     palms(hi?140:65,Math.floor(N*.49),N,-1,32);
     roadShore(0,Math.floor(N*.35),1,28,100);
