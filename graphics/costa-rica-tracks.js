@@ -416,7 +416,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('CIUDAD COLON',Math.floor(N*.42),1,24);
     sign('HACIA CALDERA',Math.floor(N*.93),-1,23);
   } else if(id==='ruta2'){
-    // Parque Eolico Los Santos: 15 actual turbines near Casa Mata/La Paz.
+    // Parque Eolico Los Santos: up to 15 stylized turbines near Casa Mata/La Paz.
     // Positions below are scenic approximations along a fictional loop, NOT GPS.
     // The landmark is deliberately near the first part of the route, before the
     // high-altitude forest/páramo sector; all parts remain outside the roadway.
@@ -510,6 +510,29 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       mesh.castShadow=false;
       world.add(mesh);
     }
+    // Sparse highland rock outcrops: original low-poly geometry, no physics bodies.
+    // Keep these beyond the driving corridor and scale counts for mobile GPUs.
+    const rockCount=hi?24:quality==='media'?12:6;
+    const rockMesh=new THREE.InstancedMesh(
+      new THREE.DodecahedronGeometry(2.4,0),
+      new THREE.MeshStandardMaterial({color:0x777c72,roughness:.98,metalness:0}),
+      rockCount);
+    const rockDummy=new THREE.Object3D();
+    for(let j=0;j<rockCount;j++){
+      const k=Math.floor(N*(.61+.17*(j+.5)/rockCount));
+      const side=j%2?1:-1;
+      const p=node(k,side,58+18*Math.abs(Math.sin(j*1.71)),-1.1);
+      const scale=.7+.55*Math.abs(Math.sin(j*2.31));
+      rockDummy.position.copy(p);
+      rockDummy.rotation.set(j*.17,j*.83,j*.11);
+      rockDummy.scale.set(scale*1.4,scale*.65,scale);
+      rockDummy.updateMatrix();
+      rockMesh.setMatrixAt(j,rockDummy.matrix);
+    }
+    rockMesh.instanceMatrix.needsUpdate=true;
+    rockMesh.computeBoundingSphere();
+    rockMesh.castShadow=false;
+    world.add(rockMesh);
     // Driver-readable roadside identification, not a reproduction of a real sign.
     sign('PARQUE EOLICO LOS SANTOS',Math.floor(N*.07),1,18);
     sign('COOPESANTOS',Math.floor(N*.15),-1,18);
