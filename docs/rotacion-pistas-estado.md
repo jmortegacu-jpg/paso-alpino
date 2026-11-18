@@ -35,3 +35,13 @@ Fecha local: 2026-11-16 18:03, Costa Rica.
 - Verificación: lectura de archivo y escritura de commit GitHub; PR #39 sigue borrador y GitHub lo informa fusionable con main al consultar metadata. PR #36 también modifica el módulo, compatibilidad mutua no demostrada.
 - Pendientes: sintaxis con runtime, inspección visual de orientación de alas, WebGL, FPS móvil/PC, físicas, multijugador, integración entre PR y revisión de vehículos.
 - Lanzamiento: NO LISTO. Sin merge, sin Netlify.
+
+## Turno 2026-11-18 06:03 (Costa Rica) — Puntarenas
+- Pista: 4/6, Paseo de los Turistas (`theme.cr='puntarenas'`). Siguiente: 5/6 Ruta 1 Interamericana Norte.
+- PR existente: #39, rama `automation/puntarenas-muelle-20261116` (evita PR duplicado).
+- Commit de código: `a5be34c1bcb959d1533bc1d14644ed22ee964a22`.
+- Mejora: actualización explícita de matrices de instancias y bounding spheres de pilotes del muelle y muro costero; sombras desactivadas en ambos. No cambia trazado, colisiones, vehículos ni multijugador.
+- Referencias geográficas: INCOP https://incop.go.cr/terminal-de-cruceros/ ; ICT https://www.visitcostarica.com/ . Geometría artística y no cartográfica; no se reutilizaron fotografías.
+- Verificación: escritura confirmada por GitHub. Pendiente ejecutar parser JavaScript, render WebGL, FPS móvil/PC, cámara del conductor, físicas y multijugador.
+- Integración: PR #36 modifica el mismo módulo; compatibilidad conjunta no demostrada. NO FUSIONAR, NO NETLIFY.
+- Checklist global: las seis pistas y vehículos aún requieren integración y pruebas críticas; NO LISTO PARA PUBLICACIÓN.
