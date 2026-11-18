@@ -6,6 +6,58 @@
  * This module only changes presentation. Do not modify car transforms or physics.
  * Vehicle axis: +Z forward; +X right; +Y up.
  */
+// One reusable, low-resolution instrument texture for the player's seven cars.
+// No remote assets, no new lights, and no texture uploads outside cockpit view.
+let sharedCockpitDisplay=null;
+export function getCockpitLayout(M){
+  const I=M.interior||{x:.33,y:.45,z:-.4};
+  const eyeZ=I.z+.08, wheelZ=I.z+.72;
+  const dashZ=Math.min(M.cabin.z0-.10,wheelZ+.18);
+  const roofY=M.B.yt(dashZ);
+  // Keep the eye above the opaque body surface, but below the canopy.
+  const eyeY=Math.min(M.K.top(eyeZ)-.09,Math.max(I.y+.50,M.B.yt(eyeZ)+.14));
+  const screenH=Math.min(.11,Math.max(.05,eyeY-roofY-.025));
+  return {eyeY,dashZ,roofY,screenH,screenW:screenH*3,
+    screenY:roofY+.012+screenH*.5};
+}
+function drawCockpitDisplay(d,kmh,gear,fraction){
+  const speed=Math.min(999,Math.round(Math.abs(Number(kmh)||0)));
+  const g=String(gear||'N');
+  const bars=Math.round(Math.max(0,Math.min(1,Number(fraction)||0))*12);
+  const key=speed+'|'+g+'|'+bars;
+  if(d.key===key)return false;
+  const c=d.ctx;
+  c.fillStyle='#071017';c.fillRect(0,0,288,96);
+  c.strokeStyle='#294b5e';c.lineWidth=2;c.strokeRect(2,2,284,92);
+  c.textBaseline='middle';c.textAlign='left';
+  c.fillStyle='#8bb6cc';c.font='bold 12px sans-serif';c.fillText('KM/H',12,13);
+  c.fillText('MARCHA',196,13);
+  c.fillStyle='#eaf8ff';c.font='bold 46px sans-serif';c.fillText(String(speed),12,42);
+  c.fillStyle=g==='R'?'#ff9470':'#80e7ff';c.font='bold 35px sans-serif';c.fillText(g,207,42);
+  c.fillStyle='#8bb6cc';c.font='bold 10px sans-serif';c.fillText(g==='D'?'POTENCIA':'RPM',12,82);
+  for(let i=0;i<12;i++){
+    c.fillStyle=i<bars?(i>=10?'#ff795f':i>=8?'#ffd16b':'#56cde8'):'#233744';
+    c.fillRect(79+i*16,76,12,12);
+  }
+  d.key=key;d.texture.needsUpdate=true;return true;
+}
+function getCockpitDisplay(THREE){
+  if(sharedCockpitDisplay)return sharedCockpitDisplay;
+  const canvas=document.createElement('canvas');canvas.width=288;canvas.height=96;
+  const ctx=canvas.getContext('2d');if(!ctx)return null;
+  const texture=new THREE.CanvasTexture(canvas);
+  texture.colorSpace=THREE.SRGBColorSpace;texture.minFilter=THREE.LinearFilter;
+  texture.magFilter=THREE.LinearFilter;texture.generateMipmaps=false;
+  const material=new THREE.MeshBasicMaterial({map:texture,toneMapped:false});
+  const d={ctx,texture,material,key:'',lastUpdate:-Infinity};
+  drawCockpitDisplay(d,0,'N',0);sharedCockpitDisplay=d;return d;
+}
+export function updateFutureCockpit(P,kmh,gear,fraction,now=performance.now()){
+  const d=P?.futureChassis?.cockpitDisplay;
+  if(!d||now-d.lastUpdate<100)return false;
+  d.lastUpdate=now;return drawCockpitDisplay(d,kmh,gear,fraction);
+}
+
 export function buildFutureChassis(THREE, P, M, {high = true, player = false, paint = null} = {}) {
   if (!P || !P.root || !P.body || !M || !M.wheels) return null;
 
@@ -205,24 +257,56 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   }
   box(M.K.wt(roofMid)*1.85,.023,Math.max(.15,(z0-z1)*.25),material.carbon,0,M.K.top(roofMid)+.002,roofMid-.045);
 
-  // Physical cockpit: original bucket seats, backs, bolsters, dash, center
-  // tunnel, turbine vents and steering wheel on the same axis as camera mode.
-  if(high){
-    const seatY=Math.max(.36,M.interior?.y||.45),seatZ=M.interior?.z??-.35;
-    const seatX=Math.min(.44,M.interior?.x??.33);
+  // Physical cockpit: keep a lightweight interior on mobile as well as
+  // detailed seats and trim in high/cinematic quality. Rivals remain cheap.
+  const cockpitLayout=player?getCockpitLayout(M):null;
+  let cockpitDisplay=null;
+  if(high||player){
+    const I=M.interior||{x:.33,y:.45,z:-.4};
+    const seatY=I.y,seatZ=I.z,seatX=Math.min(.44,I.x);
     for(const s of [-1,1]){
-      const seat=box(.40,.50,.14,material.seat,s*seatX,seatY+.32,seatZ-.13,.025);seat.rotation.x=-.22;
+      const seat=box(.40,.50,.14,material.seat,s*seatX,seatY+.25,seatZ-.13,.025);seat.rotation.x=-.22;
       box(.43,.11,.42,material.seat,s*seatX,seatY+.04,seatZ+.17,.02);
-      for(const ss of [-1,1]){
-        const bolster=box(.075,.27,.12,material.carbon,s*seatX+ss*.18,seatY+.33,seatZ-.15);bolster.rotation.x=-.18;
+      const headY=Math.min(seatY+.55,M.K.top(seatZ-.22)-.11);
+      box(.19,.15,.08,material.seat,s*seatX,headY,seatZ-.22,.015);
+      if(high){
+        for(const ss of [-1,1]){
+          const bolster=box(.075,.27,.12,material.carbon,s*seatX+ss*.18,seatY+.26,seatZ-.15);bolster.rotation.x=-.18;
+        }
+        curve([[s*(seatX-.085),seatY+.28,seatZ-.03],
+          [s*(seatX-.08),seatY+.43,seatZ-.11]],material.stitch,.006);
       }
-      box(.13,.15,.06,material.seat,s*seatX,seatY+.64,seatZ-.22,.015);
-      curve([[s*(seatX-.085),seatY+.35,seatZ-.03],
-        [s*(seatX-.08),seatY+.50,seatZ-.11]],material.stitch,.006);
     }
-    box(1.2,.10,.40,material.carbon,0,seatY+.36,z0-.32);
+    const L=cockpitLayout||getCockpitLayout(M);
+    box(Math.min(1.2,M.K.wb(L.dashZ)*1.65),.07,.30,material.carbon,0,L.roofY-.025,L.dashZ+.08);
     box(.17,.14,.88,material.carbon,0,seatY+.14,seatZ+.42);
-    for(const x of [-.46,.46])add(new THREE.TorusGeometry(.060,.012,6,16),material.trim,x,seatY+.38,z0-.08);
+    if(high)for(const x of [-.46,.46]){
+      const vent=add(new THREE.TorusGeometry(.042,.009,6,16),material.trim,x,L.roofY+.042,L.dashZ+.04);
+      vent.rotation.y=Math.PI;
+    }
+    if(player){
+      // Place the instrument cluster above the shell and behind the wheel,
+      // facing the driver. Its values are supplied by the existing race HUD.
+      cockpitDisplay=getCockpitDisplay(THREE);
+      if(cockpitDisplay){
+        box(L.screenW+.032,L.screenH+.022,.075,material.carbon,-I.x,L.screenY,L.dashZ+.015);
+        const screen=add(new THREE.PlaneGeometry(L.screenW,L.screenH),cockpitDisplay.material,-I.x,L.screenY,L.dashZ-.030);
+        screen.rotation.y=Math.PI;screen.castShadow=false;screen.receiveShadow=false;
+      }
+      // The original steering torus remains the animated parent. Its spokes
+      // and hub turn with it, without touching the steering simulation.
+      if(P.wheelSt){
+        const spokeGeo=new THREE.BoxGeometry(.032,.14,.024);
+        for(const a of [-Math.PI/2,Math.PI/2,Math.PI]){
+          const spoke=new THREE.Mesh(spokeGeo,material.carbon);
+          spoke.position.set(Math.sin(a)*.093,Math.cos(a)*.093,-.005);
+          spoke.rotation.z=-a;P.wheelSt.add(spoke);
+        }
+        const hub=new THREE.Mesh(new THREE.CylinderGeometry(.057,.057,.034,high?20:12).rotateX(Math.PI/2),material.seat);
+        hub.position.z=-.017;P.wheelSt.add(hub);
+        bakeByMaterial(THREE,P.wheelSt);
+      }
+    }
   }
 
   // Sculpted bonnet shoulders: smooth continuous metal surfaces rather than
@@ -490,7 +574,7 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     set emissiveIntensity(value){material.tail.emissiveIntensity=value>2?4.5:2.1;},
     get emissiveIntensity(){return material.tail.emissiveIntensity;}
   };
-  P.futureChassis={group,material,theme:C,player};
+  P.futureChassis={group,material,theme:C,player,cockpitDisplay,cockpitLayout};
   return P.futureChassis;
 }
 // Merges every plain mesh under `root` that uses the same material into one mesh (positions baked relative to root).
