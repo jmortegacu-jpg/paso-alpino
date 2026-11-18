@@ -433,6 +433,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       dummy.scale.set(1.2+.7*Math.abs(Math.sin(j*3.1)),1+.55*Math.abs(Math.cos(j)),1.2);
       dummy.updateMatrix();hillMesh.setMatrixAt(j,dummy.matrix);
     }
+    hillMesh.instanceMatrix.needsUpdate=true;
+    hillMesh.computeBoundingSphere(); // Correct culling bounds after ridge placement.
+    hillMesh.castShadow=false; // Distant backdrop: avoid unnecessary shadow passes.
     world.add(hillMesh);
     const fieldGeo=new THREE.PlaneGeometry(40,70),fields=hi?24:10;
     const fieldMesh=new THREE.InstancedMesh(fieldGeo,grass,fields);
@@ -442,6 +445,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       dummy.rotation.set(-Math.PI/2,0,-Math.atan2(tangents[k].x,tangents[k].z));
       dummy.scale.set(1,1,1);dummy.updateMatrix();fieldMesh.setMatrixAt(j,dummy.matrix);
     }
+    fieldMesh.instanceMatrix.needsUpdate=true;
+    fieldMesh.computeBoundingSphere(); // Avoid incorrect culling of instanced pasture patches.
+    fieldMesh.castShadow=false;
     world.add(fieldMesh);
     streetlights(0,N,1,80);
     sign('RUTA 27 · CALDERA',Math.floor(N*.08),1,22);
