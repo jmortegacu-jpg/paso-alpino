@@ -484,6 +484,32 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     shrubStem.instanceMatrix.needsUpdate=true;
     shrubCrown.computeBoundingSphere();shrubStem.computeBoundingSphere();
     world.add(shrubCrown,shrubStem);
+    // Wind-shaped upper-montane tree silhouettes, set well back from the roadway.
+    // Shared low-poly geometry, two draw calls, no collision bodies or textures.
+    const montaneCount=hi?18:quality==='media'?10:6;
+    const montaneTrunks=new THREE.InstancedMesh(
+      new THREE.CylinderGeometry(.32,.52,5,5),mats.bark,montaneCount);
+    const montaneCrowns=new THREE.InstancedMesh(
+      new THREE.ConeGeometry(3.1,7.5,6),mats.foliage,montaneCount);
+    const montaneDummy=new THREE.Object3D();
+    for(let j=0;j<montaneCount;j++){
+      const k=Math.floor(N*(.38+.22*(j+.5)/montaneCount));
+      const side=j%2?1:-1;
+      const p=node(k,side,64+13*Math.abs(Math.sin(j*1.9)),-.3);
+      const scale=.72+.32*Math.abs(Math.sin(j*2.7));
+      montaneDummy.rotation.set(0,j*.91,0);
+      montaneDummy.scale.set(scale,scale,scale);
+      montaneDummy.position.copy(p);montaneDummy.position.y+=2.5*scale;
+      montaneDummy.updateMatrix();montaneTrunks.setMatrixAt(j,montaneDummy.matrix);
+      montaneDummy.position.copy(p);montaneDummy.position.y+=7.1*scale;
+      montaneDummy.updateMatrix();montaneCrowns.setMatrixAt(j,montaneDummy.matrix);
+    }
+    for(const mesh of [montaneTrunks,montaneCrowns]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;
+      world.add(mesh);
+    }
     // Driver-readable roadside identification, not a reproduction of a real sign.
     sign('PARQUE EOLICO LOS SANTOS',Math.floor(N*.07),1,18);
     sign('COOPESANTOS',Math.floor(N*.15),-1,18);
