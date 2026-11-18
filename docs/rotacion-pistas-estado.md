@@ -27,3 +27,11 @@ Publicación: **NO LISTA**. Sin merge ni Netlify.
 - Fuentes de contexto existentes: ICT https://es.visitcostarica.com/ y SNIT https://www.snitcr.go.cr/; sin imágenes copiadas ni pretensión de trazado exacto.
 - Prueba realizada: parser JavaScript sobre el archivo completo retirando el token export (satisfactoria). No ejecutadas: WebGL real, cámara de conducción, FPS móvil/PC, físicas y multijugador.
 - Compatibilidad: PR #18 y demás ramas de gráficos aún requieren integración y pruebas conjuntas; esta rama no se fusionó. Netlify sin despliegue.
+
+## Revisión incremental — 2026-11-17 18:04 Costa Rica
+- Pista: 6/6 Ruta 34 Costanera Sur. Siguiente: 1/6 Ruta 2 Cerro de la Muerte.
+- Historial contrastado: turno anterior informado Ruta 1 (PR #37); PR #38 es la rama de relieve Costanera. Existe además PR #40 de manglar Costanera, en rama separada: **no se han combinado**, y ambos modifican `graphics/costa-rica-tracks.js`.
+- Mejora de este turno: variación tonal determinista por instancia (`setColorAt`) para colinas costeras, sin nuevos meshes, texturas, luces, físicas, colisiones ni cambios a vehículos; commit `961c9d342c6c65f83af33112a137bf0407830a63` en PR #38.
+- Fuentes paisajísticas de referencia ya documentadas: ICT https://es.visitcostarica.com/ y SNIT https://www.snitcr.go.cr/ . Trazado y ubicación escenográficos, no GPS.
+- Verificación: GitHub aceptó la escritura del código. Pendientes: parseo JS automatizado, prueba WebGL de `instanceColor`, cámara de conducción, FPS móvil/PC, física, multijugador y compatibilidad conjunta de PR #38 y #40. No declarar rendimiento mejorado sin medición.
+- Lanzamiento: **NO LISTO**. Checklist de seis pistas y vehículos sigue incompleto; no merge ni Netlify.
