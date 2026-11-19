@@ -45,3 +45,13 @@ Nota: las ramas PR #33-35 mantienen versiones independientes del archivo de segu
 - PR borrador reutilizado: #37 https://github.com/jmortegacu-jpg/paso-alpino/pull/37 . Consultado fusionable con main antes del commit; no implica compatibilidad con los demás PR. #34 y #39 consultados no fusionables; múltiples PR editan el mismo módulo.
 - Verificación: GitHub aceptó commit. No se ejecutaron parser JavaScript, WebGL, FPS, cámara de conducción, físicas ni multijugador; todos pendientes. Verificar posición visual y escala de árboles en navegador.
 - Checklist: [x] incorporación de flora reconocible con instancing; [ ] prueba visual y FPS Ruta 1; [ ] integración de seis pistas; [ ] vehículos; [ ] pruebas críticas; [ ] conflictos PR. **No listo para Netlify; no merge ni despliegue.**
+
+
+## Revisión incremental — 2026-11-19 03:01 Costa Rica
+- Pista trabajada: **5/6 Ruta 1 Interamericana Norte Guanacaste**; ID existente `alpino`, tema `ruta1`. Siguiente: **6/6 Ruta 34 Costanera Sur**.
+- Rama/PR reutilizados: `graphics/ruta1-guanacaste-sombra-20261116`, PR borrador #37 https://github.com/jmortegacu-jpg/paso-alpino/pull/37 ; sin PR duplicado.
+- Código: commit `5583cf17c89bb45613366c957c63716eb3d44c91`. Se trasladó `new THREE.BoxGeometry(.38,.15,.26)` de dentro del bucle de vacas a una única geometría `cowEar` compartida por todos los animales. En calidad alta evita crear 19 geometrías redundantes (20 vacas); en baja evita 7 (8 vacas). El número de mallas y draw calls no cambia; ahorro de asignaciones, no FPS medidos. Sin cambios de física, carretera, red, vehículos ni coordenadas.
+- Referencias visuales contextuales: ICT https://es.visitcostarica.com/where-to-go/guanacaste ; SINAC https://www.sinac.go.cr/ES/ac/act/Paginas/default.aspx . No se descargaron ni copiaron fotos; potreros y ganado son decorativos, sin fidelidad geográfica garantizada.
+- Verificado: lectura y reemplazo exacto del bloque, escritura GitHub aceptada. Pendientes: parser JS ejecutado, WebGL, FPS móvil/PC, inspección de ganado desde cabina, físicas, multijugador y compatibilidad de PR #25/#37 y otros que editan el mismo módulo. No declarar éxito de pruebas no ejecutadas.
+- Checklist Ruta 1: [x] vegetación y fauna procedimentales; [x] reducción de geometrías duplicadas del ganado; [ ] validación visual/LOD/FPS; [ ] integración sin conflictos; [ ] conducción y red.
+- Estado global: [ ] seis pistas integradas y validadas; [ ] vehículos revisados; [ ] PR compatibles; [ ] pruebas críticas satisfactorias; [ ] aprobación explícita. **NO LISTO PARA NETLIFY.** Sin merge ni despliegue.
