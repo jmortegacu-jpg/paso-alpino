@@ -75,3 +75,13 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Verificación: escritura GitHub confirmada; falta parser JS, render WebGL, FPS móvil/PC, cámara conductor, física y multijugador. PR #33 reportó mergeable=true al consultar, pero la compatibilidad cruzada con PR #25 y #34–41 no está validada.
 - Checklist Ruta 2: [x] rocas de alta montaña LOD; [ ] letreros vistos desde conductor; [ ] fauna; [ ] FPS/WebGL; [ ] integración. Global: [ ] seis pistas integradas; [ ] vehículos; [ ] pruebas críticas; [ ] autorización.
 - Próxima pista: **Ruta 27, San José–Caldera**. No fusionar ni desplegar Netlify.
+
+## Revisión incremental — 2026-11-19 09:00 Costa Rica (Ruta 2)
+- Pista: **1/6 Ruta 2 Cerro de la Muerte** (ID `ruta2`); siguiente: **2/6 Ruta 27 San José–Caldera**.
+- Historial consultado: Ruta 34 revisada 2026-11-19 06:00 en PR #38; esta rama de Ruta 2 ya contenía rocas, bosque montano, arbustos, aerogeneradores y señales. No se duplicaron.
+- Mejora: 32/20/12 postes delineadores blancos con banda ámbar según calidad alta/media/baja; dos `THREE.InstancedMesh`, geometría y materiales propios, colocados a 22 unidades laterales, sin colisiones ni cambios de calzada, vehículos, física o multijugador. Commit `1c43b9003d1cb29f984a0f00109a2c599e3e06ec`.
+- Fuentes de orientación: Coopesantos https://www.coopesantos.com/servicios/generacion-de-energia/ ; SINAC https://www.sinac.go.cr/ . Los delineadores son ilustrativos; ubicación no cartográfica, no se copiaron fotografías.
+- PR borrador #33: https://github.com/jmortegacu-jpg/paso-alpino/pull/33 ; GitHub reportó fusionable frente a main al consultar antes del cambio, **no** equivale a compatibilidad cruzada entre PR.
+- Verificado: escritura GitHub. Pendiente: parser JS, lectura posterior, capturas WebGL desde conducción, legibilidad de rótulos, FPS móvil/PC, físicas, multijugador, integración con PR #25/#34–42.
+- Checklist Ruta 2: [x] aerogeneradores; [x] vegetación y rocas; [x] delineadores instanciados; [ ] fauna plausible; [ ] revisión visual; [ ] WebGL/FPS; [ ] compatibilidad.
+- Global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] PR compatibles; [ ] físicas y multijugador; [ ] FPS y WebGL; [ ] bloqueos resueltos. **NO LISTO PARA PUBLICAR**. Sin merge ni despliegue Netlify.
