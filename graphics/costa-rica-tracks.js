@@ -292,11 +292,10 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const portalSegments=12;
     const portalStruts=new THREE.InstancedMesh(
       new THREE.BoxGeometry(.55,.48,2.4),mats.stone,portalSegments*2);
-    const portalDummy=new THREE.Object3D();
     const localStrut=new THREE.Object3D();
     const portalMatrix=new THREE.Matrix4();
     for(const [portalIndex,k] of [start,start+count].entries()){
-      const idx=k%N,cp=points[idx],right=normals[idx];
+      const idx=k%N,cp=points[idx];
       // Match the existing portal placement along the road centerline.
       const angle=Math.atan2(tangents[idx].x,tangents[idx].z);
       const origin=new THREE.Object3D();
