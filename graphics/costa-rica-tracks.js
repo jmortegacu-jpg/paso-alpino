@@ -314,6 +314,42 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     portalStruts.computeBoundingSphere();
     portalStruts.castShadow=false;
     world.add(portalStruts);
+    // Route 32-inspired reflective roadside delineators near the tunnel approach.
+    // Decorative only: well outside the driveable ribbon, no physics or collisions.
+    // MOPT (2026-04-10): reflective markers and flexible delineators on RN 32.
+    const markerCount=hi?28:quality==='media'?18:10;
+    const markerBody=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.17,1.12,.17),
+      new THREE.MeshStandardMaterial({color:0xd9ded9,roughness:.83}),
+      markerCount);
+    const markerReflector=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.19,.19,.035),
+      new THREE.MeshBasicMaterial({color:0xffe7a1}),
+      markerCount);
+    const markerDummy=new THREE.Object3D();
+    const approachEnd=Math.max(1,start-12);
+    for(let j=0;j<markerCount;j++){
+      const k=Math.floor(approachEnd*(j+.5)/markerCount);
+      const side=j%2===0?1:-1;
+      const pos=node(k,side,20,.56);
+      const yaw=Math.atan2(tangents[k].x,tangents[k].z);
+      markerDummy.position.copy(pos);
+      markerDummy.rotation.set(0,yaw,0);
+      markerDummy.updateMatrix();
+      markerBody.setMatrixAt(j,markerDummy.matrix);
+      markerDummy.position.y+=.30;
+      markerDummy.position.x+=normals[k].x*side*.105;
+      markerDummy.position.z+=normals[k].z*side*.105;
+      markerDummy.updateMatrix();
+      markerReflector.setMatrixAt(j,markerDummy.matrix);
+    }
+    markerBody.instanceMatrix.needsUpdate=true;
+    markerReflector.instanceMatrix.needsUpdate=true;
+    markerBody.computeBoundingSphere();
+    markerReflector.computeBoundingSphere();
+    markerBody.castShadow=false;
+    markerReflector.castShadow=false;
+    world.add(markerBody,markerReflector);
     streetlights(0,start-50,1,85);
   } else if(id==='costanera'){
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
