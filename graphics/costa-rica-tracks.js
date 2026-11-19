@@ -533,6 +533,32 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     rockMesh.computeBoundingSphere();
     rockMesh.castShadow=false;
     world.add(rockMesh);
+    // High-altitude roadside delineators: inexpensive original geometry, no physics.
+    // Keep posts off the racing ribbon; quality-scaled instance counts.
+    const delineatorCount=hi?32:quality==='media'?20:12;
+    const postGeo=new THREE.BoxGeometry(.18,1.35,.18);
+    const postMat=new THREE.MeshStandardMaterial({color:0xd9dcd6,roughness:.83,metalness:0});
+    const bandGeo=new THREE.BoxGeometry(.21,.25,.21);
+    const bandMat=new THREE.MeshBasicMaterial({color:0xe7b34b});
+    const posts=new THREE.InstancedMesh(postGeo,postMat,delineatorCount);
+    const bands=new THREE.InstancedMesh(bandGeo,bandMat,delineatorCount);
+    const postDummy=new THREE.Object3D();
+    for(let j=0;j<delineatorCount;j++){
+      const k=Math.floor(N*(.32+.47*(j+.5)/delineatorCount));
+      const side=j%2?1:-1;
+      const p=node(k,side,22,-.12);
+      postDummy.position.copy(p);postDummy.position.y+=.675;
+      postDummy.rotation.set(0,0,0);postDummy.scale.set(1,1,1);
+      postDummy.updateMatrix();posts.setMatrixAt(j,postDummy.matrix);
+      postDummy.position.y=p.y+1.03;
+      postDummy.updateMatrix();bands.setMatrixAt(j,postDummy.matrix);
+    }
+    for(const mesh of [posts,bands]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;
+      world.add(mesh);
+    }
     // Driver-readable roadside identification, not a reproduction of a real sign.
     sign('PARQUE EOLICO LOS SANTOS',Math.floor(N*.07),1,18);
     sign('COOPESANTOS',Math.floor(N*.15),-1,18);
