@@ -352,6 +352,10 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       }
       return new THREE.Mesh(new THREE.PlaneGeometry(7.8,2.5),tollBoardMaterials.get(title));
     };
+    const tollStatusMaterials={
+      open:new THREE.MeshBasicMaterial({color:0x35dc73}),
+      closed:new THREE.MeshBasicMaterial({color:0xf04c42})
+    };
     const gantry=(i,labels)=>{
       const group=new THREE.Group();
       // Overhead signs are advisory. Do not close a playable lane or add collisions.
@@ -360,7 +364,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       labels.forEach((label,j)=>{
         const x=(j-1)*11.2;
         const board=laneBoard(label);board.position.set(x,8.4,.6);group.add(board);
-        const light=cube(2,.35,.4,new THREE.MeshBasicMaterial({color:label==='CERRADO'?0xf04c42:0x35dc73}),x,6.9,.6);
+        const light=cube(2,.35,.4,label==='CERRADO'?tollStatusMaterials.closed:tollStatusMaterials.open,x,6.9,.6);
         group.add(light);
       });
       place(group,i,1,0,.1);
