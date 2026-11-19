@@ -521,6 +521,23 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
         const rail=new THREE.Mesh(new THREE.BoxGeometry(length, .15,.12),steel);
         rail.position.set(length/2,4.05,side);pier.add(rail);
       }
+      // Stylized mooring bollards: INCOP documents mooring fittings at the
+      // cruise terminal. Four low-poly fixtures share one draw call.
+      // Decorative only; positions and scale are not surveyed.
+      const bollardGeo=new THREE.CylinderGeometry(.28,.36,.75,8);
+      const bollards=new THREE.InstancedMesh(bollardGeo,steel,4);
+      const bollardDummy=new THREE.Object3D();
+      for(let j=0;j<4;j++){
+        bollardDummy.position.set(length*(j<2?.24:.78),3.55,j%2?-2.4:2.4);
+        bollardDummy.rotation.set(0,0,0);
+        bollardDummy.scale.set(1,1,1);
+        bollardDummy.updateMatrix();
+        bollards.setMatrixAt(j,bollardDummy.matrix);
+      }
+      bollards.instanceMatrix.needsUpdate=true;
+      bollards.computeBoundingSphere();
+      bollards.castShadow=false;
+      pier.add(bollards);
       // The promenade is a fictional racing circuit, so the pier position
       // is approximate; its roadway clearance must be checked in WebGL.
       place(pier,Math.floor(N*.70),1,36,-.1);
