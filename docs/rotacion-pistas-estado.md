@@ -45,3 +45,14 @@ Publicación: **NO LISTA**. Sin merge ni Netlify.
 - Comprobación: escritura GitHub confirmada; lectura posterior del código y de los nuevos nombres pendiente. Sin pruebas ejecutadas de sintaxis JavaScript, WebGL, cámara conductor, FPS móvil/PC, físicas, multijugador ni compatibilidad integrada de PR #38/#40. No atribuir mejoras de FPS sin medición.
 - Checklist de esta pista: [x] detalle 3D ligero; [x] señales de orientación ilustrativas; [ ] verificar legibilidad/escala y colocación; [ ] medir FPS; [ ] comprobar renderizado WebGL; [ ] integrar PR #40 sin conflictos.
 - Global: [ ] seis pistas validadas; [ ] vehículos validados; [ ] PR compatibles; [ ] físicas/multijugador/FPS/WebGL satisfactorios; [ ] bloqueos resueltos. **NO LISTO PARA PUBLICACIÓN.** Sin merge ni Netlify.
+
+## Revisión incremental — 2026-11-19 06:00 Costa Rica
+- Pista trabajada: **6/6 Ruta 34 Costanera Sur**, tema `costanera`. Siguiente pista: **1/6 Ruta 2 Cerro de la Muerte**.
+- Historial: se comprobó el registro de Ruta 34 del 18/11 y el turno anterior Ruta 1 del 19/11; no se repitieron los postes ni las colinas. Se reutilizó la rama de PR #38. PR #40 (manglar) continúa independiente.
+- Mejora de código: 28/16/8 afloramientos rocosos según calidad alta/media/baja, geometría dodecaédrica original y material PBR compartido con `THREE.InstancedMesh`, colocados tierra adentro a más de 55 unidades del centro de la pista; `instanceMatrix.needsUpdate`, `computeBoundingSphere()`, sin sombras ni colisiones. No se alteraron la carretera, físicas, vehículos o multijugador.
+- Commit gráfico: `efa077d5550acad192732093177253c18631496e`. PR borrador #38: https://github.com/jmortegacu-jpg/paso-alpino/pull/38 . El título mantiene `[skip netlify]`.
+- Fuentes: MOPT (2025-06-02) https://www.mopt.go.cr/node/1059 y MOPT (2025-08-01) https://www.mopt.go.cr/noticias/2025/mejoras-en-costanera-sur-la-convierten-en-una-excelente-ruta-alterna-por-cierre-de . Referencias de costa, demarcación y tramo Dominical-Uvita; rocas escenográficas, no puntos cartográficos exactos. No se copiaron fotografías ni activos protegidos.
+- Prueba verificada: relectura del archivo desde GitHub y compilación sintáctica con `new Function` tras retirar `export` satisfactoria. No se ejecutaron WebGL, FPS móvil/PC, cámara de conducción, físicas ni multijugador.
+- Compatibilidad: PR #38 y #40 modifican `graphics/costa-rica-tracks.js`; integración aún no validada. Mantener como bloqueo hasta pruebas conjuntas.
+- Checklist Costanera: [x] relieve instanciado; [x] delineadores; [x] rocas PBR ligeras; [ ] comprobación visual de escala, terreno y letreros; [ ] WebGL/FPS; [ ] compatibilidad PR #38/#40.
+- Global: [ ] seis pistas visualmente verificadas; [ ] vehículos; [ ] PR compatibles; [ ] físicas/multijugador; [ ] FPS/WebGL; [ ] bloqueos resueltos. **NO LISTO PARA PUBLICACIÓN**. Sin merge ni Netlify.
