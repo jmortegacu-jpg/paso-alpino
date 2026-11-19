@@ -674,6 +674,7 @@ select.field option{color:#111}
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildFutureChassis, syncFuturePaint } from './graphics/future-chassis.js';
+const USE_FUTURE_CHASSIS=false;// official car look = the garage-preview designs (owner's choice, 2026-11-19)
 import { addCostaRicaScenery } from './graphics/costa-rica-tracks.js';
 
 const $=id=>document.getElementById(id);
@@ -1663,9 +1664,8 @@ const SPECS={
 let P=null,car=null,body=null,wheels=null,tailMat=null,wheelSt=null,carModel=CARS[0],spec=SPECS.aurora,voiceDirty=true;
 function setPlayerCar(id){const M=carById(id);if(P&&carModel===M)return;removeHdCar();const old=P&&P.root;
   P=kit.build(M.id,paint,true);
-  // Unique original fully modeled body, lights, cockpit and wheel-arch geometry.
-  // The original wheel pivots and car physics are preserved exactly.
-  buildFutureChassis(THREE,P,M,{high:quality==='alta'||quality==='cine',player:true,paint});
+  // The owner chose the original garage designs (carKit) as the official look; the November body overlay stays off.
+  if(USE_FUTURE_CHASSIS)buildFutureChassis(THREE,P,M,{high:quality==='alta'||quality==='cine',player:true,paint});
   scene.add(P.root);if(old){P.root.position.copy(old.position);P.root.rotation.copy(old.rotation);scene.remove(old);}
   car=P.root;body=P.body;wheels=P.wheels;tailMat=P.tailMat;wheelSt=P.wheelSt;carModel=M;spec=SPECS[M.id]||SPECS.aurora;voiceDirty=true;
   applyPaint();const gl=document.querySelector('.gearbox .label');if(gl)gl.textContent=spec.box;
@@ -1676,7 +1676,7 @@ const rivals=RIVALS.map(d=>({...d,mat:new THREE.MeshPhysicalMaterial({color:d.c,
 // give a rival or another player a car model (shapes are shared between cars, so switching is quick)
 function setCarModel(o,id){const M=carById(id);if(o.car&&o.modelId===M.id)return o.car;const was=!!(o.car&&o.car.root.visible);
   if(o.car)scene.remove(o.car.root);o.car=kit.build(M.id,o.mat,false);
-  buildFutureChassis(THREE,o.car,M,{high:false,paint:o.mat});
+  if(USE_FUTURE_CHASSIS)buildFutureChassis(THREE,o.car,M,{high:false,paint:o.mat});
   o.modelId=M.id;o.spec=SPECS[M.id]||SPECS.aurora;scene.add(o.car.root);o.car.root.visible=was;
   if(o.label){o.car.root.add(o.label);o.label.position.y=M.top+.85;}return o.car;}
 rivals.forEach((r,k)=>setCarModel(r,CARS[(k+1)%CARS.length].id));
@@ -2854,7 +2854,7 @@ $('creditsClose').addEventListener('click',()=>{$('credits').hidden=true;$('intr
 /* ---------- hosted website: live visitor count and "new version" notice ----------
    Active only when this file is served from its own site (Netlify), never inside Claude or from a local file.
    The site's function /api/visita counts visits and who has the game open; version.json changes on every publish. */
-const BUILD='20261108-en-linea-rendimiento';
+const BUILD='20261119-autos-garaje';
 const GOAT='pasoalpino';   // GoatCounter code of the owner's account (the part before .goatcounter.com); empty = off
 const hosted=!inArtifact&&/^https?:$/.test(location.protocol);
 let liveCount=null,updReady=false;
