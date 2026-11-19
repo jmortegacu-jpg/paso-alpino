@@ -330,6 +330,8 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     // One canvas texture per unique message, reused by both toll plazas.
     // Larger board lettering and higher contrast for the chase/cockpit camera.
     const tollTextures=new Map();
+    // Reuse both GPU textures and materials across toll plazas.
+    const tollBoardMaterials=new Map();
     const laneBoard=(title)=>{
       let tex=tollTextures.get(title);
       if(!tex){
@@ -345,8 +347,10 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
         tex.anisotropy=Math.min(4,world?.userData?.maxAnisotropy||4);
         tollTextures.set(title,tex);
       }
-      return new THREE.Mesh(new THREE.PlaneGeometry(7.8,2.5),
-        new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide,depthWrite:false}));
+      if(!tollBoardMaterials.has(title)){
+        tollBoardMaterials.set(title,new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide,depthWrite:false}));
+      }
+      return new THREE.Mesh(new THREE.PlaneGeometry(7.8,2.5),tollBoardMaterials.get(title));
     };
     const gantry=(i,labels)=>{
       const group=new THREE.Group();
