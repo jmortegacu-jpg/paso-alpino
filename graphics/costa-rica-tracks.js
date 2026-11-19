@@ -527,6 +527,28 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       mesh.castShadow=false;mesh.receiveShadow=false;
       world.add(mesh);
     }
+    // Small coastal rock outcrops beyond the road edge, using one instanced
+    // PBR mesh. These are artistic roadside cues, not surveyed positions.
+    const outcropCount=hi?28:quality==='media'?16:8;
+    const outcropGeo=new THREE.DodecahedronGeometry(1,0);
+    const outcropMat=new THREE.MeshStandardMaterial({color:0x77786a,roughness:.96,metalness:0,flatShading:true});
+    const outcrops=new THREE.InstancedMesh(outcropGeo,outcropMat,outcropCount);
+    const outcropDummy=new THREE.Object3D();
+    for(let j=0;j<outcropCount;j++){
+      const k=Math.floor(N*(j+.35)/outcropCount);
+      // Place outcrops inland, at least 55 units from track centre.
+      const side=k<N*.35?-1:k>N*.67?1:(j%2?1:-1);
+      outcropDummy.position.copy(node(k,side,55+10*Math.abs(Math.sin(j*2.3)),.15));
+      outcropDummy.rotation.set(.12*j,j*.71,.09*j);
+      outcropDummy.scale.set(2.2+1.3*Math.abs(Math.sin(j)),1.2+.8*Math.abs(Math.cos(j)),1.7+.7*Math.abs(Math.sin(j*.8)));
+      outcropDummy.updateMatrix();
+      outcrops.setMatrixAt(j,outcropDummy.matrix);
+    }
+    outcrops.instanceMatrix.needsUpdate=true;
+    outcrops.computeBoundingSphere();
+    outcrops.castShadow=false;
+    outcrops.receiveShadow=false;
+    world.add(outcrops);
     // Destination names are real; their positions on this arcade loop are illustrative.
     sign('DOMINICAL · UVITA',Math.floor(N*.25),-1,24);
     sign('RUTA 34 · HACIA PALMAR NORTE',Math.floor(N*.73),1,24);
