@@ -423,6 +423,42 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
   }
     if(id==='zurqui'){
     rainforestTrees(hi?350:145);ferns(hi?230:90);
+    // Narrow forest streams inspired by SINAC's documented rivers and quebradas.
+    // Decorative only, outside the race ribbon; not claimed to match surveyed sites.
+    // Procedural meshes and materials require no third-party textures or licenses.
+    const streamWater=new THREE.MeshPhysicalMaterial({
+      color:0x326f70,metalness:.04,roughness:.19,clearcoat:.65,
+      clearcoatRoughness:.12,transparent:true,opacity:.86,side:THREE.DoubleSide
+    });
+    const streamStone=new THREE.MeshStandardMaterial({color:0x5c675e,roughness:.98});
+    const streamCount=hi?4:2;
+    const bankGeo=new THREE.IcosahedronGeometry(1.25,0);
+    for(let stream=0;stream<streamCount;stream++){
+      const center=Math.floor(N*(.09+stream*.19)),side=stream%2?1:-1;
+      const verts=[],idx=[],samples=15;
+      for(let j=0;j<=samples;j++){
+        const k=(center+j*3)%N,dist=46+j*2.1+2*Math.sin(j*.8+stream);
+        for(const offset of [-2.1,2.1]){
+          const p=node(k,side,dist+offset,-.45);
+          verts.push(p.x,p.y,p.z);
+        }
+        if(j<samples){const a=j*2;idx.push(a,a+2,a+1,a+1,a+2,a+3);}
+      }
+      const geo=new THREE.BufferGeometry();
+      geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+      geo.setIndex(idx);geo.computeVertexNormals();
+      const streamMesh=new THREE.Mesh(geo,streamWater);
+      streamMesh.receiveShadow=true;world.add(streamMesh);
+      // Small bankside stones with bounded polygon count.
+      for(let j=0;j<6;j++){
+        const k=(center+j*7)%N;
+        const stone=new THREE.Mesh(bankGeo,streamStone);
+        stone.position.copy(node(k,side,46+j*4.5+(j%2?3:-3),-.1));
+        stone.scale.set(1.5+j%3,.7,1+j%2);
+        world.add(stone);
+      }
+    }
+
     sign('RUTA 32 · ZURQUI',Math.floor(N*.07),1,20);
     sign('PARQUE BRAULIO CARRILLO',Math.floor(N*.46),-1,20);
     sign('TUNEL ZURQUI',Math.floor(N*.25),1,22);
