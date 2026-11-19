@@ -287,17 +287,34 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     strips.instanceMatrix.needsUpdate=true;
     strips.computeBoundingSphere();
     world.add(strips);
-    for(const k of [start,start+count]){
-      const frame=new THREE.Group(),seg=12;
-      for(let j=0;j<seg;j++){
-        const a=Math.PI*j/seg,b=Math.PI*(j+1)/seg;
-        const center=(a+b)/2;
-        const strut=new THREE.Mesh(new THREE.BoxGeometry(.55,.48,2.4),mats.stone);
-        strut.position.set(Math.cos(center)*14.8,1.2+Math.sin(center)*9.2,0);
-        strut.rotation.z=center+Math.PI/2;frame.add(strut);
+    // Both portal arches share one instanced mesh (24 struts, one draw call).
+    // Build transforms in world space to preserve each portal's road alignment.
+    const portalSegments=12;
+    const portalStruts=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.55,.48,2.4),mats.stone,portalSegments*2);
+    const portalDummy=new THREE.Object3D();
+    const localStrut=new THREE.Object3D();
+    const portalMatrix=new THREE.Matrix4();
+    for(const [portalIndex,k] of [start,start+count].entries()){
+      const idx=k%N,cp=points[idx],right=normals[idx];
+      // Match the existing portal placement along the road centerline.
+      const angle=Math.atan2(tangents[idx].x,tangents[idx].z);
+      const origin=new THREE.Object3D();
+      origin.position.copy(cp);origin.position.y+=.15;
+      origin.rotation.y=angle;origin.updateMatrix();
+      for(let j=0;j<portalSegments;j++){
+        const center=Math.PI*(j+.5)/portalSegments;
+        localStrut.position.set(Math.cos(center)*14.8,1.2+Math.sin(center)*9.2,0);
+        localStrut.rotation.set(0,0,center+Math.PI/2);
+        localStrut.updateMatrix();
+        portalMatrix.multiplyMatrices(origin.matrix,localStrut.matrix);
+        portalStruts.setMatrixAt(portalIndex*portalSegments+j,portalMatrix);
       }
-      place(frame,k,1,0,.15);
     }
+    portalStruts.instanceMatrix.needsUpdate=true;
+    portalStruts.computeBoundingSphere();
+    portalStruts.castShadow=false;
+    world.add(portalStruts);
     streetlights(0,start-50,1,85);
   } else if(id==='costanera'){
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
