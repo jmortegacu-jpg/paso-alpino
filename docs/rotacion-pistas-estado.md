@@ -1,9 +1,19 @@
 # Seguimiento de rotación de pistas — Paso Alpino
 
-Última ejecución registrada: 2026-11-18 03:00 (Costa Rica)
+Última ejecución registrada: 2026-11-18 21:00 (Costa Rica)
 Pista trabajada: 3/6 — Ruta 32 Zurquí (theme.cr: `zurqui`)
 Siguiente pista: 4/6 — Paseo de los Turistas Puntarenas (theme.cr: `puntarenas`)
 Rotación: Ruta 2 Cerro de la Muerte → Ruta 27 → Ruta 32 Zurquí → Puntarenas → Ruta 1 Guanacaste → Ruta 34 Costanera Sur → repetir.
+
+## Registro 2026-11-18 21:00 — Zurquí
+- Pista: Ruta 32, ID `zurqui`; siguiente: Puntarenas, ID `puntarenas`.
+- Rama: `graphics/zurqui-damp-concrete-20261115`; código: `graphics/costa-rica-tracks.js`.
+- Cambios: sustituye 24 mallas individuales de los dos portales del túnel por un `THREE.InstancedMesh` con matrices transformadas al espacio mundial, esfera de visibilidad calculada y sin sombras. Se conserva la carretera y no se modifican físicas, vehículos ni multijugador.
+- Commits: `7a1a1cdce49ae7a6afd53a50c3774ca00d3b3f8e`, `3038b5cb471b6e4a3ea4522cd788b9069b5eef6e`.
+- Fuentes: SINAC https://www.sinac.go.cr/es/ac/accvc/pnbc/paginas/default.aspx ; LanammeUCR (evaluación del túnel Zurquí) https://www.lanamme.ucr.ac.cr/ . Referencias de contexto; no se copiaron recursos protegidos.
+- PR: #35 corresponde a la Ruta 32, pero no se confirmó que su rama cabeza coincida con esta rama; no se creó un PR duplicado. PR #17 y #41 también afectan Zurquí; requieren conciliación.
+- Pruebas: lectura del archivo y confirmación de dos commits GitHub. No se ejecutaron Node, pruebas visuales WebGL, FPS, físicas ni multijugador. Verificar alineación y aspecto de portales desde conducción.
+- Bloqueo: falta PR borrador inequívocamente vinculado a esta rama, integración y pruebas críticas. Sin merge ni despliegue.
 
 ## Registro 2026-11-18 03:00 — Zurquí (turno de continuación)
 - Pista: Ruta 32, ID `zurqui`; siguiente: Puntarenas, ID `puntarenas`.
