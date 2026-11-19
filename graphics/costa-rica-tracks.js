@@ -517,10 +517,17 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       posts.computeBoundingSphere();
       posts.castShadow=false;
       pier.add(posts);
-      for(const side of [-3.3,3.3]){
-        const rail=new THREE.Mesh(new THREE.BoxGeometry(length, .15,.12),steel);
-        rail.position.set(length/2,4.05,side);pier.add(rail);
+      // Both pier handrails share one geometry/material and one instanced draw.
+      const rails=new THREE.InstancedMesh(new THREE.BoxGeometry(length,.15,.12),steel,2);
+      for(let j=0;j<2;j++){
+        d.position.set(length/2,4.05,j===0?-3.3:3.3);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        rails.setMatrixAt(j,d.matrix);
       }
+      rails.instanceMatrix.needsUpdate=true;
+      rails.computeBoundingSphere();
+      rails.castShadow=false;
+      pier.add(rails);
       // Stylized mooring bollards: INCOP documents mooring fittings at the
       // cruise terminal. Four low-poly fixtures share one draw call.
       // Decorative only; positions and scale are not surveyed.
