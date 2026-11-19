@@ -45,3 +45,13 @@ Fecha local: 2026-11-16 18:03, Costa Rica.
 - Verificación: escritura confirmada por GitHub. Pendiente ejecutar parser JavaScript, render WebGL, FPS móvil/PC, cámara del conductor, físicas y multijugador.
 - Integración: PR #36 modifica el mismo módulo; compatibilidad conjunta no demostrada. NO FUSIONAR, NO NETLIFY.
 - Checklist global: las seis pistas y vehículos aún requieren integración y pruebas críticas; NO LISTO PARA PUBLICACIÓN.
+
+## Turno 2026-11-19 00:03 (Costa Rica) — Puntarenas
+- Pista trabajada: 4/6 Paseo de los Turistas, ID `puntarenas`. Siguiente: 5/6 Ruta 1 Interamericana Norte Guanacaste.
+- Rama reutilizada: `automation/puntarenas-muelle-20261116`, PR borrador #39. Se consultó su estado: abierto, borrador y fusionable con `main` en la consulta; **no** se verificó compatibilidad con PR #36.
+- Commit de código: `b5680e3f72485f374f337ce9c6b74a391d98c919`.
+- Mejora incremental: cuatro bitas estilizadas de amarre en el muelle, dibujadas con un único `THREE.InstancedMesh` y material PBR compartido; matrices y esfera de visibilidad actualizadas, sombras desactivadas. Sin cambios en ruta, colisiones, vehículos ni red.
+- Fuentes: INCOP, terminal de cruceros https://incop.go.cr/terminal-de-cruceros/ (documenta bitas); Memoria Institucional 2024 https://incop.go.cr/wp-content/uploads/2025/08/PLANI/MEMORIA%20INST%202024.pdf (documenta estructuras de atraque). Representación artística, sin replicar modelos ni fotografías.
+- Verificado: contenido leído desde GitHub antes de la modificación y commit aceptado por API. **Sin verificar:** parser JavaScript ejecutado, WebGL, FPS móvil/PC, física, multijugador, visual desde cabina y compatibilidad entre PR.
+- Checklist Puntarenas: [x] accesorio portuario instanciado; [ ] inspección visual y distancias a calzada; [ ] integración PR #36/#39; [ ] pruebas críticas.
+- Estado global: seis pistas y vehículos **NO LISTOS**; PR cruzados y pruebas críticas siguen pendientes. Sin merge, sin despliegue ni créditos Netlify.
