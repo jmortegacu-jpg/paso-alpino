@@ -1,9 +1,18 @@
 # Seguimiento de rotación de pistas — Paso Alpino
 
-Última ejecución registrada: 2026-11-18 21:00 (Costa Rica)
+Última ejecución registrada: 2026-11-19 15:00 (Costa Rica)
 Pista trabajada: 3/6 — Ruta 32 Zurquí (theme.cr: `zurqui`)
 Siguiente pista: 4/6 — Paseo de los Turistas Puntarenas (theme.cr: `puntarenas`)
 Rotación: Ruta 2 Cerro de la Muerte → Ruta 27 → Ruta 32 Zurquí → Puntarenas → Ruta 1 Guanacaste → Ruta 34 Costanera Sur → repetir.
+
+## Registro 2026-11-19 15:00 — Zurquí
+- ID: `zurqui`; siguiente `puntarenas`. Se comprobó el registro previo de Zurquí del 18 de noviembre y se eligió un elemento distinto de portales y luminarias.
+- Rama existente: `graphics/zurqui-damp-concrete-20261115`; PR borrador asociado anteriormente: #42 https://github.com/jmortegacu-jpg/paso-alpino/pull/42 (estado actual de fusión no comprobado).
+- Cambio real: dos `THREE.InstancedMesh` para postes y reflectores en el acceso al túnel, 28/18/10 instancias según calidad. Geometría y materiales compartidos; esfera de visibilidad calculada; sin sombras ni colisiones; separación lateral escenográfica de 20 unidades del eje.
+- Código: `graphics/costa-rica-tracks.js`; commit `9f9c07a6181bbbb719e84c6d7941e7874207a859`. No se tocaron físicas, vehículos, carretera ni multijugador.
+- Fuentes: MOPT (10-04-2026), https://www.mopt.go.cr/noticias/2026/demarcacion-de-rn-32-iniciara-proximo-lunes-13-de-abril (captaluces, demarcación y postes abatibles); MOPT (05-06-2025), https://www.mopt.go.cr/node/1031 (referencia visual y contexto del túnel). Elementos recreados sin copiar imágenes ni modelos.
+- Verificación: GitHub confirmó escritura del commit; no se ejecutaron pruebas automáticas Node, WebGL, FPS, físicas, multijugador ni revisión visual desde conducción. Revisar orientación de reflectores y separación efectiva respecto a la calzada.
+- Bloqueos: integración con otros PR de Zurquí y validación gráfica/rendimiento pendientes. Sin merge ni despliegue.
 
 ## Registro 2026-11-18 21:00 — Zurquí
 - Pista: Ruta 32, ID `zurqui`; siguiente: Puntarenas, ID `puntarenas`.
