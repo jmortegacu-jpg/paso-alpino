@@ -11,9 +11,9 @@ Rotación: Ruta 2 Cerro de la Muerte → Ruta 27 → Ruta 32 Zurquí → Puntare
 - Cambios: sustituye 24 mallas individuales de los dos portales del túnel por un `THREE.InstancedMesh` con matrices transformadas al espacio mundial, esfera de visibilidad calculada y sin sombras. Se conserva la carretera y no se modifican físicas, vehículos ni multijugador.
 - Commits: `7a1a1cdce49ae7a6afd53a50c3774ca00d3b3f8e`, `3038b5cb471b6e4a3ea4522cd788b9069b5eef6e`.
 - Fuentes: SINAC https://www.sinac.go.cr/es/ac/accvc/pnbc/paginas/default.aspx ; LanammeUCR (evaluación del túnel Zurquí) https://www.lanamme.ucr.ac.cr/ . Referencias de contexto; no se copiaron recursos protegidos.
-- PR: #35 corresponde a la Ruta 32, pero no se confirmó que su rama cabeza coincida con esta rama; no se creó un PR duplicado. PR #17 y #41 también afectan Zurquí; requieren conciliación.
+- PR: borrador #42 https://github.com/jmortegacu-jpg/paso-alpino/pull/42, rama de esta ejecución; GitHub devolvió mergeable=false. Los PR #17, #35 y #41 también afectan Zurquí; requieren conciliación.
 - Pruebas: lectura del archivo y confirmación de dos commits GitHub. No se ejecutaron Node, pruebas visuales WebGL, FPS, físicas ni multijugador. Verificar alineación y aspecto de portales desde conducción.
-- Bloqueo: falta PR borrador inequívocamente vinculado a esta rama, integración y pruebas críticas. Sin merge ni despliegue.
+- Bloqueo: PR #42 no fusionable al crear; faltan conciliación y pruebas críticas. Sin merge ni despliegue.
 
 ## Registro 2026-11-18 03:00 — Zurquí (turno de continuación)
 - Pista: Ruta 32, ID `zurqui`; siguiente: Puntarenas, ID `puntarenas`.
