@@ -321,6 +321,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const cowBody=new THREE.BoxGeometry(2.7,1.35,1.35);
     const cowHead=new THREE.BoxGeometry(.9,.9,.85);
     const cowLeg=new THREE.CylinderGeometry(.15,.2,1.15,5);
+    // Reuse the same ear geometry across all cattle; each mesh keeps its own transform.
+    // This avoids allocating identical GPU buffers for every decorative animal.
+    const cowEar=new THREE.BoxGeometry(.38,.15,.26);
     const cowCount=hi?20:8;
     for(let j=0;j<cowCount;j++){
       const k=Math.floor(N*(j+.7)/cowCount),side=j%2?1:-1;
@@ -330,8 +333,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       for(const x of [-.9,.9])for(const z of [-.43,.43]){
         const leg=new THREE.Mesh(cowLeg,coat);leg.position.set(x,.6,z);cow.add(leg);
       }
-      const earGeo=new THREE.BoxGeometry(.38,.15,.26);
-      for(const z of [-.57,.57]){const ear=new THREE.Mesh(earGeo,coat);ear.position.set(1.5,2.19,z);cow.add(ear);}
+      for(const z of [-.57,.57]){const ear=new THREE.Mesh(cowEar,coat);ear.position.set(1.5,2.19,z);cow.add(ear);}
       // Cattle remain behind the roadside vegetation and never enter the road.
       place(cow,k,side,60+11*Math.abs(Math.sin(j*3.7)),-.1);
       cow.rotation.y+=Math.sin(j*4.7)*1.4;
