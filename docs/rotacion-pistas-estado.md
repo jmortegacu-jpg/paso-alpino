@@ -1,5 +1,14 @@
 # Paso Alpino — Rotación de revisión de pistas
 
+## Ejecución 2026-11-19 12:00 Costa Rica — Ruta 27 (2/6)
+- Pista: Ruta 27 San José–Caldera; siguiente: Ruta 32 Zurquí (3/6). Historial de esta rama consultado; no se repitió la caché previa de materiales de tableros ni la optimización de delineadores.
+- Cambio: reutilización de dos materiales MeshBasicMaterial para indicadores luminosos de estado ABIERTO/CERRADO de ambos pórticos, en vez de crear seis materiales independientes. Sin cambio de colores, geometría, física, carretera, vehículos ni multijugador. No se afirma ganancia de FPS.
+- Commit de código: `b6475438757e8f048b64f0b3f565ae757b9237d8`. PR borrador #34 https://github.com/jmortegacu-jpg/paso-alpino/pull/34, título [skip netlify].
+- Fuentes contextuales conservadas: CNC https://cnc.go.cr/proyectos/en-marcha/corredor-vial-san-jose-caldera-ruta-27 y concesionaria https://globalviaruta27.com/ . Posiciones ilustrativas, sin nuevas afirmaciones geográficas.
+- Verificado: lectura y actualización de código mediante GitHub. Al consultar PR #34, GitHub reportó mergeable=false; no se resolvió ni se integró. No se ejecutaron pruebas sintácticas automatizadas, WebGL, FPS, cámara de conducción, físicas ni multijugador.
+- Checklist Ruta 27: [x] materiales compartidos en tableros y luces de pórtico; [ ] revisar señalización desde conducción; [ ] compatibilidad PR #25/#31/#34; [ ] WebGL/FPS/físicas/multijugador. Global: [ ] seis pistas validadas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas satisfactorias. **NO LISTO PARA PUBLICACIÓN**. Sin merge ni Netlify.
+
+
 ## Ejecución 2026-11-18 18:03 Costa Rica — Ruta 27 (2/6)
 - Pista trabajada: Ruta 27 San José–Caldera. Siguiente: Ruta 32 Zurquí (3/6), conforme a la rotación persistente; revisado historial de esta rama para evitar repetir cambios.
 - PR borrador: https://github.com/jmortegacu-jpg/paso-alpino/pull/34 ; rama `feature/ruta27-senales-legibles-20261115-18h` ; commit `6cf2c4aee722c695d74ad968e2319f2800b3ad7f`.
