@@ -1,5 +1,14 @@
 # Paso Alpino — Rotación de revisión de pistas
 
+## Ejecución 2026-11-18 18:03 Costa Rica — Ruta 27 (2/6)
+- Pista trabajada: Ruta 27 San José–Caldera. Siguiente: Ruta 32 Zurquí (3/6), conforme a la rotación persistente; revisado historial de esta rama para evitar repetir cambios.
+- PR borrador: https://github.com/jmortegacu-jpg/paso-alpino/pull/34 ; rama `feature/ruta27-senales-legibles-20261115-18h` ; commit `6cf2c4aee722c695d74ad968e2319f2800b3ad7f`.
+- Cambio incremental: los tableros QUICK PASS/ABIERTO/CERRADO ahora comparten también MeshBasicMaterial por mensaje (Map), además de la CanvasTexture previamente compartida. Menos materiales duplicados; geometría, letreros, colisiones, físicas, vehículos y multijugador intactos. No se cuantifica ganancia de FPS.
+- Fuentes contextuales: https://cnc.go.cr/proyectos/en-marcha/corredor-vial-san-jose-caldera-ruta-27 ; https://globalviaruta27.com/ . No se consultaron coordenadas ni se cambió trazado; señalización escenográfica.
+- Verificado: lectura de código antes de editar y commit GitHub confirmado; PR #34 abierto, borrador y mergeable frente a main al consultar (no implica compatibilidad cruzada). No ejecutados: parser JavaScript, WebGL, capturas de conducción, FPS móvil/PC, físicas y multijugador. Compatibilidad con PR #25, #31 y demás ramas pendiente.
+- Checklist Ruta 27: [x] texturas y materiales de peajes reutilizados; [ ] legibilidad desde cabina; [ ] viaductos y trazado aproximado; [ ] pruebas FPS/WebGL/físicas/multijugador; [ ] conciliación PR. Global: seis pistas y vehículos aún sin validación crítica; NO listo para lanzamiento. Sin merge ni Netlify.
+
+
 ## Ejecución 2026-11-18 00:01 Costa Rica — Ruta 27 (2/6)
 - Pista trabajada: Ruta 27 San José–Caldera; siguiente: Ruta 32 Zurquí (3/6). Se consultó el historial de esta rama para evitar repetir la optimización de delineadores.
 - Rama/PR: `feature/ruta27-senales-legibles-20261115-18h`, [PR #34](https://github.com/jmortegacu-jpg/paso-alpino/pull/34) (compatibilidad actual no comprobada).
