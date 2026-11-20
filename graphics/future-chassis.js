@@ -317,6 +317,14 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const mirror=add(new THREE.SphereGeometry(.095,high?16:8,high?10:6),material.paint,
        s*(M.K.wb(z0-.18)+.19),M.K.top(z0-.18)-.17,z0-.17);
     mirror.scale.set(1.22,.62,.74);
+    // Aurora-only slim amber mirror repeater: original design, purely visual.
+    // Mounted on the existing housing; no dynamic light or collision change.
+    if(M.id==='aurora'){
+      const repeaterMaterial=new THREE.MeshPhysicalMaterial({color:0xf7b45c,emissive:0x9b4b09,emissiveIntensity:.38,roughness:.24,metalness:.08,clearcoat:.8});
+      const repeater=box(.018,.018,.108,repeaterMaterial,
+        s*(M.K.wb(z0-.18)+.19+s*.095),M.K.top(z0-.18)-.165,z0-.11);
+      repeater.rotation.y=s*.12;
+    }
   }
   // Matching four wheel arches: fender lips follow exact tire centre and
   // radius; no independent shifts of the axles or wheels.
