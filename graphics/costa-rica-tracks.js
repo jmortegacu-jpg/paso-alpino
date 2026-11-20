@@ -545,6 +545,30 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       bollards.computeBoundingSphere();
       bollards.castShadow=false;
       pier.add(bollards);
+      // Pier safety beacons add a legible silhouette at dusk without
+      // dynamic lights or per-object draw calls. Decorative only.
+      const beaconCount=hi?6:4;
+      const beaconPosts=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.065,.085,1.35,6),
+        steel,beaconCount);
+      const beaconLamps=new THREE.InstancedMesh(
+        new THREE.SphereGeometry(.19,8,6),
+        new THREE.MeshBasicMaterial({color:0xffd5a0}),beaconCount);
+      for(let j=0;j<beaconCount;j++){
+        const along=4+(length-8)*Math.floor(j/2)/Math.max(1,Math.ceil(beaconCount/2)-1);
+        const across=j%2?-3.18:3.18;
+        d.position.set(along,4.75,across);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        beaconPosts.setMatrixAt(j,d.matrix);
+        d.position.y=5.49;d.updateMatrix();
+        beaconLamps.setMatrixAt(j,d.matrix);
+      }
+      for(const mesh of [beaconPosts,beaconLamps]){
+        mesh.instanceMatrix.needsUpdate=true;
+        mesh.computeBoundingSphere();
+        mesh.castShadow=false;
+        pier.add(mesh);
+      }
       // The promenade is a fictional racing circuit, so the pier position
       // is approximate; its roadway clearance must be checked in WebGL.
       place(pier,Math.floor(N*.70),1,36,-.1);
