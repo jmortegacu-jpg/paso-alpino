@@ -476,8 +476,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     // quality-scaled and without collision or additional dynamic lights.
     // Artistic placement: these are not surveyed landmarks.
     const coastalHills=hi?42:quality==='media'?24:12;
-    const coastalRock=new THREE.MeshStandardMaterial({color:0x537b58,roughness:1,flatShading:true});
-    const coastalHillGeo=new THREE.IcosahedronGeometry(1,1);
+    const coastalRock=new THREE.MeshStandardMaterial({color:0x537b58,roughness:.91,metalness:0,flatShading:true});
+    // More silhouette facets only on capable devices; no external textures.
+    const coastalHillGeo=new THREE.IcosahedronGeometry(1,hi?2:1);
     const coastalHillMesh=new THREE.InstancedMesh(coastalHillGeo,coastalRock,coastalHills);
     const hillDummy=new THREE.Object3D();
     for(let j=0;j<coastalHills;j++){
@@ -502,6 +503,33 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     coastalHillMesh.receiveShadow=true;
     coastalHillMesh.castShadow=false;
     world.add(coastalHillMesh);
+    // A distant, cooler ridge creates depth and a recognizable coastal
+    // mountain skyline from the driving camera. Instancing keeps draw calls
+    // fixed; the ridge is scenery only, with no collision or dynamic lights.
+    const distantCount=hi?18:quality==='media'?10:5;
+    const distantMaterial=new THREE.MeshStandardMaterial({
+      color:0x718b83,roughness:1,metalness:0,flatShading:true
+    });
+    const distantGeo=new THREE.IcosahedronGeometry(1,1);
+    const distantRidge=new THREE.InstancedMesh(distantGeo,distantMaterial,distantCount);
+    const ridgeDummy=new THREE.Object3D();
+    for(let j=0;j<distantCount;j++){
+      const k=Math.floor(N*(j+.42)/distantCount);
+      const side=k<N*.35?-1:k>N*.67?1:(j%2?1:-1);
+      const height=28+15*Math.abs(Math.sin(j*1.43));
+      ridgeDummy.position.copy(node(k,side,175+25*Math.abs(Math.sin(j*1.91)),height*.22));
+      ridgeDummy.rotation.set(0,j*.63,0);
+      ridgeDummy.scale.set(35+12*Math.abs(Math.cos(j)),height,27+8*Math.abs(Math.sin(j)));
+      ridgeDummy.updateMatrix();
+      distantRidge.setMatrixAt(j,ridgeDummy.matrix);
+      const tint=.82+.16*Math.abs(Math.sin(j*1.37));
+      distantRidge.setColorAt(j,new THREE.Color().setRGB(tint,tint,tint));
+    }
+    distantRidge.instanceMatrix.needsUpdate=true;
+    distantRidge.computeBoundingSphere();
+    distantRidge.castShadow=false;
+    distantRidge.receiveShadow=false;
+    world.add(distantRidge);
     // Roadside delineators inspired by RN34 reflective safety markings (MOPT).
     // Purely decorative, outside the drivable corridor; no collision changes.
     const markerCount=hi?48:quality==='media'?24:12;
