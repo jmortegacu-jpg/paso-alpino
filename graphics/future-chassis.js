@@ -32,7 +32,7 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     trim:new THREE.MeshPhysicalMaterial({color:0x58626a,metalness:.76,roughness:M.id==='aurora'?.31:.24,side:THREE.DoubleSide}),
     seat:new THREE.MeshStandardMaterial({color:M.id==='volcan'?0x5c1a20:0x1d222a,roughness:.75}),
     stitch:new THREE.MeshStandardMaterial({color:0xb08e66,roughness:.85}),
-    head:new THREE.MeshStandardMaterial({color:0xdfeeff,emissive:0xb6dbff,emissiveIntensity:2.5,roughness:.2}),
+    head:new THREE.MeshPhysicalMaterial({color:0xdfeeff,emissive:0xb6dbff,emissiveIntensity:M.id==='aurora'?1.65:2.5,metalness:.08,roughness:M.id==='aurora'?.12:.2,clearcoat:1,clearcoatRoughness:.07}),
     tail:new THREE.MeshStandardMaterial({color:0x5a0607,emissive:0xff1b18,emissiveIntensity:2.1,roughness:.26})
   };
   const add=(geometry,mat,x=0,y=0,z=0)=>{
