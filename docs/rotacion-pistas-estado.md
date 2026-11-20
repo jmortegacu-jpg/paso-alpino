@@ -95,3 +95,15 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - [ ] Revisión y autorización explícita antes de cualquier publicación Netlify
 
 **No listo para publicar.** Una vuelta completa de seis pistas no equivale a la finalización de los pendientes.
+
+## Turno 2026-11-20 03:02 Costa Rica — pista y vehículo
+- Pista trabajada: **2/6 Ruta 27 San José–Caldera**, ID `ruta27`; siguiente **3/6 Ruta 32 Zurquí**. Revisados historial y PR #34, se evitó repetir optimización de materiales de peajes.
+- Cambio 3D: 16/8 arriostramientos diagonales en un `THREE.InstancedMesh` del viaducto según calidad, material PBR de acero compartido, sin colisiones ni alteraciones de trazado, física o red. Commit `23d56c834e0290bb00eea2f5aa3ec26446c8b832`. PR borrador #34 https://github.com/jmortegacu-jpg/paso-alpino/pull/34 .
+- Referencias de contexto vial: CNC https://cnc.go.cr/proyectos/en-marcha/corredor-vial-san-jose-caldera-ruta-27 ; concesionaria https://globalviaruta27.com/ . Estructura escenográfica, no reproducción topográfica exacta; sin imágenes externas.
+### Vehículos
+- Modelo `aurora` — **Aurora V12**, modelo original inspirado en GT, no Lexus oficial. Cambio visual: material físico de ópticas delanteras con clearcoat, menor emisión en Aurora y rugosidad ajustada, sin alterar posiciones, geometría, ruedas, controles ni colisiones. Commit `6eaf6bc8ca4f6917f2b9fbd61326f726f9a7286a`, rama `graphics/aurora-v12-pbr-finish-20261120`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- PR #34 consultado no fusionable con main; PR #45 consultado fusionable antes de este cambio. Compatibilidad entre PR aún no validada.
+- Verificado: GitHub aceptó ambos cambios de código. Pendiente parser JS ejecutado, render WebGL, capturas cabina/exterior, FPS móvil/PC, físicas y multijugador. Sin resultados inventados.
+- Checklist Ruta 27: [x] arriostramientos del viaducto; [ ] validar escala/visibilidad y conducción; [ ] integrar PR sin conflictos.
+- Checklist vehículos: [x] ópticas Aurora con material físico; [ ] comprobar luces en navegador; [ ] revisar carrocerías restantes y rendimiento.
+- Checklist global: [ ] seis pistas integradas y verificadas; [ ] vehículos; [ ] compatibilidad de PR; [ ] WebGL/FPS/físicas/multijugador; [ ] autorización expresa. **NO LISTO PARA NETLIFY; sin merge ni despliegue.**
