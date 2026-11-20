@@ -359,6 +359,18 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const surround=new THREE.Mesh(new THREE.TorusGeometry(.13,.013,6,20),material.trim);
     surround.scale.set(1.5,.63,1);surround.rotation.y=sign*.24;
     surround.position.set(x,y,z+.23);group.add(surround);
+    // Aurora-only inset projector: visible lens depth without extra lights.
+    // High detail is confined to the visual group, not the physics wheel rig.
+    if(M.id==='aurora'){
+      const projector=new THREE.Mesh(
+        new THREE.SphereGeometry(.105,high?16:10,high?10:6),
+        material.head);
+      projector.scale.set(1.14,.42,.66);
+      projector.position.set(x,y,z+.255);
+      projector.rotation.y=sign*.18;
+      projector.castShadow=false;
+      group.add(projector);
+    }
   }
   // Distinct curved LED silhouettes: designed as luminous volume, not stickers.
   const headY=M.B.ye(F-.29)+.035,hz=F-.27;
