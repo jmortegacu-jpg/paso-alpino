@@ -1,5 +1,17 @@
 # Seguimiento de rotación Paso Alpino
 
+Última ejecución: 2026-11-19 18:00 (Costa Rica). Pista 4/6 Puntarenas; siguiente 5/6 Ruta 1 Guanacaste.
+
+## Registro 2026-11-19 18:00 — Puntarenas (turno 4/6)
+- Pista: Paseo de los Turistas, ID `puntarenas`; siguiente: Ruta 1 Guanacaste, ID `ruta1` (verificar ID de circuito al integrar PR #25).
+- Historial contrastado: registro previo Puntarenas 19-11 (bitas); se eligió otra mejora, sin duplicar las bitas.
+- Rama: `automation/puntarenas-muelle-20261116`; PR borrador #39 https://github.com/jmortegacu-jpg/paso-alpino/pull/39 .
+- Cambio en `graphics/costa-rica-tracks.js`: dos barandales del muelle ahora comparten un `THREE.InstancedMesh` con geometría y material únicos, matrices actualizadas, bounding sphere calculada y sombras desactivadas; mismas dimensiones y posiciones. Commit `e7a074decaed0dbe0531b68b5a3db2025f4fee90`.
+- Fuente de contexto: INCOP https://incop.go.cr/terminal-de-cruceros/ ; muelle y detalles escenográficos originales, sin copiar recursos protegidos.
+- Verificación: escritura GitHub confirmada; lectura posterior y prueba de sintaxis por ejecutar. No se ejecutaron pruebas WebGL, FPS, físicas, multijugador ni cámara de conducción. Menos objetos gráficos no equivale a FPS medidos.
+- Integración: PR #36 y #39 modifican el mismo módulo; compatibilidad no demostrada. No merge, no Netlify.
+
+
 Fecha local: 2026-11-16 18:03, Costa Rica.
 
 ## Turno actual
