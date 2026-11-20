@@ -56,3 +56,13 @@ Publicación: **NO LISTA**. Sin merge ni Netlify.
 - Compatibilidad: PR #38 y #40 modifican `graphics/costa-rica-tracks.js`; integración aún no validada. Mantener como bloqueo hasta pruebas conjuntas.
 - Checklist Costanera: [x] relieve instanciado; [x] delineadores; [x] rocas PBR ligeras; [ ] comprobación visual de escala, terreno y letreros; [ ] WebGL/FPS; [ ] compatibilidad PR #38/#40.
 - Global: [ ] seis pistas visualmente verificadas; [ ] vehículos; [ ] PR compatibles; [ ] físicas/multijugador; [ ] FPS/WebGL; [ ] bloqueos resueltos. **NO LISTO PARA PUBLICACIÓN**. Sin merge ni Netlify.
+
+## Mejora visual prioritaria — 2026-11-19, Costa Rica
+- Pista: **6/6 Ruta 34 Costanera Sur** (ID `costanera`); siguiente: **1/6 Ruta 2 Cerro de la Muerte**. Historial previo revisado: no se repitieron rocas, postes ni colinas cercanas.
+- Cambio de calidad visual: colinas próximas con más facetas en calidad alta y rugosidad PBR ajustada; **segunda línea de montañas** azul-verdosas más distante (18/10/5 instancias según calidad), con variación de silueta y escala para profundidad desde cámara de conducción. Un solo draw call adicional para la cresta, geometría y material compartidos, sin texturas externas, sombras, luces dinámicas ni colisiones.
+- Commit de código: `f317e069c8834eb77ffa0fa3ee32289c78a4f5ed`. PR borrador reutilizado: #38 https://github.com/jmortegacu-jpg/paso-alpino/pull/38 ; título `[skip netlify]`.
+- Referencias paisajísticas documentadas: ICT https://es.visitcostarica.com/ ; SNIT https://www.snitcr.go.cr/ . Composición escenográfica original, sin afirmar correspondencia GPS ni copiar imágenes.
+- Verificado: escritura del archivo GitHub confirmada. **No se han ejecutado** parser JavaScript, captura WebGL, FPS móvil/PC, pruebas de conducción, físicas ni multijugador en este turno. Debe revisarse el efecto visual de la cordillera, la oclusión y la escala desde cabina.
+- Compatibilidad: PR #38 consultado **no fusionable** con `main` antes de la escritura; PR #40 toca el mismo módulo. Bloqueo pendiente de resolución antes de integrar.
+- Checklist Ruta 34: [x] doble profundidad de relieve con LOD y PBR; [ ] comprobar renderizado y escala desde conductor; [ ] FPS móvil/PC; [ ] resolver compatibilidad PR #38/#40.
+- Checklist global: [ ] seis pistas integradas y validadas; [ ] vehículos y carrocerías verificados; [ ] PR compatibles; [ ] pruebas WebGL/FPS/físicas/multijugador; [ ] autorización expresa. **NO fusionar ni publicar Netlify.**
