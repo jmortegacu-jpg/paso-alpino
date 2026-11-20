@@ -474,6 +474,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
         hole.userData.fcDetail=1;wh.spin.add(hole);
       }
     }
+    // Aurora V12: a machined inner wheel lip gives the turbine wheel
+    // visual depth without changing the tyre envelope, wheel rig or physics.
+    // Only four lightweight rings, using the existing metallic trim material.
+    if(M.id==='aurora'){
+      const innerLip=new THREE.Mesh(
+        new THREE.TorusGeometry(rad*.565,rad*.012,6,high?36:18),
+        material.trim);
+      innerLip.rotation.y=Math.PI/2;
+      innerLip.position.x=faceX-.016;
+      innerLip.castShadow=false;
+      innerLip.userData.fcDetail=1;
+      wh.spin.add(innerLip);
+    }
     if(high){
       const n=C.rim==='turbine'?11:C.rim==='mesh'?14:C.rim==='disc'?6:C.rim==='five'?5:10;
       const inner=rad*.16,outer=rad*.61;
