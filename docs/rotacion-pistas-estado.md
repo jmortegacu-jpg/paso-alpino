@@ -64,3 +64,13 @@ Nota: las ramas PR #33-35 mantienen versiones independientes del archivo de segu
 - Pruebas verificadas: lectura del archivo, sustitución única del bloque y commit GitHub aceptado. No se ejecutaron parser JS, WebGL, FPS móvil/PC, físicas ni multijugador. Pendiente inspeccionar culling desde cámara de conducción y compatibilidad de PR.
 - Checklist Ruta 1: [x] actualización de matrices y límites de postes; [ ] verificación visual/LOD/FPS; [ ] integración sin conflictos; [ ] conducción y red.
 - Checklist global: [ ] seis pistas integradas y probadas; [ ] vehículos revisados; [ ] PR compatibles; [ ] pruebas críticas satisfactorias; [ ] autorización expresa. **NO LISTO PARA NETLIFY.** Sin merge ni despliegue.
+
+## Revisión 2026-11-20 12:00 Costa Rica — pista 5/6 y vehículo
+- Pista trabajada: Ruta 1 Interamericana Norte Guanacaste; ID real `ruta1` (escena `alpino` en index). Siguiente pista: Ruta 34 Costanera Sur. Historial de PR #37 revisado; no se repitieron copas, cercas ni ganado.
+- Cambio de pista: nueva línea de colinas de bosque seco estilizado a 145–173 unidades fuera de calzada, 20/11/6 instancias por calidad, material PBR mate, color por instancia, geometría compartida y límites de visibilidad recalculados. Commit `5d11987612ea6dc2b3cdbedccd9ae2b4cecccb98`. PR borrador #37 https://github.com/jmortegacu-jpg/paso-alpino/pull/37 .
+- Fuentes: ACG (08-10-2026) https://www.acguanacaste.ac.cr/espaniolllll/6815-acg ; ACG Santa Rosa https://www.acguanacaste.ac.cr/turismo/sector-santa-rosa . Inspiración ecológica, sin topografía exacta ni recursos copiados.
+- Vehículos: Aurora V12 (`M.id==='aurora'`), PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 . Se añadió un aro metálico interior por rueda con segmentos de LOD; commit `30e22b67138d2a98d7a01df13fd2cee560bdfffa`. Mantiene dimensiones, ruedas, físicas y controles. El detalle va en `wh.spin` y gira con la rueda.
+- Verificado: lecturas GitHub y commits de ambos archivos. No se ejecutaron parser JS, renderizado WebGL, capturas, FPS móvil/PC, físicas ni multijugador. PR #37 aparecía fusionable con main antes de cambios; PR #45 no fusionable. Ambos requieren comprobación posterior y compatibilidad con PR concurrentes.
+- Checklist Ruta 1: [x] nueva silueta de colinas con LOD; [ ] inspección desde cabina; [ ] WebGL/FPS; [ ] integración de PR.
+- Checklist Vehículos: [x] aro interior Aurora; [ ] captura de llanta y carrocería; [ ] FPS; [ ] física y red; [ ] conflictos PR #45.
+- Checklist global: [ ] seis pistas integradas y verificadas; [ ] vehículos validados; [ ] PR compatibles; [ ] WebGL/FPS/física/multijugador; [ ] bloqueos resueltos. NO listo para Netlify; sin fusión ni despliegue.
