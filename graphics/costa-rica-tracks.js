@@ -503,17 +503,17 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const pilingMat=new THREE.MeshStandardMaterial({color:0x858b89,roughness:.87,metalness:.12});
     const railingMat=new THREE.MeshStandardMaterial({color:0xc8d0cc,metalness:.32,roughness:.5});
     const pierLength=hi?56:42,deckY=2.7;
-    pier.add(cube(pierLength,.65,8.4,deckMat,pierLength/2,deckY,0));
+    pier.add(cube(pierLength,.65,8.4,deckMat,-pierLength/2,deckY,0));
     const pileCount=hi?8:6;
     for(let j=0;j<pileCount;j++){
-      const x=3+j*(pierLength-6)/(pileCount-1);
+      const x=-(3+j*(pierLength-6)/(pileCount-1));
       for(const z of [-3.5,3.5]){
         pier.add(cube(.7,4.8,.7,pilingMat,x,.2,z));
         pier.add(cube(.17,1.25,.17,railingMat,x,deckY+1.05,z));
       }
     }
-    for(const z of [-4.0,4.0])pier.add(cube(pierLength,.13,.13,railingMat,pierLength/2,deckY+1.65,z));
-    // place() aligns the local X axis to the road normal, away from the track.
+    for(const z of [-4.0,4.0])pier.add(cube(pierLength,.13,.13,railingMat,-pierLength/2,deckY+1.65,z));
+    // place() aligns the local negative X axis to the positive roadside normal.
     place(pier,Math.floor(N*.70),1,40,-.1);
     // Compact seating and visitor kiosks reinforce the documented promenade.
     const benchMat=new THREE.MeshStandardMaterial({color:0x946b46,roughness:.88});
