@@ -14,7 +14,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     concrete:new THREE.MeshStandardMaterial({color:0x777971,roughness:.93,side:THREE.DoubleSide}),
     stone:new THREE.MeshStandardMaterial({color:0x777060,roughness:.97,side:THREE.DoubleSide}),
     // Subtle damp concrete: a restrained PBR sheen, without reflection probes or new textures.
-    tunnel:new THREE.MeshPhysicalMaterial({color:0x575d57,metalness:0,roughness:.72,clearcoat:.16,clearcoatRoughness:.34,side:THREE.DoubleSide}),
+    tunnel:new THREE.MeshPhysicalMaterial({color:0x535d59,metalness:0,roughness:.81,clearcoat:.09,clearcoatRoughness:.42,side:THREE.DoubleSide}),
     sand:new THREE.MeshStandardMaterial({color:0xb3a27a,roughness:1}),
     lamp:new THREE.MeshBasicMaterial({color:0xffd399}),
     foliage:new THREE.MeshStandardMaterial({color:0x1b5634,roughness:.94,side:THREE.DoubleSide}),
@@ -272,6 +272,36 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     gg.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
     gg.setIndex(inds);gg.computeVertexNormals();
     const vault=new THREE.Mesh(gg,mats.tunnel);vault.receiveShadow=true;world.add(vault);
+    // Concrete vault ribs provide depth and speed cues in the driving camera.
+    // One instanced draw call, no dynamic lights or collision surfaces.
+    const ribStep=hi?10:18;
+    const ribCount=Math.max(1,Math.floor(count/ribStep));
+    const ribs=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.20,.20,2.0),
+      new THREE.MeshStandardMaterial({color:0x78817b,roughness:.92,metalness:0}),
+      ribCount*9);
+    const ribDummy=new THREE.Object3D();
+    const ribMatrix=new THREE.Matrix4();
+    for(let ri=0;ri<ribCount;ri++){
+      const k=(start+(ri+1)*ribStep)%N;
+      const origin=new THREE.Object3D();
+      origin.position.copy(points[k]);
+      origin.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      origin.updateMatrix();
+      for(let j=0;j<9;j++){
+        const theta=Math.PI*(j+.5)/9;
+        ribDummy.position.set(Math.cos(theta)*14.25,1.25+Math.sin(theta)*8.92,0);
+        ribDummy.rotation.set(0,0,theta);
+        ribDummy.updateMatrix();
+        ribMatrix.multiplyMatrices(origin.matrix,ribDummy.matrix);
+        ribs.setMatrixAt(ri*9+j,ribMatrix);
+      }
+    }
+    ribs.instanceMatrix.needsUpdate=true;
+    ribs.computeBoundingSphere();
+    ribs.castShadow=false;
+    ribs.receiveShadow=false;
+    world.add(ribs);
     // Bright linear light strips and reinforced stone portal frames.
     // Shared tunnel-light geometry/material; one draw call instead of one per strip.
     const lampStep=hi?28:48, lampCount=Math.floor(count/lampStep)+1;
