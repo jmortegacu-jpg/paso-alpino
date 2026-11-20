@@ -121,7 +121,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const seaMat=new THREE.ShaderMaterial({side:THREE.DoubleSide,uniforms:{uT:{value:0}},
       vertexShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){vAcross=uv.x;vec3 p=position;p.y+=.15*sin(p.x*.16+uT*.85)*cos(p.z*.09-uT*.64);vW=p;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
-      fragmentShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){float wave=sin(vW.x*.25+uT*.75)*cos(vW.z*.24-uT*.48);float foam=pow(max(0.,sin(vW.x*.46+vW.z*.3+uT*.75)),13.);vec3 c=mix(vec3(.025,.17,.27),vec3(.07,.45,.55),.55+.32*wave);c+=vec3(.24,.31,.29)*foam*.25;float shoreline=(1.-smoothstep(.0,.09,vAcross))*sin(vW.x*.65+uT*.55)*.07;c+=max(0.,shoreline)*vec3(.5,.72,.78);gl_FragColor=vec4(c,1.);}`});
+      fragmentShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){float wave=sin(vW.x*.25+uT*.75)*cos(vW.z*.24-uT*.48);float foam=pow(max(0.,sin(vW.x*.46+vW.z*.3+uT*.75)),13.);vec3 c=mix(vec3(.025,.17,.27),vec3(.07,.45,.55),.55+.32*wave);c+=vec3(.24,.31,.29)*foam*.25;float shoreMask=1.-smoothstep(.015,.19,vAcross);float wash=.5+.5*sin(vW.x*.22+vW.z*.16-uT*.65);float shoreline=shoreMask*smoothstep(.35,.82,wash);c=mix(c,vec3(.47,.75,.76),shoreline*.44);c+=vec3(.09,.14,.13)*foam*.22;gl_FragColor=vec4(c,1.);}`});
     const shore=new THREE.Mesh(g,seaMat);shore.receiveShadow=true;
     shore.onBeforeRender=()=>{seaMat.uniforms.uT.value=performance.now()*.001;};world.add(shore);
   }
