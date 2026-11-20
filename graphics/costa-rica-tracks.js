@@ -96,6 +96,14 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       d.position.copy(p);d.position.y+=h;d.scale.set(1.2,1.15,1.25);d.updateMatrix();crown.setMatrixAt(i,d.matrix);
       e.position.copy(p);e.position.y+=2.1;e.scale.set(1,1,1);e.updateMatrix();trunk.setMatrixAt(i,e.matrix);
     }
+    // Matrices are authored once; bound the instanced forest after placement so
+    // off-screen stands can be culled without touching the driving physics.
+    for(const mesh of [crown,trunk]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;
+      mesh.receiveShadow=false;
+    }
     world.add(crown,trunk);
   }
   function streetlights(from,to,side=1,every=45){
@@ -226,6 +234,10 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       d.position.copy(p);d.rotation.y=k*1.52;const scale=.6+.45*Math.abs(Math.sin(k*.7));
       d.scale.set(scale,scale,scale);d.updateMatrix();mesh.setMatrixAt(k,d.matrix);
     }
+    mesh.instanceMatrix.needsUpdate=true;
+    mesh.computeBoundingSphere();
+    mesh.castShadow=false;
+    mesh.receiveShadow=false;
     world.add(mesh);
   }
 
@@ -455,21 +467,83 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     gg.setIndex(inds);gg.computeVertexNormals();
     const vault=new THREE.Mesh(gg,mats.tunnel);vault.receiveShadow=true;world.add(vault);
     // Bright linear light strips and reinforced stone portal frames.
-    for(let k=0;k<=count;k+=hi?28:48){
-      const pt=node(start+k,0,0,9.96),m=new THREE.Mesh(new THREE.BoxGeometry(2.4,.12,2),mats.lamp);
-      m.position.copy(pt);m.rotation.y=Math.atan2(tangents[(start+k)%N].x,tangents[(start+k)%N].z);world.add(m);
+    // Shared tunnel-light geometry/material; one draw call instead of one per strip.
+    const lampStep=hi?28:48, lampCount=Math.floor(count/lampStep)+1;
+    const strips=new THREE.InstancedMesh(new THREE.BoxGeometry(2.4,.12,2),mats.lamp,lampCount);
+    const stripTransform=new THREE.Object3D();
+    for(let j=0;j<lampCount;j++){
+      const k=start+j*lampStep,pt=node(k,0,0,9.96);
+      stripTransform.position.copy(pt);
+      stripTransform.rotation.set(0,Math.atan2(tangents[k%N].x,tangents[k%N].z),0);
+      stripTransform.updateMatrix();
+      strips.setMatrixAt(j,stripTransform.matrix);
     }
-    for(const k of [start,start+count]){
-      const frame=new THREE.Group(),seg=12;
-      for(let j=0;j<seg;j++){
-        const a=Math.PI*j/seg,b=Math.PI*(j+1)/seg;
-        const center=(a+b)/2;
-        const strut=new THREE.Mesh(new THREE.BoxGeometry(.55,.48,2.4),mats.stone);
-        strut.position.set(Math.cos(center)*14.8,1.2+Math.sin(center)*9.2,0);
-        strut.rotation.z=center+Math.PI/2;frame.add(strut);
+    strips.instanceMatrix.needsUpdate=true;
+    strips.computeBoundingSphere();
+    world.add(strips);
+    // Both portal arches share one instanced mesh (24 struts, one draw call).
+    // Build transforms in world space to preserve each portal's road alignment.
+    const portalSegments=12;
+    const portalStruts=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.55,.48,2.4),mats.stone,portalSegments*2);
+    const localStrut=new THREE.Object3D();
+    const portalMatrix=new THREE.Matrix4();
+    for(const [portalIndex,k] of [start,start+count].entries()){
+      const idx=k%N,cp=points[idx];
+      // Match the existing portal placement along the road centerline.
+      const angle=Math.atan2(tangents[idx].x,tangents[idx].z);
+      const origin=new THREE.Object3D();
+      origin.position.copy(cp);origin.position.y+=.15;
+      origin.rotation.y=angle;origin.updateMatrix();
+      for(let j=0;j<portalSegments;j++){
+        const center=Math.PI*(j+.5)/portalSegments;
+        localStrut.position.set(Math.cos(center)*14.8,1.2+Math.sin(center)*9.2,0);
+        localStrut.rotation.set(0,0,center+Math.PI/2);
+        localStrut.updateMatrix();
+        portalMatrix.multiplyMatrices(origin.matrix,localStrut.matrix);
+        portalStruts.setMatrixAt(portalIndex*portalSegments+j,portalMatrix);
       }
-      place(frame,k,1,0,.15);
     }
+    portalStruts.instanceMatrix.needsUpdate=true;
+    portalStruts.computeBoundingSphere();
+    portalStruts.castShadow=false;
+    world.add(portalStruts);
+    // Route 32-inspired reflective roadside delineators near the tunnel approach.
+    // Decorative only: well outside the driveable ribbon, no physics or collisions.
+    // MOPT (2026-04-10): reflective markers and flexible delineators on RN 32.
+    const markerCount=hi?28:quality==='media'?18:10;
+    const markerBody=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.17,1.12,.17),
+      new THREE.MeshStandardMaterial({color:0xd9ded9,roughness:.83}),
+      markerCount);
+    const markerReflector=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.19,.19,.035),
+      new THREE.MeshBasicMaterial({color:0xffe7a1}),
+      markerCount);
+    const markerDummy=new THREE.Object3D();
+    const approachEnd=Math.max(1,start-12);
+    for(let j=0;j<markerCount;j++){
+      const k=Math.floor(approachEnd*(j+.5)/markerCount);
+      const side=j%2===0?1:-1;
+      const pos=node(k,side,20,.56);
+      const yaw=Math.atan2(tangents[k].x,tangents[k].z);
+      markerDummy.position.copy(pos);
+      markerDummy.rotation.set(0,yaw,0);
+      markerDummy.updateMatrix();
+      markerBody.setMatrixAt(j,markerDummy.matrix);
+      markerDummy.position.y+=.30;
+      markerDummy.position.x+=normals[k].x*side*.105;
+      markerDummy.position.z+=normals[k].z*side*.105;
+      markerDummy.updateMatrix();
+      markerReflector.setMatrixAt(j,markerDummy.matrix);
+    }
+    markerBody.instanceMatrix.needsUpdate=true;
+    markerReflector.instanceMatrix.needsUpdate=true;
+    markerBody.computeBoundingSphere();
+    markerReflector.computeBoundingSphere();
+    markerBody.castShadow=false;
+    markerReflector.castShadow=false;
+    world.add(markerBody,markerReflector);
     streetlights(0,start-50,1,85);
   } else if(id==='costanera'){
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
