@@ -347,6 +347,11 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       const k=Math.floor(N*j/postCount),side=j%2?1:-1;
       obj.position.copy(node(k,side,42,.75));obj.rotation.set(0,0,0);obj.scale.set(1,1,1);obj.updateMatrix();posts.setMatrixAt(j,obj.matrix);
     }
+    // Transforms are assigned after construction; refresh culling bounds so
+    // roadside fence posts do not vanish prematurely near the driving camera.
+    posts.instanceMatrix.needsUpdate=true;
+    posts.computeBoundingSphere();
+    posts.castShadow=false;
     world.add(posts);
   }
   if(id==='ruta1'){
