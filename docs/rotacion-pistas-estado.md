@@ -54,3 +54,14 @@ Rotación: Ruta 2 Cerro de la Muerte → Ruta 27 → Ruta 32 Zurquí → Puntare
 - [ ] Vehículos: apariencia, físicas y colisiones validadas
 - [ ] Multijugador, compatibilidad PR y WebGL móvil/PC validados
 - [ ] Bloqueos resueltos y autorización humana para Netlify
+
+## Revisión incremental — 2026-11-20 06:03 Costa Rica
+- Pista **3/6 Ruta 32 Zurquí**, ID `zurqui`; siguiente **4/6 Paseo de los Turistas Puntarenas**. Se consultaron PR #42 y #45 y los registros previos; no se repitieron luminarias ni delineadores.
+- Código Ruta 32: material PBR de bóveda de hormigón con rugosidad .81 y clearcoat .09; nervaduras visuales de túnel en `THREE.InstancedMesh`, 9 piezas por sección, cada 10/18 nodos según calidad. Commit `8dbf5583dfc72667651439a8a0a13bfb53d93ac9`, PR borrador #42 https://github.com/jmortegacu-jpg/paso-alpino/pull/42 .
+- **Vehículos:** modelo existente `aurora` / Aurora V12, archivo `graphics/future-chassis.js`; proyectores LED internos en ambos faros, esfera de detalle adaptable (16x10 alta / 10x6 baja), geometría exclusivamente decorativa, sin modificar ejes, ruedas, colisiones, físicas o controles. Commit `fca9d66b2602e1da3cf4a724c89286922653e3b7`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Fuentes contextuales ya registradas: SINAC Braulio Carrillo https://www.sinac.go.cr/es/ac/accvc/pnbc/paginas/default.aspx ; evaluación técnica del túnel LanammeUCR https://www.lanamme.ucr.ac.cr/ . Modelos originales, no se copiaron fotografías.
+- Verificado: GitHub confirmó ambos commits. Pendientes: ejecutar parser JavaScript, renderizar WebGL y comprobar colocación de nervaduras y proyectores desde cámaras de conductor/exterior, FPS móvil/PC, físicas y multijugador. No se atribuyen resultados no medidos.
+- Compatibilidad consultada antes de cambios: PR #42 **no fusionable**, PR #45 **fusionable** con main; no se ha comprobado compatibilidad conjunta ni con PR #17/#35/#41. No fusionar.
+- Checklist Ruta 32: [x] nervaduras instanciadas y material de túnel; [ ] verificar escala/cámara y FPS; [ ] integrar PR concurrentes.
+- Checklist vehículos: [x] proyectores 3D Aurora V12; [ ] verificar faros y visibilidad; [ ] probar otros vehículos, físicas y FPS.
+- Global: [ ] seis pistas verificadas e integradas; [ ] vehículos verificados; [ ] PR compatibles; [ ] WebGL/FPS/físicas/multijugador; [ ] bloqueos resueltos. **No listo para Netlify; sin publicación.**
