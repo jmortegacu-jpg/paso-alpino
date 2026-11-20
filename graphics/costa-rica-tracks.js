@@ -388,6 +388,33 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
         world.add(mesh);
       }
     }
+    // Warm dry-season foothills beyond the cattle pastures. Their broad,
+    // staggered silhouettes improve landscape depth from the driving camera.
+    // All geometry is decorative and stays far outside the racing corridor.
+    {
+      const ridgeCount=hi?20:quality==='media'?11:6;
+      const ridgeMat=new THREE.MeshStandardMaterial({
+        color:0x8a936b,roughness:.96,metalness:0,flatShading:true
+      });
+      const ridgeGeo=new THREE.IcosahedronGeometry(1,hi?2:1);
+      const ridge=new THREE.InstancedMesh(ridgeGeo,ridgeMat,ridgeCount);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<ridgeCount;j++){
+        const k=Math.floor(N*(j+.38)/ridgeCount)%N;
+        const side=j%2?1:-1;
+        const height=17+15*Math.abs(Math.sin(j*1.37));
+        dummy.position.copy(node(k,side,145+28*Math.abs(Math.sin(j*.93)),height*.24));
+        dummy.rotation.set(0,j*.73,0);
+        dummy.scale.set(30+13*Math.abs(Math.cos(j)),height,23+9*Math.abs(Math.sin(j)));
+        dummy.updateMatrix();ridge.setMatrixAt(j,dummy.matrix);
+        const tint=.78+.19*Math.abs(Math.sin(j*1.73));
+        ridge.setColorAt(j,new THREE.Color().setRGB(tint,tint,tint));
+      }
+      ridge.instanceMatrix.needsUpdate=true;
+      ridge.computeBoundingSphere();
+      ridge.castShadow=false;ridge.receiveShadow=false;
+      world.add(ridge);
+    }
     sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
     sign('HACIA GUANACASTE',Math.floor(N*.79),1,23);
