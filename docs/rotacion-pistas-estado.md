@@ -67,3 +67,15 @@ Fecha local: 2026-11-16 18:03, Costa Rica.
 - Verificado: contenido leído desde GitHub antes de la modificación y commit aceptado por API. **Sin verificar:** parser JavaScript ejecutado, WebGL, FPS móvil/PC, física, multijugador, visual desde cabina y compatibilidad entre PR.
 - Checklist Puntarenas: [x] accesorio portuario instanciado; [ ] inspección visual y distancias a calzada; [ ] integración PR #36/#39; [ ] pruebas críticas.
 - Estado global: seis pistas y vehículos **NO LISTOS**; PR cruzados y pruebas críticas siguen pendientes. Sin merge, sin despliegue ni créditos Netlify.
+
+## Turno 2026-11-20 09:00 Costa Rica — Puntarenas + automóvil
+- Pista única trabajada: **4/6 Paseo de los Turistas Puntarenas**, ID `puntarenas`. Próxima: **5/6 Ruta 1 Interamericana Norte Guanacaste**. Historial de esta rama revisado: no se repitieron barandales, pilotes, bitas ni aves.
+- Cambio de pista: **4/6 balizas de muelle** según calidad, postes metálicos y ópticas color ámbar con cuatro mallas instanciadas en total (dos nuevas); sin luces dinámicas, sombras ni colisiones. Commit `fe977f3c20284d0c9fc439a13f4248a604c2a9f2`. PR borrador #39 https://github.com/jmortegacu-jpg/paso-alpino/pull/39.
+- Fuente de contexto: INCOP, terminal de cruceros https://incop.go.cr/terminal-de-cruceros/ ; balizas y su posición son una interpretación artística, no una reconstrucción exacta ni un recurso protegido.
+### Vehículos
+- Modelo: **Aurora V12**, ID `aurora`, módulo `graphics/future-chassis.js`. Añadidas ópticas traseras tridimensionales, luz de reversa central y marcos para luces de freno; elementos decorativos adheridos a carrocería, sin tocar ruedas, ejes, colisiones, físicas, dirección o red.
+- Commit vehículo `5ebd4022294a5aaade4ae5d9c3456b3448d7f38e`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45. Título y commits llevan `[skip netlify]`.
+- Verificado: lecturas previas y commits aceptados por GitHub; #39 consultado fusionable con `main` antes de cambios; #45 consultado no fusionable. No se verificó compatibilidad mutua de PR #36/#39 ni de otras carrocerías.
+- Pendientes: parser JS ejecutado, WebGL, capturas de cámara exterior/conducción, dimensiones y oclusión de balizas y ópticas, FPS móvil/PC, físicas y multijugador. **No atribuir mejoras de FPS ni apariencia comprobada sin renderizado.**
+- Checklist Puntarenas: [x] balizas 3D instanciadas; [ ] inspección visual y pruebas de rendimiento; [ ] conciliación de PR. Vehículos: [x] detalle trasero Aurora V12; [ ] verificar ópticas y compatibilidad en navegador.
+- Checklist global: [ ] seis pistas integradas y verificadas; [ ] vehículos completos; [ ] PR compatibles; [ ] WebGL/FPS/físicas/multijugador satisfactorios; [ ] bloqueos resueltos. **NO LISTO PARA NETLIFY**. No se fusionó ni publicó.
