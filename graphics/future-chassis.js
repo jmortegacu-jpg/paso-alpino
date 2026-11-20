@@ -409,6 +409,21 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     }
   }
 
+  // Aurora V12: a recessed central reversing lamp and paired brake-light
+  // surrounds make the rear recognizable without altering the vehicle rig.
+  if(M.id==='aurora'){
+    const reverseY=taY-.115;
+    const reverse=box(.24,.046,.025,material.head,0,reverseY,tailZ-.012,.012);
+    reverse.castShadow=false;
+    for(const s of [-1,1]){
+      const x=s*tailW*.64;
+      const inset=box(.24,.064,.022,material.carbon,x,taY-.038,tailZ+.014,.009);
+      inset.castShadow=false;
+      curve([[x-s*.13,taY-.026,tailZ-.018],
+             [x,taY-.014,tailZ-.022],
+             [x+s*.13,taY-.036,tailZ-.018]],material.tail,high?.015:.011);
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
