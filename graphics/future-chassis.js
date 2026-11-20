@@ -24,12 +24,12 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   const group=new THREE.Group();group.name=C.title;
   const material={
     paint:new THREE.MeshPhysicalMaterial({color:paint?.color || new THREE.Color(M.paint||'#c42424'),
-      metalness:.66,roughness:.175,clearcoat:1,clearcoatRoughness:.04,envMapIntensity:2.2,side:THREE.DoubleSide}),
+      metalness:M.id==='aurora'?.52:.66,roughness:M.id==='aurora'?.235:.175,clearcoat:1,clearcoatRoughness:M.id==='aurora'?.075:.04,envMapIntensity:M.id==='aurora'?1.55:2.2,side:THREE.DoubleSide}),
     carbon:new THREE.MeshPhysicalMaterial({color:0x0b0e12,metalness:.28,roughness:.32,clearcoat:1,clearcoatRoughness:.10,side:THREE.DoubleSide}),
     vent:new THREE.MeshStandardMaterial({color:0x06080b,metalness:.14,roughness:.9,side:THREE.DoubleSide}),
     mesh:new THREE.MeshStandardMaterial({color:0x222932,metalness:.58,roughness:.55,side:THREE.DoubleSide}),
-    glass:new THREE.MeshPhysicalMaterial({color:0x192935,metalness:.14,roughness:.06,transparent:true,opacity:.78,depthWrite:false,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:2.05,side:THREE.DoubleSide}),
-    trim:new THREE.MeshPhysicalMaterial({color:0x58626a,metalness:.9,roughness:.24,side:THREE.DoubleSide}),
+    glass:new THREE.MeshPhysicalMaterial({color:M.id==='aurora'?0x273d4a:0x192935,metalness:.06,roughness:M.id==='aurora'?.115:.06,transparent:true,opacity:M.id==='aurora'?.68:.78,depthWrite:false,clearcoat:1,clearcoatRoughness:.055,envMapIntensity:M.id==='aurora'?1.35:2.05,side:THREE.DoubleSide}),
+    trim:new THREE.MeshPhysicalMaterial({color:0x58626a,metalness:.76,roughness:M.id==='aurora'?.31:.24,side:THREE.DoubleSide}),
     seat:new THREE.MeshStandardMaterial({color:M.id==='volcan'?0x5c1a20:0x1d222a,roughness:.75}),
     stitch:new THREE.MeshStandardMaterial({color:0xb08e66,roughness:.85}),
     head:new THREE.MeshStandardMaterial({color:0xdfeeff,emissive:0xb6dbff,emissiveIntensity:2.5,roughness:.2}),
