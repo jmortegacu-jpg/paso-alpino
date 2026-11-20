@@ -378,6 +378,29 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       for(const x of [-51,-35,35,51]){
         group.add(cube(2.6,21,2.6,mats.concrete,x,10.5,0));
       }
+      // Repeated diagonal side bracing makes the elevated viaduct readable
+      // from the chase camera. Shared PBR material; decorative, no collisions.
+      const braceGeo=new THREE.BoxGeometry(.38,1, .38);
+      const braceCount=hi?16:8;
+      const braces=new THREE.InstancedMesh(braceGeo,steel,braceCount);
+      const braceDummy=new THREE.Object3D();
+      const braceAxis=new THREE.Vector3(0,1,0);
+      for(let j=0;j<braceCount;j++){
+        const side=j%2?-1:1;
+        const span=Math.floor(j/2);
+        const x=-45+span*(90/Math.max(1,braceCount/2-1));
+        const start=new THREE.Vector3(x,22.4,side*5.4);
+        const end=new THREE.Vector3(x+4,18.5,side*5.4);
+        const delta=end.clone().sub(start);
+        braceDummy.position.copy(start).add(end).multiplyScalar(.5);
+        braceDummy.quaternion.setFromUnitVectors(braceAxis,delta.clone().normalize());
+        braceDummy.scale.set(1,delta.length(),1);
+        braceDummy.updateMatrix();braces.setMatrixAt(j,braceDummy.matrix);
+      }
+      braces.instanceMatrix.needsUpdate=true;
+      braces.computeBoundingSphere();
+      braces.castShadow=false;braces.receiveShadow=false;
+      group.add(braces);
       for(const x of [-44,44]){
         const abutment=new THREE.Mesh(new THREE.ConeGeometry(17,22,7),rock);
         abutment.position.set(x,5,0);group.add(abutment);
