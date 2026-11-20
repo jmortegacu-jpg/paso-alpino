@@ -85,3 +85,14 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Verificado: escritura GitHub. Pendiente: parser JS, lectura posterior, capturas WebGL desde conducción, legibilidad de rótulos, FPS móvil/PC, físicas, multijugador, integración con PR #25/#34–42.
 - Checklist Ruta 2: [x] aerogeneradores; [x] vegetación y rocas; [x] delineadores instanciados; [ ] fauna plausible; [ ] revisión visual; [ ] WebGL/FPS; [ ] compatibilidad.
 - Global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] PR compatibles; [ ] físicas y multijugador; [ ] FPS y WebGL; [ ] bloqueos resueltos. **NO LISTO PARA PUBLICAR**. Sin merge ni despliegue Netlify.
+
+## Turno 2026-11-20 00:02 Costa Rica — pista 1/6 y vehículo
+- Pista trabajada: **Ruta 2 Cerro de la Muerte** (`ruta2`), próxima **Ruta 27**. Se revisó el historial de la rama y el turno anterior Ruta 34; no se duplicaron turbinas, árboles ni delineadores.
+- Escenario: segunda silueta de cordillera montana a distancia, 16/9/5 montañas instanciadas según calidad, material PBR mate, tintes por instancia y límites de visibilidad recalculados. Sin colisiones ni modificación del trazado. Commit `122e5bee10c0cc571755ff70185285948e7bfcd3`; PR borrador #33 https://github.com/jmortegacu-jpg/paso-alpino/pull/33 .
+- Fuente contrastada: Coopesantos https://www.coopesantos.com/servicios/generacion-de-energia/ (15 aerogeneradores entre Casa Mata y La Paz, junto a la Interamericana Sur); ubicación del escenario ilustrativa, sin coordenadas GPS ni imágenes copiadas.
+### Vehículos
+- Modelo verificado: **Aurora V12** (`aurora`, carrocería paramétrica original inspirada en un GT; no existe modelo comercial Lexus LFA en el código inspeccionado). Se ajustó pintura multicapa PBR, rugosidad/metalness/reflejos, transparencia y acabado de cristales y molduras para apariencia menos plástica, sin tocar geometría, ruedas, físicas, controles ni red.
+- Commit vehículo `5c2686aec146026a2e744ab6f1b6b66c6e0a55fb`; rama `graphics/aurora-v12-pbr-finish-20261120`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 ; independiente del PR de pista para evitar conflictos de módulo.
+- Pruebas verificadas: GitHub aceptó ambas escrituras y creación de PR #45. **No ejecutados** parser JavaScript, WebGL, capturas antes/después, FPS móvil/PC, conducción, físicas ni multijugador. Los cambios de materiales no alteran las dimensiones ni colisiones.
+- Integración: PR #33 reportó fusionable al consultar; PR #45 reportó no fusionable al crearse (estado provisional). Compatibilidad cruzada de PR y carrocerías pendiente. No merge ni Netlify.
+- Checklist: [x] Ruta 2 profundidad escenográfica; [ ] captura conductor y WebGL/FPS; [x] Aurora PBR revisado en código; [ ] inspección visual Aurora garaje/conducción y FPS; [ ] seis pistas y vehículos integrados; [ ] PR compatibles; [ ] físicas/multijugador y pruebas críticas; [ ] autorización de publicación. **NO LISTO PARA LANZAMIENTO.**
