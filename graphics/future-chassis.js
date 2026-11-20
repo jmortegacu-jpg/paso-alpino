@@ -322,7 +322,7 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     if(M.id==='aurora'){
       const repeaterMaterial=new THREE.MeshPhysicalMaterial({color:0xf7b45c,emissive:0x9b4b09,emissiveIntensity:.38,roughness:.24,metalness:.08,clearcoat:.8});
       const repeater=box(.018,.018,.108,repeaterMaterial,
-        s*(M.K.wb(z0-.18)+.19+s*.095),M.K.top(z0-.18)-.165,z0-.11);
+        s*(M.K.wb(z0-.18)+.285),M.K.top(z0-.18)-.165,z0-.11);
       repeater.rotation.y=s*.12;
     }
   }
