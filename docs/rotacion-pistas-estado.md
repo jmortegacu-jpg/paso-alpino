@@ -66,3 +66,11 @@ Publicación: **NO LISTA**. Sin merge ni Netlify.
 - Compatibilidad: PR #38 consultado **no fusionable** con `main` antes de la escritura; PR #40 toca el mismo módulo. Bloqueo pendiente de resolución antes de integrar.
 - Checklist Ruta 34: [x] doble profundidad de relieve con LOD y PBR; [ ] comprobar renderizado y escala desde conductor; [ ] FPS móvil/PC; [ ] resolver compatibilidad PR #38/#40.
 - Checklist global: [ ] seis pistas integradas y validadas; [ ] vehículos y carrocerías verificados; [ ] PR compatibles; [ ] pruebas WebGL/FPS/físicas/multijugador; [ ] autorización expresa. **NO fusionar ni publicar Netlify.**
+
+## Turno 2026-11-20 15:04 Costa Rica — Ruta 34
+- Pista trabajada: 6/6 Ruta 34 Costanera Sur, ID `costanera`; siguiente 1/6 Ruta 2 Cerro de la Muerte. Se revisaron las mejoras previas de relieve, rocas y delineadores; no se duplicaron.
+- Cambio visual: oleaje costero en `roadShore` con máscara de espuma dinámica y transición cromática de orilla en shader existente; sin mallas adicionales, cambios de trazado, física ni colisiones. Commit `90cacc2ddcedc031e38a68487068be5f9beba276`, PR borrador #38 https://github.com/jmortegacu-jpg/paso-alpino/pull/38.
+- Vehículos: Aurora V12, ID `aurora`, repetidores ámbar en retrovisores, commits `3e353b6d5a1c15dddffe38b829d860feed5929d7` y corrección de simetría `cdcb03afba6541d8d64d5da987751a61c1b2df31`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45.
+- Fuentes paisajísticas de contraste ya documentadas: ICT https://es.visitcostarica.com/ y SNIT https://www.snitcr.go.cr/ ; elementos escenográficos, no GPS ni activos copiados.
+- Verificado: escritura GitHub de ambos cambios; PR #38 y #45 abiertos como borrador y figuraban fusionables con main antes de los nuevos commits, no significa compatibilidad mutua. Sin parser, WebGL, capturas, FPS, física ni multijugador ejecutados en este turno.
+- Checklist: [x] shader costero modificado; [x] automóvil mejorado; [ ] inspección desde conducción y exterior; [ ] WebGL/FPS; [ ] pruebas críticas; [ ] reconciliar PR concurrentes; [ ] seis pistas y vehículos integrados. NO LISTO para Netlify; sin merge ni despliegue.
