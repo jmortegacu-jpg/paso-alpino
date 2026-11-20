@@ -533,6 +533,31 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     rockMesh.computeBoundingSphere();
     rockMesh.castShadow=false;
     world.add(rockMesh);
+    // Layered highland ridgeline: cool distant silhouettes create atmospheric
+    // depth behind the wind farm from the driver's view. Original geometry,
+    // no textures, collisions or dynamic lights; quality-scaled instances.
+    const ridgeCount=hi?16:quality==='media'?9:5;
+    const ridgeMaterial=new THREE.MeshStandardMaterial({
+      color:0x667b75,roughness:1,metalness:0,flatShading:true
+    });
+    const ridgeMesh=new THREE.InstancedMesh(
+      new THREE.IcosahedronGeometry(1,1),ridgeMaterial,ridgeCount);
+    const ridgeDummy=new THREE.Object3D();
+    for(let j=0;j<ridgeCount;j++){
+      const k=Math.floor(N*(.32+.40*(j+.5)/ridgeCount));
+      const side=j%2?1:-1;
+      const h=24+15*Math.abs(Math.sin(j*1.37));
+      ridgeDummy.position.copy(node(k,side,145+20*Math.abs(Math.sin(j*1.9)),h*.2));
+      ridgeDummy.rotation.set(0,j*.73,0);
+      ridgeDummy.scale.set(29+12*Math.abs(Math.cos(j)),h,23+8*Math.abs(Math.sin(j)));
+      ridgeDummy.updateMatrix();ridgeMesh.setMatrixAt(j,ridgeDummy.matrix);
+      const shade=.8+.18*Math.abs(Math.sin(j*1.53));
+      ridgeMesh.setColorAt(j,new THREE.Color().setRGB(shade,shade,shade));
+    }
+    ridgeMesh.instanceMatrix.needsUpdate=true;
+    ridgeMesh.computeBoundingSphere();
+    ridgeMesh.castShadow=false;ridgeMesh.receiveShadow=false;
+    world.add(ridgeMesh);
     // High-altitude roadside delineators: inexpensive original geometry, no physics.
     // Keep posts off the racing ribbon; quality-scaled instance counts.
     const delineatorCount=hi?32:quality==='media'?20:12;
