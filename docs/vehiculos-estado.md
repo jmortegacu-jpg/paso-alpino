@@ -51,3 +51,9 @@
 - ID `aurora`, `graphics/future-chassis.js`: nervadura central de capó hecha con curva y material PBR existente; grosor alta .019 / reducida .012. Complementa hombros del capó existentes sin modificar shell estructural, ejes, colisiones, física, controles ni red.
 - Commit `453017c80f72895a586c953850b3ac917a82251d`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 . Pista paralela Ruta 34, rompiente costera secundaria, commit `5020c720cf32c2575ac8aa85cbeb73ab8a484cb5`, PR #38. Siguiente Ruta 2.
 - GitHub aceptó cambios; no ejecutados parser, WebGL, capturas, FPS, física o multijugador. [ ] verificar oclusión de capó desde cámaras; [ ] FPS; [ ] compatibilidad con otras ramas. No fusionar ni publicar Netlify.
+
+
+## 2026-11-21 12:00 Costa Rica — Aurora V12
+- Modelo `aurora`, módulo `graphics/future-chassis.js`: capucha de tablero y dos instrumentos cilíndricos con biseles PBR, solo en detalle alto, geometría original. Commit `3a90363aa829459fbd5de5f0adbc3daea3bb866b`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45.
+- Pista paralela Ruta 2, barrera montana instanciada, commit `7d1dae2ec34b1e7fc24910dcb228d33733f3e16e`, PR #33; siguiente Ruta 27.
+- Sin cambios de físicas, ruedas, ejes, controles, colisiones o red. GitHub aceptó código. [ ] comprobar visual desde conductor y exterior; [ ] parser JS; [ ] WebGL; [ ] FPS móvil/PC; [ ] pruebas de físicas/multijugador; [ ] compatibilidad con PR de carrocerías. **No fusionar ni publicar en Netlify**.
