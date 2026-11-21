@@ -331,6 +331,29 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     wallBands.castShadow=false;
     wallBands.receiveShadow=false;
     world.add(wallBands);
+    // Warm ceiling wayfinding markers: subtle repeating panels provide a
+    // readable tunnel rhythm without expensive point lights or physics meshes.
+    const ceilingStep=hi?22:38;
+    const ceilingCount=Math.max(1,Math.floor(count/ceilingStep));
+    const ceilingMarkers=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(1.05,.045,.52),
+      new THREE.MeshStandardMaterial({color:0xd9d9bd,emissive:0x554c2d,
+        emissiveIntensity:.18,metalness:.05,roughness:.74}),
+      ceilingCount);
+    const ceilingDummy=new THREE.Object3D();
+    for(let j=0;j<ceilingCount;j++){
+      const k=(start+(j+1)*ceilingStep)%N;
+      ceilingDummy.position.copy(points[k]);
+      ceilingDummy.position.y+=10.08;
+      ceilingDummy.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+      ceilingDummy.updateMatrix();
+      ceilingMarkers.setMatrixAt(j,ceilingDummy.matrix);
+    }
+    ceilingMarkers.instanceMatrix.needsUpdate=true;
+    ceilingMarkers.computeBoundingSphere();
+    ceilingMarkers.castShadow=false;
+    ceilingMarkers.receiveShadow=false;
+    world.add(ceilingMarkers);
     // Bright linear light strips and reinforced stone portal frames.
     // Shared tunnel-light geometry/material; one draw call instead of one per strip.
     const lampStep=hi?28:48, lampCount=Math.floor(count/lampStep)+1;
