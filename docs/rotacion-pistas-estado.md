@@ -75,3 +75,12 @@ Rotación: Ruta 2 Cerro de la Muerte → Ruta 27 → Ruta 32 Zurquí → Puntare
 - Compatibilidad: PR #42 y #45 estaban **no fusionables** con main al consultar antes del cambio; conflictos con otros PR del mismo módulo sin resolver. No merge ni Netlify.
 - Checklist Ruta 32: [x] nervaduras, bóveda PBR, bandas reflectantes; [ ] validar renderizado/posición; [ ] FPS y compatibilidad PR.
 - Checklist global: [ ] seis pistas integradas y verificadas; [ ] vehículos visualmente validados; [ ] pruebas WebGL/FPS/físicas/red; [ ] PR compatibles y bloqueos resueltos; [ ] autorización de publicación. **No listo para Netlify.**
+
+## Revisión 2026-11-21 18:00 Costa Rica — Ruta 32 Zurquí
+- Pista 3/6: ID `zurqui`; siguiente 4/6 Puntarenas (`puntarenas`). Historial consultado: las bandas, luminarias, nervaduras y portales ya existían; esta revisión añade un elemento diferente.
+- Código: paneles cálidos de techo instanciados con densidad adaptable (paso 22/38 nodos), material PBR con emisión suave, sin luces dinámicas, físicas ni colisiones. Commit `a731136b875bfd393495e83c83b8be1db2332682`; PR borrador #42 https://github.com/jmortegacu-jpg/paso-alpino/pull/42.
+- Vehículos: Aurora V12 ID `aurora`, tercera luz de freno curvada bajo luneta trasera, material de freno animado compartido; commit `d96598ff567bd34689e2736e754761ebeb0953c1`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45.
+- Fuentes contextuales: SINAC Braulio Carrillo https://www.sinac.go.cr/es/ac/accvc/pnbc/paginas/default.aspx y MOPT Ruta 32 https://www.mopt.go.cr/node/1031 . Los paneles son diseño escenográfico original, no réplica exacta.
+- Pruebas: GitHub confirmó escrituras. No ejecutadas sintaxis JS, WebGL, FPS, física, multijugador ni capturas; pendiente verificar altura real del techo y oclusión de luz trasera. PR #42/#45 concurrentes con otros cambios en los mismos módulos: compatibilidad sin demostrar.
+- Checklist Ruta 32: [x] paneles de techo instanciados; [ ] cámara y WebGL; [ ] FPS móvil/PC; [ ] integrar PR. Vehículos: [x] luz trasera visual; [ ] cámaras, física, FPS y compatibilidad.
+- Global: [ ] seis pistas integradas y probadas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas y bloqueos resueltos. Sin fusión ni Netlify.
