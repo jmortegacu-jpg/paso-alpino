@@ -333,6 +333,17 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const vin=M.id==='danta'?.24:.45, iz=W.zr+.79;
     const intake=box(.021,vin,.53,material.vent,s*(cw(iz)*.978),M.B.ys(iz)-.09,iz);
     intake.rotation.y=s*.10;intake.rotation.z=s*.065;
+    // Aurora V12: three satin inlet vanes create a readable layered side
+    // intake in exterior view, with no modification to shell or collision rig.
+    if(M.id==='aurora'){
+      for(let vane=0;vane<3;vane++){
+        const fin=box(.027,.018,.40,material.trim,
+          s*(cw(iz)*.988),M.B.ys(iz)-.09+(vane-1)*.105,iz);
+        fin.rotation.y=s*.10;
+        fin.rotation.z=s*.065;
+        fin.castShadow=false;
+      }
+    }
     for(let k=0;k<3;k++)box(.027,.015,.40,material.mesh,
       s*cw(iz)*.99,M.B.ys(iz)-.16+k*.1,iz);
     // Architectural fender vents placed behind the front axle.
