@@ -105,3 +105,13 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Aurora V12 (ID `aurora`): moldura satinada de estribo, curvada según el perfil de la carrocería a ambos lados, con geometría reducida en calidad baja. Sin física ni colisiones nuevas. Commit `a53fcd5f2e40e875b5110608be46b50b0fb6b126`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45.
 - Verificación: commits de GitHub aceptados. **Pendientes** parser JS, captura WebGL, FPS móvil/PC, conducción, físicas, multijugador y comparación visual. PR #33 figuraba fusionable y #45 no fusionable al consultar antes de estos cambios; compatibilidad cruzada pendiente.
 - Checklist: [x] silueta montañosa incremental; [x] detalle exterior Aurora; [ ] verificar escala, carretera y culling; [ ] FPS/WebGL; [ ] resolver PR #45 y demás PR; [ ] validar seis pistas, vehículos y pruebas críticas. **NO LISTO PARA NETLIFY.** Sin merge ni despliegue.
+
+
+## 2026-11-21 12:00 Costa Rica — Ruta 2 / vehículo
+- Pista 1/6 **Ruta 2 Cerro de la Muerte** (ID `ruta2`), siguiente 2/6 **Ruta 27**. Se revisó el historial de Ruta 34 (2026-11-21 09:00) y los cambios anteriores de Ruta 2: no se duplicaron crestas, arbustos, aerogeneradores ni delineadores.
+- Escenario: barrera de seguridad montana escenográfica, 26/16/9 postes y vigas instanciadas según calidad; acero PBR, a 26 unidades laterales del eje, sin cuerpos físicos, sin cambios de calzada ni controles. Commit `7d1dae2ec34b1e7fc24910dcb228d33733f3e16e`, PR borrador #33 https://github.com/jmortegacu-jpg/paso-alpino/pull/33.
+- Referencias de paisaje: Coopesantos https://www.coopesantos.com/servicios/generacion-de-energia/ y SNIT https://www.snitcr.go.cr/ ; geometría y ubicación ilustrativas, NO señalización ni navegación reales.
+### Vehículos
+- Aurora V12 (ID `aurora`, archivo `graphics/future-chassis.js`): tablero con capucha de instrumentos y dos relojes 3D, solo en calidad alta, visibles potencialmente desde parabrisas/cabina. Commit `3a90363aa829459fbd5de5f0adbc3daea3bb866b`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45. Sin modificar ejes, ruedas, colisiones, controles o físicas.
+- Verificación: GitHub confirmó commits. **Sin pruebas ejecutadas** de parser JS, WebGL, capturas desde cabina, FPS móvil/PC, física y multijugador; por tanto la visibilidad del tablero y continuidad de barrera son hipótesis pendientes.
+- Compatibilidad: PR de escenarios y vehículos abiertos; verificar conflictos antes de cualquier merge, especialmente #33 y #45 con main y otros PR. [ ] revisar geometría desde conducción; [ ] comprobar WebGL/FPS; [ ] pruebas críticas; [ ] integrar seis pistas y vehículos; [ ] resolver conflictos. **NO LISTO para publicación**. No merge ni Netlify.
