@@ -19,3 +19,9 @@
 - Modelo `aurora`, original; se agregaron dos molduras satinadas curvas siguiendo el estribo con radio 0.014 alta / 0.010 baja, material PBR existente. Commit `a53fcd5f2e40e875b5110608be46b50b0fb6b126`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45.
 - Pista paralela del turno: Ruta 2 Cerro de la Muerte, crestas distantes con LOD; commit `e85c71bf124d26a147e68b5be4df34ca66b87146`, PR #33. Siguiente Ruta 27. Fuente de paisaje: https://www.coopesantos.com/servicios/generacion-de-energia/.
 - Sin modificación de ejes, neumáticos, controles, colisiones ni multijugador. Escritura GitHub confirmada; sin pruebas ejecutadas de parser, WebGL, FPS o cámara. PR #45 no fusionable al consultar antes del cambio. [ ] Captura exterior y conducción; [ ] FPS; [ ] física y red; [ ] compatibilidad PR. **No publicar en Netlify.**
+
+## 2026-11-20 21:00 Costa Rica — Aurora V12
+- Se añadió superficie reflectante tridimensional dentro de cada carcasa de retrovisor con `MeshPhysicalMaterial` y geometría de baja complejidad según calidad, sin tocar carrocería estructural, ejes, ruedas, controles, colisiones o multijugador.
+- Commit `ccfd61fc01bcf407e4ad09c71c32e31d5bb9bbcb`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Pista del turno: Ruta 27, postes de parapeto del viaducto, commit `d783fcb5d7f79aa9041885b4ac0b5286ac29606b`, PR #34. Próxima pista Ruta 32.
+- Escritura confirmada en GitHub; sin pruebas ejecutadas de parser, WebGL, FPS, físicas ni multijugador. [ ] comprobar simetría y orientación desde cámara exterior; [ ] rendimiento; [ ] integración de PR. **No fusionar ni desplegar Netlify.**
