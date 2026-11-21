@@ -585,6 +585,39 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       mesh.castShadow=false;
       world.add(mesh);
     }
+    // Montane safety guardrail: paired lightweight rails and posts along a
+    // short scenic outer curve, away from the drivable surface. Decorative only.
+    // Geometry is original and LOD-scaled; no rigid bodies or road edits.
+    const railCount=hi?26:quality==='media'?16:9;
+    const railPosts=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.22,1.3,.22),
+      new THREE.MeshStandardMaterial({color:0x8e9997,metalness:.48,roughness:.43}),
+      railCount);
+    const railBeams=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.18,.27,5.2),
+      new THREE.MeshStandardMaterial({color:0xc3cac5,metalness:.55,roughness:.38}),
+      railCount);
+    const railDummy=new THREE.Object3D();
+    for(let j=0;j<railCount;j++){
+      const k=Math.floor(N*(.46+.085*(j+.5)/railCount));
+      const p=node(k,1,26,-.15);
+      railDummy.position.copy(p);
+      railDummy.position.y+=.65;
+      railDummy.rotation.set(0,0,0);
+      railDummy.scale.set(1,1,1);
+      railDummy.updateMatrix();
+      railPosts.setMatrixAt(j,railDummy.matrix);
+      railDummy.position.y=p.y+1.13;
+      railDummy.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      railDummy.updateMatrix();
+      railBeams.setMatrixAt(j,railDummy.matrix);
+    }
+    for(const mesh of [railPosts,railBeams]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;
+      world.add(mesh);
+    }
     // Driver-readable roadside identification, not a reproduction of a real sign.
     sign('PARQUE EOLICO LOS SANTOS',Math.floor(N*.07),1,18);
     sign('COOPESANTOS',Math.floor(N*.15),-1,18);
