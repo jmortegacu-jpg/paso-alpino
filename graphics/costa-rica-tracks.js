@@ -121,7 +121,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const seaMat=new THREE.ShaderMaterial({side:THREE.DoubleSide,uniforms:{uT:{value:0}},
       vertexShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){vAcross=uv.x;vec3 p=position;p.y+=.15*sin(p.x*.16+uT*.85)*cos(p.z*.09-uT*.64);vW=p;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
-      fragmentShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){float wave=sin(vW.x*.25+uT*.75)*cos(vW.z*.24-uT*.48);float foam=pow(max(0.,sin(vW.x*.46+vW.z*.3+uT*.75)),13.);vec3 c=mix(vec3(.025,.17,.27),vec3(.07,.45,.55),.55+.32*wave);c+=vec3(.24,.31,.29)*foam*.25;float shoreline=(1.-smoothstep(.0,.09,vAcross))*sin(vW.x*.65+uT*.55)*.07;c+=max(0.,shoreline)*vec3(.5,.72,.78);gl_FragColor=vec4(c,1.);}`});
+      fragmentShader:`varying vec3 vW;varying float vAcross;uniform float uT;void main(){float wave=sin(vW.x*.25+uT*.75)*cos(vW.z*.24-uT*.48);float foam=pow(max(0.,sin(vW.x*.46+vW.z*.3+uT*.75)),13.);vec3 c=mix(vec3(.025,.17,.27),vec3(.07,.45,.55),.55+.32*wave);c+=vec3(.24,.31,.29)*foam*.25;float shoreMask=1.-smoothstep(.015,.19,vAcross);float wash=.5+.5*sin(vW.x*.22+vW.z*.16-uT*.65);float shoreline=shoreMask*smoothstep(.35,.82,wash);float breaker=exp(-pow((vAcross-(.055+.024*sin(vW.x*.075+uT*.22)))/.022,2.));float ripples=breaker*(.55+.45*sin(vW.x*.43-vW.z*.31+uT*1.15));c=mix(c,vec3(.47,.75,.76),shoreline*.44);c=mix(c,vec3(.63,.83,.83),clamp(ripples*.30,0.,.30));c+=vec3(.09,.14,.13)*foam*.22;gl_FragColor=vec4(c,1.);}`});
     const shore=new THREE.Mesh(g,seaMat);shore.receiveShadow=true;
     shore.onBeforeRender=()=>{seaMat.uniforms.uT.value=performance.now()*.001;};world.add(shore);
   }
@@ -472,6 +472,114 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     }
     streetlights(0,start-50,1,85);
   } else if(id==='costanera'){
+    // Coastal foothills beyond the drivable ribbon. Two instanced meshes,
+    // quality-scaled and without collision or additional dynamic lights.
+    // Artistic placement: these are not surveyed landmarks.
+    const coastalHills=hi?42:quality==='media'?24:12;
+    const coastalRock=new THREE.MeshStandardMaterial({color:0x537b58,roughness:.91,metalness:0,flatShading:true});
+    // More silhouette facets only on capable devices; no external textures.
+    const coastalHillGeo=new THREE.IcosahedronGeometry(1,hi?2:1);
+    const coastalHillMesh=new THREE.InstancedMesh(coastalHillGeo,coastalRock,coastalHills);
+    const hillDummy=new THREE.Object3D();
+    for(let j=0;j<coastalHills;j++){
+      const k=Math.floor(N*(j+.5)/coastalHills);
+      // Keep the sea-facing shore sectors clear; hills sit inland.
+      const side=k<N*.35?-1:k>N*.67?1:(j%2?1:-1);
+      const dist=115+25*Math.abs(Math.sin(j*2.17));
+      const h=13+15*Math.abs(Math.sin(j*1.31));
+      hillDummy.position.copy(node(k,side,dist,h*.24));
+      hillDummy.rotation.set(0,j*.77,0);
+      hillDummy.scale.set(23+8*Math.abs(Math.cos(j)),h,19+6*Math.abs(Math.sin(j)));
+      hillDummy.updateMatrix();coastalHillMesh.setMatrixAt(j,hillDummy.matrix);
+      // Deterministic tonal variation gives the coastal relief depth without
+      // extra meshes, textures, lights or draw calls (instanceColor attribute).
+      const shade=0.78+0.18*Math.abs(Math.sin(j*1.73));
+      coastalHillMesh.setColorAt(j,new THREE.Color().setRGB(shade,shade,shade));
+    }
+    // Commit all transforms before frustum culling. The hills are spread
+    // along a long coastal route; their bounds must include every instance.
+    coastalHillMesh.instanceMatrix.needsUpdate=true;
+    coastalHillMesh.computeBoundingSphere();
+    coastalHillMesh.receiveShadow=true;
+    coastalHillMesh.castShadow=false;
+    world.add(coastalHillMesh);
+    // A distant, cooler ridge creates depth and a recognizable coastal
+    // mountain skyline from the driving camera. Instancing keeps draw calls
+    // fixed; the ridge is scenery only, with no collision or dynamic lights.
+    const distantCount=hi?18:quality==='media'?10:5;
+    const distantMaterial=new THREE.MeshStandardMaterial({
+      color:0x718b83,roughness:1,metalness:0,flatShading:true
+    });
+    const distantGeo=new THREE.IcosahedronGeometry(1,1);
+    const distantRidge=new THREE.InstancedMesh(distantGeo,distantMaterial,distantCount);
+    const ridgeDummy=new THREE.Object3D();
+    for(let j=0;j<distantCount;j++){
+      const k=Math.floor(N*(j+.42)/distantCount);
+      const side=k<N*.35?-1:k>N*.67?1:(j%2?1:-1);
+      const height=28+15*Math.abs(Math.sin(j*1.43));
+      ridgeDummy.position.copy(node(k,side,175+25*Math.abs(Math.sin(j*1.91)),height*.22));
+      ridgeDummy.rotation.set(0,j*.63,0);
+      ridgeDummy.scale.set(35+12*Math.abs(Math.cos(j)),height,27+8*Math.abs(Math.sin(j)));
+      ridgeDummy.updateMatrix();
+      distantRidge.setMatrixAt(j,ridgeDummy.matrix);
+      const tint=.82+.16*Math.abs(Math.sin(j*1.37));
+      distantRidge.setColorAt(j,new THREE.Color().setRGB(tint,tint,tint));
+    }
+    distantRidge.instanceMatrix.needsUpdate=true;
+    distantRidge.computeBoundingSphere();
+    distantRidge.castShadow=false;
+    distantRidge.receiveShadow=false;
+    world.add(distantRidge);
+    // Roadside delineators inspired by RN34 reflective safety markings (MOPT).
+    // Purely decorative, outside the drivable corridor; no collision changes.
+    const markerCount=hi?48:quality==='media'?24:12;
+    const markerGeo=new THREE.BoxGeometry(.28,1.15,.20);
+    const markerMat=new THREE.MeshStandardMaterial({color:0xe9e8d8,roughness:.7,metalness:0});
+    const markerReflectorMat=new THREE.MeshBasicMaterial({color:0xffd88a});
+    const markers=new THREE.InstancedMesh(markerGeo,markerMat,markerCount);
+    const reflectors=new THREE.InstancedMesh(new THREE.BoxGeometry(.3,.23,.23),markerReflectorMat,markerCount);
+    const markerDummy=new THREE.Object3D();
+    for(let j=0;j<markerCount;j++){
+      const k=Math.floor(N*(j+.5)/markerCount);
+      const side=j%2?1:-1;
+      markerDummy.position.copy(node(k,side,29,.62));
+      markerDummy.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+      markerDummy.scale.set(1,1,1);markerDummy.updateMatrix();
+      markers.setMatrixAt(j,markerDummy.matrix);
+      markerDummy.position.y+=.32;markerDummy.updateMatrix();
+      reflectors.setMatrixAt(j,markerDummy.matrix);
+    }
+    for(const mesh of [markers,reflectors]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;mesh.receiveShadow=false;
+      world.add(mesh);
+    }
+    // Small coastal rock outcrops beyond the road edge, using one instanced
+    // PBR mesh. These are artistic roadside cues, not surveyed positions.
+    const outcropCount=hi?28:quality==='media'?16:8;
+    const outcropGeo=new THREE.DodecahedronGeometry(1,0);
+    const outcropMat=new THREE.MeshStandardMaterial({color:0x77786a,roughness:.96,metalness:0,flatShading:true});
+    const outcrops=new THREE.InstancedMesh(outcropGeo,outcropMat,outcropCount);
+    const outcropDummy=new THREE.Object3D();
+    for(let j=0;j<outcropCount;j++){
+      const k=Math.floor(N*(j+.35)/outcropCount);
+      // Place outcrops inland, at least 55 units from track centre.
+      const side=k<N*.35?-1:k>N*.67?1:(j%2?1:-1);
+      outcropDummy.position.copy(node(k,side,55+10*Math.abs(Math.sin(j*2.3)),.15));
+      outcropDummy.rotation.set(.12*j,j*.71,.09*j);
+      outcropDummy.scale.set(2.2+1.3*Math.abs(Math.sin(j)),1.2+.8*Math.abs(Math.cos(j)),1.7+.7*Math.abs(Math.sin(j*.8)));
+      outcropDummy.updateMatrix();
+      outcrops.setMatrixAt(j,outcropDummy.matrix);
+    }
+    outcrops.instanceMatrix.needsUpdate=true;
+    outcrops.computeBoundingSphere();
+    outcrops.castShadow=false;
+    outcrops.receiveShadow=false;
+    world.add(outcrops);
+    // Destination names are real; their positions on this arcade loop are illustrative.
+    sign('DOMINICAL · UVITA',Math.floor(N*.25),-1,24);
+    sign('RUTA 34 · HACIA PALMAR NORTE',Math.floor(N*.73),1,24);
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
     palms(hi?140:65,Math.floor(N*.49),N,-1,32);
     roadShore(0,Math.floor(N*.35),1,28,100);
