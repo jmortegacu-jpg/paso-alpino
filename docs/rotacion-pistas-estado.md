@@ -65,3 +65,13 @@ Rotación: Ruta 2 Cerro de la Muerte → Ruta 27 → Ruta 32 Zurquí → Puntare
 - Checklist Ruta 32: [x] nervaduras instanciadas y material de túnel; [ ] verificar escala/cámara y FPS; [ ] integrar PR concurrentes.
 - Checklist vehículos: [x] proyectores 3D Aurora V12; [ ] verificar faros y visibilidad; [ ] probar otros vehículos, físicas y FPS.
 - Global: [ ] seis pistas verificadas e integradas; [ ] vehículos verificados; [ ] PR compatibles; [ ] WebGL/FPS/físicas/multijugador; [ ] bloqueos resueltos. **No listo para Netlify; sin publicación.**
+
+## Revisión incremental — 2026-11-20 23:55 Costa Rica
+- Pista trabajada: **3/6 Ruta 32 Zurquí**, ID `zurqui`; siguiente **4/6 Paseo de los Turistas Puntarenas**. Revisados historial anterior y PR #42; no se duplicaron nervaduras ni luminarias.
+- Mejora visual real: bandas reflectantes bajas a ambos lados del túnel, 2 por estación, cada 14 nodos en alta o 25 en reducida, con un `THREE.InstancedMesh`, material PBR de emisión tenue y sin luces dinámicas. Objetivo: sensación de profundidad y velocidad desde cámara conductor. Commit `c9bf5080e258c03c4c738cc36cff004843183588`, PR borrador #42 https://github.com/jmortegacu-jpg/paso-alpino/pull/42 .
+- **Vehículos:** Aurora V12, ID `aurora` en `graphics/future-chassis.js`; dos extractores de capó originales de geometría curva con borde satinado y detalle adaptable. Commit `25eec5a7a45e307e3ac9ac75dd08bef79b034a4c`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Fuentes de contexto existentes: SINAC Parque Nacional Braulio Carrillo https://www.sinac.go.cr/es/ac/accvc/pnbc/paginas/default.aspx ; LanammeUCR https://www.lanamme.ucr.ac.cr/ . Geometría original, ubicación ilustrativa; no fotografías copiadas.
+- Verificado: GitHub aceptó ambos commits. Pendientes: parser JavaScript ejecutado, render WebGL, escala y orientación desde conductor, FPS móvil/PC, físicas, multijugador.
+- Compatibilidad: PR #42 y #45 estaban **no fusionables** con main al consultar antes del cambio; conflictos con otros PR del mismo módulo sin resolver. No merge ni Netlify.
+- Checklist Ruta 32: [x] nervaduras, bóveda PBR, bandas reflectantes; [ ] validar renderizado/posición; [ ] FPS y compatibilidad PR.
+- Checklist global: [ ] seis pistas integradas y verificadas; [ ] vehículos visualmente validados; [ ] pruebas WebGL/FPS/físicas/red; [ ] PR compatibles y bloqueos resueltos; [ ] autorización de publicación. **No listo para Netlify.**
