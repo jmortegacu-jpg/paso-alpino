@@ -79,3 +79,13 @@ Fecha local: 2026-11-16 18:03, Costa Rica.
 - Pendientes: parser JS ejecutado, WebGL, capturas de cámara exterior/conducción, dimensiones y oclusión de balizas y ópticas, FPS móvil/PC, físicas y multijugador. **No atribuir mejoras de FPS ni apariencia comprobada sin renderizado.**
 - Checklist Puntarenas: [x] balizas 3D instanciadas; [ ] inspección visual y pruebas de rendimiento; [ ] conciliación de PR. Vehículos: [x] detalle trasero Aurora V12; [ ] verificar ópticas y compatibilidad en navegador.
 - Checklist global: [ ] seis pistas integradas y verificadas; [ ] vehículos completos; [ ] PR compatibles; [ ] WebGL/FPS/físicas/multijugador satisfactorios; [ ] bloqueos resueltos. **NO LISTO PARA NETLIFY**. No se fusionó ni publicó.
+
+
+## Revisión incremental — 2026-11-21 02:55 Costa Rica
+- Pista única: **4/6 Puntarenas**, ID `puntarenas`; siguiente **5/6 Ruta 1 Guanacaste**. Se comprobó el historial de la rama y PR #39/#46; no se duplicaron muelle, bitas ni balizas.
+- Cambio visual: dos escaleras de seguridad originales en el extremo del muelle, con cuatro pasamanos y 12/8 peldaños según calidad, dos `THREE.InstancedMesh`, límites de visibilidad calculados y sin sombras/colisiones. Código `graphics/costa-rica-tracks.js`, commit `65653a3757c994a83f95680120db8ee5b533a4d9`, PR borrador #39 https://github.com/jmortegacu-jpg/paso-alpino/pull/39 .
+- **Vehículos:** Aurora V12 (`aurora`), costilla interior oscura en cada extractor de capó, LOD de grosor según calidad. Archivo `graphics/future-chassis.js`, commit `3856797d2d7b391080381c83dc5cb6da070e531a`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Fuentes contextuales existentes: INCOP https://incop.go.cr/terminal-de-cruceros/ e ICT https://es.visitcostarica.com/where-to-go/puntarenas/tourist-atractions-in-puntarenas . Escaleras son una interpretación artística, no reproducción exacta.
+- Verificado: lectura de archivos, IDs y PR abiertos; GitHub confirmó los dos commits. PR #39 y #45 figuraban abiertos, borrador y fusionables individualmente antes de la escritura; #46 también abierto. No se comprobó compatibilidad conjunta.
+- Pendientes: parser JS, inspección WebGL, oclusión/escala de escaleras y extractores, FPS móvil/PC, físicas, multijugador y conciliación PR #36/#39/#44/#46.
+- Checklist Puntarenas: [x] detalle portuario 3D instanciado; [ ] cámara, FPS y colisiones; [ ] integrar PR. Vehículos: [x] detalle de capó; [ ] validación visual/física. **No listo para Netlify; sin merge ni despliegue.**
