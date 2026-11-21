@@ -325,6 +325,17 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const mirror=add(new THREE.SphereGeometry(.095,high?16:8,high?10:6),material.paint,
        s*(M.K.wb(z0-.18)+.19),M.K.top(z0-.18)-.17,z0-.17);
     mirror.scale.set(1.22,.62,.74);
+    // Aurora mirror glass: inset reflective face, following the existing
+    // housing instead of changing its silhouette or the driving physics.
+    if(M.id==='aurora'){
+      const mirrorGlass=new THREE.MeshPhysicalMaterial({
+        color:0x8aabb6,metalness:.72,roughness:.16,
+        clearcoat:1,clearcoatRoughness:.08,side:THREE.DoubleSide
+      });
+      const inset=add(new THREE.SphereGeometry(.074,high?14:8,high?8:5),
+        mirrorGlass,s*(M.K.wb(z0-.18)+.19),M.K.top(z0-.18)-.17,z0-.215);
+      inset.scale.set(1.12,.53,.12);
+    }
     // Aurora-only slim amber mirror repeater: original design, purely visual.
     // Mounted on the existing housing; no dynamic light or collision change.
     if(M.id==='aurora'){
