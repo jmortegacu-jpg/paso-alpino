@@ -107,3 +107,15 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Checklist Ruta 27: [x] arriostramientos del viaducto; [ ] validar escala/visibilidad y conducción; [ ] integrar PR sin conflictos.
 - Checklist vehículos: [x] ópticas Aurora con material físico; [ ] comprobar luces en navegador; [ ] revisar carrocerías restantes y rendimiento.
 - Checklist global: [ ] seis pistas integradas y verificadas; [ ] vehículos; [ ] compatibilidad de PR; [ ] WebGL/FPS/físicas/multijugador; [ ] autorización expresa. **NO LISTO PARA NETLIFY; sin merge ni despliegue.**
+
+## Turno 2026-11-20 21:00 Costa Rica — pista 2/6 Ruta 27
+- Se revisaron historial y PR #34 y #45; próxima pista: **3/6 Ruta 32 Zurquí**. ID de pista: `ruta27`.
+- Mejora real de escena: 36/18 postes de parapeto del viaducto (calidad alta/baja), mediante un único `THREE.InstancedMesh`, material PBR de acero existente, sin nuevas luces, colisiones ni modificación de la calzada. Commit `d783fcb5d7f79aa9041885b4ac0b5286ac29606b`, PR borrador #34 https://github.com/jmortegacu-jpg/paso-alpino/pull/34 .
+- Referencias: CNC https://cnc.go.cr/proyectos/en-marcha/corredor-vial-san-jose-caldera-ruta-27 y Globalvia https://globalviaruta27.com/ ; viaducto es representación escenográfica, no réplica georreferenciada. Sin copiar fotografías.
+### Vehículos
+- Aurora V12 (ID `aurora`): cara de espejo reflectante en ambos retrovisores, geometría ligera y material físico compartido por material al consolidar geometría, sin cambios en controles, ejes o física. Commit `ccfd61fc01bcf407e4ad09c71c32e31d5bb9bbcb`, PR #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- PR #34 consultado **no fusionable**; PR #45 consultado fusionable con main antes del cambio, sin certificar compatibilidad conjunta.
+- Verificado: GitHub aceptó las dos escrituras. No se ejecutaron parser JS, capturas WebGL, FPS móvil/PC, física ni multijugador. Revisar orientación y visibilidad del parapeto y caras de espejo.
+- Checklist Ruta 27: [x] parapeto instanciado; [ ] inspección desde cabina; [ ] FPS y WebGL; [ ] resolver conflicto PR #34.
+- Checklist vehículos: [x] reflectores de retrovisores; [ ] captura exterior; [ ] FPS/WebGL; [ ] integración con otros PR.
+- Global: [ ] seis pistas validadas e integradas; [ ] vehículos; [ ] PR compatibles; [ ] física/multijugador/FPS/WebGL; [ ] autorización. **NO LISTO PARA NETLIFY. Sin merge ni despliegue.**
