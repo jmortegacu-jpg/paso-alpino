@@ -378,6 +378,27 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       for(const x of [-51,-35,35,51]){
         group.add(cube(2.6,21,2.6,mats.concrete,x,10.5,0));
       }
+      // Thin upright parapet posts make the elevated deck read as a real
+      // viaduct from the chase camera. Instanced, decorative, no collisions.
+      const parapetCount=hi?36:18;
+      const parapetGeo=new THREE.BoxGeometry(.22,1.3,.22);
+      const parapets=new THREE.InstancedMesh(parapetGeo,steel,parapetCount);
+      const parapetDummy=new THREE.Object3D();
+      for(let j=0;j<parapetCount;j++){
+        const side=j%2?1:-1;
+        const slot=Math.floor(j/2);
+        const slots=parapetCount/2;
+        parapetDummy.position.set(-53+106*(slot+.5)/slots,24.1,side*5.2);
+        parapetDummy.rotation.set(0,0,0);
+        parapetDummy.scale.set(1,1,1);
+        parapetDummy.updateMatrix();
+        parapets.setMatrixAt(j,parapetDummy.matrix);
+      }
+      parapets.instanceMatrix.needsUpdate=true;
+      parapets.computeBoundingSphere();
+      parapets.castShadow=false;
+      parapets.receiveShadow=false;
+      group.add(parapets);
       // Repeated diagonal side bracing makes the elevated viaduct readable
       // from the chase camera. Shared PBR material; decorative, no collisions.
       const braceGeo=new THREE.BoxGeometry(.38,1, .38);
