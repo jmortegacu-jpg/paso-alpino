@@ -375,6 +375,14 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       curve(shoulderLine,material.trim,high?.014:.009);
     }
   }
+  // Aurora V12: a restrained centre bonnet spine provides a continuous
+  // reflected highlight in chase and bonnet cameras, using existing PBR trim.
+  // Decorative only: original shell, collision hull and controls are untouched.
+  if(M.id==='aurora'){
+    const spine=[F-.18,F-.37,F-.56,F-.76].map(z=>
+      [0,roof(z)+styleRidge(z,0,cw(z))+.037,z]);
+    curve(spine,material.trim,high?.019:.012);
+  }
   // Matching four wheel arches: fender lips follow exact tire centre and
   // radius; no independent shifts of the axles or wheels.
   for(const [z,rad] of [[W.zf,W.rf],[W.zr,W.rr]]){
