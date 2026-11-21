@@ -119,3 +119,15 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Checklist Ruta 27: [x] parapeto instanciado; [ ] inspección desde cabina; [ ] FPS y WebGL; [ ] resolver conflicto PR #34.
 - Checklist vehículos: [x] reflectores de retrovisores; [ ] captura exterior; [ ] FPS/WebGL; [ ] integración con otros PR.
 - Global: [ ] seis pistas validadas e integradas; [ ] vehículos; [ ] PR compatibles; [ ] física/multijugador/FPS/WebGL; [ ] autorización. **NO LISTO PARA NETLIFY. Sin merge ni despliegue.**
+
+
+## Turno 2026-11-21 15:00 Costa Rica — Ruta 27 (2/6)
+- Historial revisado: último turno Ruta 2 (12:00); pista actual **Ruta 27** (ID `ruta27`), próxima **Ruta 32 Zurquí** (3/6). No se repitieron los postes de parapeto ni los arriostramientos anteriores.
+- Cambio real: 24/12 reflectores ámbar instanciados sobre el parapeto del viaducto, sin luces dinámicas, colisiones ni cambios en carretera/físicas/red. Commit `69a61a4777a6f63eb0b9759c6e4d0b28da02db8d`, PR borrador [#34](https://github.com/jmortegacu-jpg/paso-alpino/pull/34).
+- Fuentes de contexto: [CNC](https://cnc.go.cr/proyectos/en-marcha/corredor-vial-san-jose-caldera-ruta-27), [Globalvia](https://globalviaruta27.com/). Posiciones ilustrativas, no progresivas reales. Geometría original, sin copiar fotografías.
+### Vehículos
+- Modelo `aurora` (Aurora V12, diseño original), `graphics/future-chassis.js`: tres aletas satinadas en cada toma lateral para dar profundidad visible desde exterior, sin cambiar shell, ruedas, ejes, controles ni colisiones. Commit `8e3dabfc0d343285a799e98952295f29d52dc585`, PR borrador [#45](https://github.com/jmortegacu-jpg/paso-alpino/pull/45).
+- Verificado: lectura de código, escrituras aceptadas por GitHub; PR #34 y #45 consultados como borradores **no fusionables** antes de las escrituras. No se ejecutaron parser, render WebGL, capturas, FPS móvil/PC, físicas o multijugador; no se infiere compatibilidad entre ramas.
+- Checklist Ruta 27: [x] reflectores viaducto; [ ] cámara conducción y exterior; [ ] rendimiento; [ ] resolver conflicto PR.
+- Checklist vehículos: [x] tomas laterales; [ ] captura exterior; [ ] FPS/WebGL; [ ] integración.
+- Global: [ ] seis pistas integradas y verificadas; [ ] vehículos; [ ] PR compatibles; [ ] físicas, multijugador y FPS; [ ] autorización expresa. **NO LISTO PARA NETLIFY. Sin fusión ni despliegue.**
