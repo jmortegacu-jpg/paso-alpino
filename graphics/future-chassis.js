@@ -345,6 +345,21 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       repeater.rotation.y=s*.12;
     }
   }
+  // Aurora V12: two sculpted bonnet extractors with inset dark centers.
+  // Keep them on the visual skin and clear of the wheel envelopes; no physics.
+  if(M.id==='aurora'){
+    const bonnetStations=[F-.42,F-.58,F-.74];
+    for(const side of [-1,1]){
+      const insetPoints=bonnetStations.map(z=>{
+        const x=side*cw(z)*.32;
+        return [x,roof(z)+styleRidge(z,x,cw(z))+.024,z];
+      });
+      curve(insetPoints,material.vent,high?.065:.046);
+      // Thin satin edge emphasizes the depth of each opening in exterior view.
+      curve(insetPoints.map(([x,y,z])=>[x+side*.050,y+.008,z]),
+        material.trim,high?.009:.006);
+    }
+  }
   // Matching four wheel arches: fender lips follow exact tire centre and
   // radius; no independent shifts of the axles or wheels.
   for(const [z,rad] of [[W.zf,W.rf],[W.zr,W.rr]]){
