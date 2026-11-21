@@ -46,3 +46,8 @@
 - Pista paralela Ruta 1 Guanacaste: guanacaste de copa ancha y señal bosque seco, commit `879a56f0176807f1d232d5971b521e9ec13fa970`; PR #37. Siguiente Ruta 34.
 - Verificado: escritura GitHub. Pendientes: sintaxis JS ejecutada, captura frontal/exterior y conductor, FPS móvil/PC, WebGL, física, multijugador y conflictos de PR.
 - [x] cambio incremental; [ ] revisión visual; [ ] rendimiento; [ ] integración. **No fusionar ni publicar Netlify.**
+
+## 2026-11-21 09:00 Costa Rica — Aurora V12
+- ID `aurora`, `graphics/future-chassis.js`: nervadura central de capó hecha con curva y material PBR existente; grosor alta .019 / reducida .012. Complementa hombros del capó existentes sin modificar shell estructural, ejes, colisiones, física, controles ni red.
+- Commit `453017c80f72895a586c953850b3ac917a82251d`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 . Pista paralela Ruta 34, rompiente costera secundaria, commit `5020c720cf32c2575ac8aa85cbeb73ab8a484cb5`, PR #38. Siguiente Ruta 2.
+- GitHub aceptó cambios; no ejecutados parser, WebGL, capturas, FPS, física o multijugador. [ ] verificar oclusión de capó desde cámaras; [ ] FPS; [ ] compatibilidad con otras ramas. No fusionar ni publicar Netlify.
