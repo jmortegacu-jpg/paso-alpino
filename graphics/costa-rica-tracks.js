@@ -415,6 +415,37 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       ridge.castShadow=false;ridge.receiveShadow=false;
       world.add(ridge);
     }
+    // Distinctive dry-forest roadside landmark: low, broad guanacaste canopy.
+    // Decorative silhouette is well outside the road and uses shared geometry.
+    {
+      const crownCount=hi?9:quality==='media'?6:3;
+      const crown=new THREE.InstancedMesh(
+        new THREE.IcosahedronGeometry(1,hi?2:1),
+        new THREE.MeshStandardMaterial({color:0x477044,roughness:.95,flatShading:true}),
+        crownCount);
+      const trunk=new THREE.Mesh(
+        new THREE.CylinderGeometry(.85,1.45,11,hi?10:6),
+        mats.bark);
+      const k=Math.floor(N*.34);
+      const base=node(k,1,76,0);
+      trunk.position.copy(base);trunk.position.y+=5.5;
+      trunk.castShadow=false;world.add(trunk);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<crownCount;j++){
+        const a=2*Math.PI*j/crownCount;
+        dummy.position.copy(base);
+        dummy.position.x+=Math.cos(a)*7.2;
+        dummy.position.z+=Math.sin(a)*7.2;
+        dummy.position.y+=12.8+1.5*Math.sin(j*2.4);
+        dummy.scale.set(8.2,3.1,7.4);
+        dummy.rotation.set(0,a,0);dummy.updateMatrix();
+        crown.setMatrixAt(j,dummy.matrix);
+      }
+      crown.instanceMatrix.needsUpdate=true;
+      crown.computeBoundingSphere();
+      crown.castShadow=false;world.add(crown);
+    }
+    sign('BOSQUE SECO · GUANACASTE',Math.floor(N*.31),1,24);
     sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
     sign('HACIA GUANACASTE',Math.floor(N*.79),1,23);
