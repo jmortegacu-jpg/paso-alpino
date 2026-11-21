@@ -399,6 +399,27 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       parapets.castShadow=false;
       parapets.receiveShadow=false;
       group.add(parapets);
+      // Amber reflectors on the viaduct guardrail: paired, instanced,
+      // visible in chase view without adding dynamic lights or collision.
+      const reflectorCount=hi?24:12;
+      const reflectorMesh=new THREE.InstancedMesh(
+        new THREE.BoxGeometry(.34,.18,.055),
+        new THREE.MeshBasicMaterial({color:0xffc96b}),
+        reflectorCount);
+      const reflectorDummy=new THREE.Object3D();
+      for(let j=0;j<reflectorCount;j++){
+        const side=j%2?1:-1;
+        const slot=Math.floor(j/2),slots=reflectorCount/2;
+        reflectorDummy.position.set(-49+98*(slot+.5)/slots,24.45,side*5.35);
+        reflectorDummy.rotation.set(0,0,0);
+        reflectorDummy.scale.set(1,1,1);
+        reflectorDummy.updateMatrix();
+        reflectorMesh.setMatrixAt(j,reflectorDummy.matrix);
+      }
+      reflectorMesh.instanceMatrix.needsUpdate=true;
+      reflectorMesh.computeBoundingSphere();
+      reflectorMesh.castShadow=false;
+      group.add(reflectorMesh);
       // Repeated diagonal side bracing makes the elevated viaduct readable
       // from the chase camera. Shared PBR material; decorative, no collisions.
       const braceGeo=new THREE.BoxGeometry(.38,1, .38);
