@@ -302,6 +302,35 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     ribs.castShadow=false;
     ribs.receiveShadow=false;
     world.add(ribs);
+    // Paired low-profile safety-reflector bands inside the tunnel create
+    // readable depth cues from the driver's viewpoint. Instanced, no lights.
+    const bandStep=hi?14:25;
+    const bandStations=Math.max(1,Math.floor(count/bandStep));
+    const wallBands=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.12,.12,1.25),
+      new THREE.MeshStandardMaterial({color:0xe3d8ac,emissive:0x554719,
+        emissiveIntensity:.24,roughness:.68,metalness:0}),
+      bandStations*2);
+    const bandDummy=new THREE.Object3D(),bandWorld=new THREE.Matrix4();
+    for(let station=0;station<bandStations;station++){
+      const k=(start+(station+1)*bandStep)%N;
+      const bandOrigin=new THREE.Object3D();
+      bandOrigin.position.copy(points[k]);
+      bandOrigin.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      bandOrigin.updateMatrix();
+      for(let side=0;side<2;side++){
+        bandDummy.position.set(side===0?-14.42:14.42,2.12,0);
+        bandDummy.rotation.set(0,0,0);
+        bandDummy.updateMatrix();
+        bandWorld.multiplyMatrices(bandOrigin.matrix,bandDummy.matrix);
+        wallBands.setMatrixAt(station*2+side,bandWorld);
+      }
+    }
+    wallBands.instanceMatrix.needsUpdate=true;
+    wallBands.computeBoundingSphere();
+    wallBands.castShadow=false;
+    wallBands.receiveShadow=false;
+    world.add(wallBands);
     // Bright linear light strips and reinforced stone portal frames.
     // Shared tunnel-light geometry/material; one draw call instead of one per strip.
     const lampStep=hi?28:48, lampCount=Math.floor(count/lampStep)+1;
