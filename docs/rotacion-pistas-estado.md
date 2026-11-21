@@ -74,3 +74,14 @@ Nota: las ramas PR #33-35 mantienen versiones independientes del archivo de segu
 - Checklist Ruta 1: [x] nueva silueta de colinas con LOD; [ ] inspección desde cabina; [ ] WebGL/FPS; [ ] integración de PR.
 - Checklist Vehículos: [x] aro interior Aurora; [ ] captura de llanta y carrocería; [ ] FPS; [ ] física y red; [ ] conflictos PR #45.
 - Checklist global: [ ] seis pistas integradas y verificadas; [ ] vehículos validados; [ ] PR compatibles; [ ] WebGL/FPS/física/multijugador; [ ] bloqueos resueltos. NO listo para Netlify; sin fusión ni despliegue.
+
+
+## Revisión — 2026-11-21 06:03 Costa Rica
+- Pista 5/6 Ruta 1 Interamericana Norte Guanacaste, tema `ruta1` (escena `alpino`); siguiente 6/6 Ruta 34 Costanera Sur. Historial anterior revisado: se añadió un hito distinto de colinas, ganado, cercas y cortez amarillo.
+- Mejora real: árbol de guanacaste de copa amplia original (tronco y 9/6/3 copas instanciadas según calidad), señal «BOSQUE SECO · GUANACASTE» a un costado, fuera de calzada. Commit `879a56f0176807f1d232d5971b521e9ec13fa970`. PR borrador #37 https://github.com/jmortegacu-jpg/paso-alpino/pull/37.
+- Vehículos: Aurora V12 original (`aurora`, `graphics/future-chassis.js`), dos líneas de realce del capó siguiendo la superficie existente y LOD de grosor, sin tocar física, colisiones, ruedas ni controles. Commit `8692a4a92faff04d2a229faeeb7d402f0e1adbfd`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45.
+- Fuentes contextuales: ICT https://es.visitcostarica.com/where-to-go/guanacaste ; Área de Conservación Guanacaste https://www.acguanacaste.ac.cr/ . Hitos estilizados, no ubicaciones reales ni navegación GPS. Sin copiar fotografías ni modelos.
+- Verificado: lectura de archivos y commits aceptados por GitHub. Pendientes parser JS ejecutado, inspección WebGL, escala y orientación de letrero y árbol desde cabina, FPS móvil/PC, físicas, multijugador, compatibilidad de PR.
+- Checklist Ruta 1: [x] hito de copa amplia y señal; [ ] captura conductor y exterior; [ ] WebGL/FPS; [ ] integración.
+- Checklist Vehículos: [x] líneas de capó; [ ] visual/FPS; [ ] WebGL/física/red; [ ] compatibilidad.
+- Global: [ ] seis pistas integradas y probadas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas superadas; [ ] bloqueos resueltos. **NO LISTO PARA NETLIFY**. Sin fusionar ni desplegar.
