@@ -38,3 +38,11 @@
 - Commit `3856797d2d7b391080381c83dc5cb6da070e531a`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
 - Pista del mismo turno: Puntarenas, dos escaleras de muelle instanciadas, commit `65653a3757c994a83f95680120db8ee5b533a4d9`, PR #39; siguiente Ruta 1 Guanacaste.
 - GitHub confirmó commits. Pendientes parser JS, render WebGL, capturas conducción/exterior, FPS, física, multijugador y compatibilidad conjunta de PR. Sin merge ni Netlify.
+
+
+## 2026-11-21 06:03 Costa Rica — Aurora V12
+- Modelo original `aurora` en `graphics/future-chassis.js`. Dos líneas satinadas de hombro sobre el capó, siguiendo `roof`, `styleRidge` y `cw` existentes, LOD por grosor. Sin modificar ejes, ruedas, colisiones, físicas, controles ni multijugador.
+- Commit `8692a4a92faff04d2a229faeeb7d402f0e1adbfd`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45.
+- Pista paralela Ruta 1 Guanacaste: guanacaste de copa ancha y señal bosque seco, commit `879a56f0176807f1d232d5971b521e9ec13fa970`; PR #37. Siguiente Ruta 34.
+- Verificado: escritura GitHub. Pendientes: sintaxis JS ejecutada, captura frontal/exterior y conductor, FPS móvil/PC, WebGL, física, multijugador y conflictos de PR.
+- [x] cambio incremental; [ ] revisión visual; [ ] rendimiento; [ ] integración. **No fusionar ni publicar Netlify.**
