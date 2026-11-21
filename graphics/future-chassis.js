@@ -512,6 +512,14 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   // Aurora V12: a recessed central reversing lamp and paired brake-light
   // surrounds make the rear recognizable without altering the vehicle rig.
   if(M.id==='aurora'){
+    // High-mounted third brake-light strip under the rear glass.
+    // Visual-only, shares the animated tail material; no new light source.
+    const rearGlassZ=z1+.075;
+    const thirdBrakeY=M.K.top(z1)+.012;
+    curve([[-cw(rearGlassZ)*.30,thirdBrakeY,rearGlassZ],
+           [0,thirdBrakeY+.006,rearGlassZ-.008],
+           [cw(rearGlassZ)*.30,thirdBrakeY,rearGlassZ]],
+          material.tail,high?.014:.010);
     const reverseY=taY-.115;
     const reverse=box(.24,.046,.025,material.head,0,reverseY,tailZ-.012,.012);
     reverse.castShadow=false;
