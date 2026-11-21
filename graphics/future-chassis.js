@@ -24,15 +24,15 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
   const group=new THREE.Group();group.name=C.title;
   const material={
     paint:new THREE.MeshPhysicalMaterial({color:paint?.color || new THREE.Color(M.paint||'#c42424'),
-      metalness:.66,roughness:.175,clearcoat:1,clearcoatRoughness:.04,envMapIntensity:2.2,side:THREE.DoubleSide}),
+      metalness:M.id==='aurora'?.52:.66,roughness:M.id==='aurora'?.235:.175,clearcoat:1,clearcoatRoughness:M.id==='aurora'?.075:.04,envMapIntensity:M.id==='aurora'?1.55:2.2,side:THREE.DoubleSide}),
     carbon:new THREE.MeshPhysicalMaterial({color:0x0b0e12,metalness:.28,roughness:.32,clearcoat:1,clearcoatRoughness:.10,side:THREE.DoubleSide}),
     vent:new THREE.MeshStandardMaterial({color:0x06080b,metalness:.14,roughness:.9,side:THREE.DoubleSide}),
     mesh:new THREE.MeshStandardMaterial({color:0x222932,metalness:.58,roughness:.55,side:THREE.DoubleSide}),
-    glass:new THREE.MeshPhysicalMaterial({color:0x192935,metalness:.14,roughness:.06,transparent:true,opacity:.78,depthWrite:false,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:2.05,side:THREE.DoubleSide}),
-    trim:new THREE.MeshPhysicalMaterial({color:0x58626a,metalness:.9,roughness:.24,side:THREE.DoubleSide}),
+    glass:new THREE.MeshPhysicalMaterial({color:M.id==='aurora'?0x273d4a:0x192935,metalness:.06,roughness:M.id==='aurora'?.115:.06,transparent:true,opacity:M.id==='aurora'?.68:.78,depthWrite:false,clearcoat:1,clearcoatRoughness:.055,envMapIntensity:M.id==='aurora'?1.35:2.05,side:THREE.DoubleSide}),
+    trim:new THREE.MeshPhysicalMaterial({color:0x58626a,metalness:.76,roughness:M.id==='aurora'?.31:.24,side:THREE.DoubleSide}),
     seat:new THREE.MeshStandardMaterial({color:M.id==='volcan'?0x5c1a20:0x1d222a,roughness:.75}),
     stitch:new THREE.MeshStandardMaterial({color:0xb08e66,roughness:.85}),
-    head:new THREE.MeshStandardMaterial({color:0xdfeeff,emissive:0xb6dbff,emissiveIntensity:2.5,roughness:.2}),
+    head:new THREE.MeshPhysicalMaterial({color:0xdfeeff,emissive:0xb6dbff,emissiveIntensity:M.id==='aurora'?1.65:2.5,metalness:.08,roughness:M.id==='aurora'?.12:.2,clearcoat:1,clearcoatRoughness:.07}),
     tail:new THREE.MeshStandardMaterial({color:0x5a0607,emissive:0xff1b18,emissiveIntensity:2.1,roughness:.26})
   };
   const add=(geometry,mat,x=0,y=0,z=0)=>{
@@ -297,6 +297,14 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     curve([[s*cw(lowFrom)*.985,M.B.yr(lowFrom)+.17,lowFrom],
       [s*cw(.05)*1.002,M.B.yr(.05)+.16,.05],
       [s*cw(lowTo)*.974,M.B.yr(lowTo)+.23,lowTo]],material.carbon,.025);
+    // Aurora: thin satin-metal sill blade follows the original rocker line.
+    // A visible continuous highlight from exterior camera, tucked above the
+    // ground clearance and away from the wheels; visual geometry only.
+    if(M.id==='aurora'){
+      const sillZ=[W.zf-.60,.05,W.zr+.63];
+      curve(sillZ.map(z=>[s*cw(z)*.985,M.B.yr(z)+.205,z]),
+        material.trim,high?.014:.010);
+    }
     // Deep side air inlet with sculpted surrounding geometry and realistic floor.
     const vin=M.id==='danta'?.24:.45, iz=W.zr+.79;
     const intake=box(.021,vin,.53,material.vent,s*(cw(iz)*.978),M.B.ys(iz)-.09,iz);
@@ -317,6 +325,63 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const mirror=add(new THREE.SphereGeometry(.095,high?16:8,high?10:6),material.paint,
        s*(M.K.wb(z0-.18)+.19),M.K.top(z0-.18)-.17,z0-.17);
     mirror.scale.set(1.22,.62,.74);
+    // Aurora mirror glass: inset reflective face, following the existing
+    // housing instead of changing its silhouette or the driving physics.
+    if(M.id==='aurora'){
+      const mirrorGlass=new THREE.MeshPhysicalMaterial({
+        color:0x8aabb6,metalness:.72,roughness:.16,
+        clearcoat:1,clearcoatRoughness:.08,side:THREE.DoubleSide
+      });
+      const inset=add(new THREE.SphereGeometry(.074,high?14:8,high?8:5),
+        mirrorGlass,s*(M.K.wb(z0-.18)+.19),M.K.top(z0-.18)-.17,z0-.215);
+      inset.scale.set(1.12,.53,.12);
+    }
+    // Aurora-only slim amber mirror repeater: original design, purely visual.
+    // Mounted on the existing housing; no dynamic light or collision change.
+    if(M.id==='aurora'){
+      const repeaterMaterial=new THREE.MeshPhysicalMaterial({color:0xf7b45c,emissive:0x9b4b09,emissiveIntensity:.38,roughness:.24,metalness:.08,clearcoat:.8});
+      const repeater=box(.018,.018,.108,repeaterMaterial,
+        s*(M.K.wb(z0-.18)+.285),M.K.top(z0-.18)-.165,z0-.11);
+      repeater.rotation.y=s*.12;
+    }
+  }
+  // Aurora V12: two sculpted bonnet extractors with inset dark centers.
+  // Keep them on the visual skin and clear of the wheel envelopes; no physics.
+  if(M.id==='aurora'){
+    const bonnetStations=[F-.42,F-.58,F-.74];
+    for(const side of [-1,1]){
+      const insetPoints=bonnetStations.map(z=>{
+        const x=side*cw(z)*.32;
+        return [x,roof(z)+styleRidge(z,x,cw(z))+.024,z];
+      });
+      curve(insetPoints,material.vent,high?.065:.046);
+      // Dark recessed centre rib makes each bonnet extractor legible at
+      // oblique camera angles; geometry only, with no collision change.
+      curve(insetPoints.map(([x,y,z])=>[x,y+.012,z]),
+        material.carbon,high?.018:.012);
+      // Thin satin edge emphasizes the depth of each opening in exterior view.
+      curve(insetPoints.map(([x,y,z])=>[x+side*.050,y+.008,z]),
+        material.trim,high?.009:.006);
+    }
+  }
+  // Aurora V12: twin bonnet shoulder highlights make the front silhouette
+  // readable from chase camera without moving any body or collision geometry.
+  if(M.id==='aurora'){
+    for(const side of [-1,1]){
+      const shoulderLine=[F-.22,F-.43,F-.64,F-.84].map(z=>{
+        const x=side*cw(z)*.64;
+        return [x,roof(z)+styleRidge(z,x,cw(z))+.032,z];
+      });
+      curve(shoulderLine,material.trim,high?.014:.009);
+    }
+  }
+  // Aurora V12: a restrained centre bonnet spine provides a continuous
+  // reflected highlight in chase and bonnet cameras, using existing PBR trim.
+  // Decorative only: original shell, collision hull and controls are untouched.
+  if(M.id==='aurora'){
+    const spine=[F-.18,F-.37,F-.56,F-.76].map(z=>
+      [0,roof(z)+styleRidge(z,0,cw(z))+.037,z]);
+    curve(spine,material.trim,high?.019:.012);
   }
   // Matching four wheel arches: fender lips follow exact tire centre and
   // radius; no independent shifts of the axles or wheels.
@@ -359,6 +424,18 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const surround=new THREE.Mesh(new THREE.TorusGeometry(.13,.013,6,20),material.trim);
     surround.scale.set(1.5,.63,1);surround.rotation.y=sign*.24;
     surround.position.set(x,y,z+.23);group.add(surround);
+    // Aurora-only inset projector: visible lens depth without extra lights.
+    // High detail is confined to the visual group, not the physics wheel rig.
+    if(M.id==='aurora'){
+      const projector=new THREE.Mesh(
+        new THREE.SphereGeometry(.105,high?16:10,high?10:6),
+        material.head);
+      projector.scale.set(1.14,.42,.66);
+      projector.position.set(x,y,z+.255);
+      projector.rotation.y=sign*.18;
+      projector.castShadow=false;
+      group.add(projector);
+    }
   }
   // Distinct curved LED silhouettes: designed as luminous volume, not stickers.
   const headY=M.B.ye(F-.29)+.035,hz=F-.27;
@@ -397,6 +474,21 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     }
   }
 
+  // Aurora V12: a recessed central reversing lamp and paired brake-light
+  // surrounds make the rear recognizable without altering the vehicle rig.
+  if(M.id==='aurora'){
+    const reverseY=taY-.115;
+    const reverse=box(.24,.046,.025,material.head,0,reverseY,tailZ-.012,.012);
+    reverse.castShadow=false;
+    for(const s of [-1,1]){
+      const x=s*tailW*.64;
+      const inset=box(.24,.064,.022,material.carbon,x,taY-.038,tailZ+.014,.009);
+      inset.castShadow=false;
+      curve([[x-s*.13,taY-.026,tailZ-.018],
+             [x,taY-.014,tailZ-.022],
+             [x+s*.13,taY-.036,tailZ-.018]],material.tail,high?.015:.011);
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
@@ -446,6 +538,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
         hole.position.set(faceX-.028,Math.sin(a)*rad*.43,Math.cos(a)*rad*.43);
         hole.userData.fcDetail=1;wh.spin.add(hole);
       }
+    }
+    // Aurora V12: a machined inner wheel lip gives the turbine wheel
+    // visual depth without changing the tyre envelope, wheel rig or physics.
+    // Only four lightweight rings, using the existing metallic trim material.
+    if(M.id==='aurora'){
+      const innerLip=new THREE.Mesh(
+        new THREE.TorusGeometry(rad*.565,rad*.012,6,high?36:18),
+        material.trim);
+      innerLip.rotation.y=Math.PI/2;
+      innerLip.position.x=faceX-.016;
+      innerLip.castShadow=false;
+      innerLip.userData.fcDetail=1;
+      wh.spin.add(innerLip);
     }
     if(high){
       const n=C.rim==='turbine'?11:C.rim==='mesh'?14:C.rim==='disc'?6:C.rim==='five'?5:10;
