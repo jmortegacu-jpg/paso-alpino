@@ -496,6 +496,31 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('MUELLE DE CRUCEROS',Math.floor(N*.70),-1,22);
     lighthouse();
     beachWalkers(hi?18:8);
+    // ICT confirms kiosks, local Churchill refreshments and recreational areas
+    // along the promenade. Locations below are artistic, not surveyed positions.
+    sign('CHURCHILL Y ARTESANIAS',Math.floor(N*.32),-1,24);
+    sign('PARQUE Y DEPORTES',Math.floor(N*.88),-1,24);
+    // A lightweight original recreation court beyond the urban roadside.
+    // No physics changes, licensed textures or new runtime dependencies.
+    const court=new THREE.Group();
+    const courtMat=new THREE.MeshStandardMaterial({color:0x648b83,roughness:.88,side:THREE.DoubleSide});
+    const lineMat=new THREE.MeshBasicMaterial({color:0xf1e9d5,side:THREE.DoubleSide});
+    const surface=new THREE.Mesh(new THREE.PlaneGeometry(19,31),courtMat);
+    surface.rotation.x=-Math.PI/2;surface.position.y=.05;surface.receiveShadow=true;court.add(surface);
+    for(const x of [-9.1,9.1]){
+      const stripe=new THREE.Mesh(new THREE.PlaneGeometry(.17,30),lineMat);
+      stripe.rotation.x=-Math.PI/2;stripe.position.set(x,.075,0);court.add(stripe);
+    }
+    for(const z of [-15,15]){
+      const stripe=new THREE.Mesh(new THREE.PlaneGeometry(18.3,.17),lineMat);
+      stripe.rotation.x=-Math.PI/2;stripe.position.set(0,.075,z);court.add(stripe);
+    }
+    const midline=new THREE.Mesh(new THREE.PlaneGeometry(18.3,.15),lineMat);
+    midline.rotation.x=-Math.PI/2;midline.position.y=.078;court.add(midline);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(2.9,3.05,32),lineMat);
+    ring.rotation.x=-Math.PI/2;ring.position.y=.08;court.add(ring);
+    place(court,Math.floor(N*.88),-1,76,.2);
+
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
     // Low coastal guard wall along the beach, broken into individual meshes.
     const wallGeo=new THREE.BoxGeometry(12,.5,.48);
