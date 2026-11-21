@@ -364,6 +364,17 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
         material.trim,high?.009:.006);
     }
   }
+  // Aurora V12: twin bonnet shoulder highlights make the front silhouette
+  // readable from chase camera without moving any body or collision geometry.
+  if(M.id==='aurora'){
+    for(const side of [-1,1]){
+      const shoulderLine=[F-.22,F-.43,F-.64,F-.84].map(z=>{
+        const x=side*cw(z)*.64;
+        return [x,roof(z)+styleRidge(z,x,cw(z))+.032,z];
+      });
+      curve(shoulderLine,material.trim,high?.014:.009);
+    }
+  }
   // Matching four wheel arches: fender lips follow exact tire centre and
   // radius; no independent shifts of the axles or wheels.
   for(const [z,rad] of [[W.zf,W.rf],[W.zr,W.rr]]){
