@@ -569,6 +569,31 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
         mesh.castShadow=false;
         pier.add(mesh);
       }
+      // Two low-poly safety ladders at the seaward end of the pier.
+      // Original geometry, decorative only; no collider or dynamic light.
+      const ladderRails=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.045,.045,2.8,6),steel,4);
+      const ladderRungs=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.038,.038,.78,6),steel,hi?12:8);
+      for(let j=0;j<4;j++){
+        d.position.set(length-1.4,2.65,j<2?-3.52:3.52);
+        d.position.x+=(j%2?-.37:.37);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        ladderRails.setMatrixAt(j,d.matrix);
+      }
+      const rungSteps=hi?6:4;
+      for(let j=0;j<2*rungSteps;j++){
+        const side=j<rungSteps?-3.52:3.52;
+        d.position.set(length-1.4,1.45+(j%rungSteps)*(.42*(6/rungSteps)),side);
+        d.rotation.set(0,0,Math.PI/2);d.scale.set(1,1,1);d.updateMatrix();
+        ladderRungs.setMatrixAt(j,d.matrix);
+      }
+      for(const mesh of [ladderRails,ladderRungs]){
+        mesh.instanceMatrix.needsUpdate=true;
+        mesh.computeBoundingSphere();
+        mesh.castShadow=false;
+        pier.add(mesh);
+      }
       // The promenade is a fictional racing circuit, so the pier position
       // is approximate; its roadway clearance must be checked in WebGL.
       place(pier,Math.floor(N*.70),1,36,-.1);
