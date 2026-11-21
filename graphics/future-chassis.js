@@ -297,6 +297,14 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     curve([[s*cw(lowFrom)*.985,M.B.yr(lowFrom)+.17,lowFrom],
       [s*cw(.05)*1.002,M.B.yr(.05)+.16,.05],
       [s*cw(lowTo)*.974,M.B.yr(lowTo)+.23,lowTo]],material.carbon,.025);
+    // Aurora: thin satin-metal sill blade follows the original rocker line.
+    // A visible continuous highlight from exterior camera, tucked above the
+    // ground clearance and away from the wheels; visual geometry only.
+    if(M.id==='aurora'){
+      const sillZ=[W.zf-.60,.05,W.zr+.63];
+      curve(sillZ.map(z=>[s*cw(z)*.985,M.B.yr(z)+.205,z]),
+        material.trim,high?.014:.010);
+    }
     // Deep side air inlet with sculpted surrounding geometry and realistic floor.
     const vin=M.id==='danta'?.24:.45, iz=W.zr+.79;
     const intake=box(.021,vin,.53,material.vent,s*(cw(iz)*.978),M.B.ys(iz)-.09,iz);
