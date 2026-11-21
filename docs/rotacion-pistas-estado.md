@@ -96,3 +96,12 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Pruebas verificadas: GitHub aceptó ambas escrituras y creación de PR #45. **No ejecutados** parser JavaScript, WebGL, capturas antes/después, FPS móvil/PC, conducción, físicas ni multijugador. Los cambios de materiales no alteran las dimensiones ni colisiones.
 - Integración: PR #33 reportó fusionable al consultar; PR #45 reportó no fusionable al crearse (estado provisional). Compatibilidad cruzada de PR y carrocerías pendiente. No merge ni Netlify.
 - Checklist: [x] Ruta 2 profundidad escenográfica; [ ] captura conductor y WebGL/FPS; [x] Aurora PBR revisado en código; [ ] inspección visual Aurora garaje/conducción y FPS; [ ] seis pistas y vehículos integrados; [ ] PR compatibles; [ ] físicas/multijugador y pruebas críticas; [ ] autorización de publicación. **NO LISTO PARA LANZAMIENTO.**
+
+## 2026-11-20 18:03 Costa Rica — pista 1/6 y vehículo
+- Historial de Ruta 34 y Ruta 2 consultado; **Ruta 2 Cerro de la Muerte** (ID `ruta2`) trabajada; siguiente **Ruta 27**.
+- Escenario: crestas distantes con más facetas solo en calidad alta y alturas no uniformes para reducir apariencia de colinas repetidas, manteniendo 16/9/5 instancias. Commit `e85c71bf124d26a147e68b5be4df34ca66b87146`, PR borrador #33 https://github.com/jmortegacu-jpg/paso-alpino/pull/33.
+- Referencia contextual: Coopesantos https://www.coopesantos.com/servicios/generacion-de-energia/ ; ubicación de la pista es ilustrativa y no reproduce cartografía exacta. Sin activos externos.
+### Vehículos
+- Aurora V12 (ID `aurora`): moldura satinada de estribo, curvada según el perfil de la carrocería a ambos lados, con geometría reducida en calidad baja. Sin física ni colisiones nuevas. Commit `a53fcd5f2e40e875b5110608be46b50b0fb6b126`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45.
+- Verificación: commits de GitHub aceptados. **Pendientes** parser JS, captura WebGL, FPS móvil/PC, conducción, físicas, multijugador y comparación visual. PR #33 figuraba fusionable y #45 no fusionable al consultar antes de estos cambios; compatibilidad cruzada pendiente.
+- Checklist: [x] silueta montañosa incremental; [x] detalle exterior Aurora; [ ] verificar escala, carretera y culling; [ ] FPS/WebGL; [ ] resolver PR #45 y demás PR; [ ] validar seis pistas, vehículos y pruebas críticas. **NO LISTO PARA NETLIFY.** Sin merge ni despliegue.
