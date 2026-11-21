@@ -223,6 +223,30 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     box(1.2,.10,.40,material.carbon,0,seatY+.36,z0-.32);
     box(.17,.14,.88,material.carbon,0,seatY+.14,seatZ+.42);
     for(const x of [-.46,.46])add(new THREE.TorusGeometry(.060,.012,6,16),material.trim,x,seatY+.38,z0-.08);
+    // Aurora V12: raised instrument binnacle and two recessed gauges
+    // visible through the windscreen in high detail. Entirely cosmetic.
+    if(M.id==='aurora'){
+      const dashZ=z0-.30,dashY=seatY+.455;
+      const driverX=-Math.min(.37,seatX);
+      const binnacle=box(.49,.15,.20,material.carbon,driverX,dashY,dashZ,.035);
+      binnacle.castShadow=false;
+      const dialMat=new THREE.MeshStandardMaterial({
+        color:0x121d25,metalness:.16,roughness:.47,
+        emissive:0x132b36,emissiveIntensity:.25
+      });
+      for(const dx of [-.115,.115]){
+        const gauge=new THREE.Mesh(new THREE.CylinderGeometry(.073,.073,.018,18),dialMat);
+        gauge.rotation.x=Math.PI/2;
+        gauge.position.set(driverX+dx,dashY+.026,dashZ+.112);
+        gauge.castShadow=false;
+        group.add(gauge);
+        const bezel=new THREE.Mesh(new THREE.TorusGeometry(.074,.009,6,20),material.trim);
+        bezel.position.copy(gauge.position);
+        bezel.rotation.x=Math.PI/2;
+        bezel.castShadow=false;
+        group.add(bezel);
+      }
+    }
   }
 
   // Sculpted bonnet shoulders: smooth continuous metal surfaces rather than
