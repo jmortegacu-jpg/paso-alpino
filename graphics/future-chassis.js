@@ -355,6 +355,10 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
         return [x,roof(z)+styleRidge(z,x,cw(z))+.024,z];
       });
       curve(insetPoints,material.vent,high?.065:.046);
+      // Dark recessed centre rib makes each bonnet extractor legible at
+      // oblique camera angles; geometry only, with no collision change.
+      curve(insetPoints.map(([x,y,z])=>[x,y+.012,z]),
+        material.carbon,high?.018:.012);
       // Thin satin edge emphasizes the depth of each opening in exterior view.
       curve(insetPoints.map(([x,y,z])=>[x+side*.050,y+.008,z]),
         material.trim,high?.009:.006);
