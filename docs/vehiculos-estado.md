@@ -25,3 +25,9 @@
 - Commit `ccfd61fc01bcf407e4ad09c71c32e31d5bb9bbcb`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
 - Pista del turno: Ruta 27, postes de parapeto del viaducto, commit `d783fcb5d7f79aa9041885b4ac0b5286ac29606b`, PR #34. Próxima pista Ruta 32.
 - Escritura confirmada en GitHub; sin pruebas ejecutadas de parser, WebGL, FPS, físicas ni multijugador. [ ] comprobar simetría y orientación desde cámara exterior; [ ] rendimiento; [ ] integración de PR. **No fusionar ni desplegar Netlify.**
+
+## 2026-11-20 23:55 Costa Rica — Aurora V12
+- Vehículo: `aurora`, carrocería original inspirada en gran turismo; se agregaron dos extractores curvos de capó con material oscuro PBR y borde satinado, LOD por calidad, sin modificar ejes, ruedas, colisiones, físicas, controles ni multijugador.
+- Commit `25eec5a7a45e307e3ac9ac75dd08bef79b034a4c`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Pista del turno: Ruta 32 Zurquí, bandas reflectantes interiores, commit `c9bf5080e258c03c4c738cc36cff004843183588`, PR #42. Siguiente Puntarenas.
+- Escrituras GitHub verificadas; pendientes parser JS, render WebGL y capturas desde cámara exterior, oclusión del capó, FPS móvil/PC, física, red e integración PR. PR #45 no fusionable antes del cambio. **No fusionar ni desplegar Netlify.**
