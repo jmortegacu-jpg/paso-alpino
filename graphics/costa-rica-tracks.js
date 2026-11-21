@@ -327,16 +327,34 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     const steel=new THREE.MeshStandardMaterial({color:0x89959b,metalness:.55,roughness:.47});
     const grass=new THREE.MeshStandardMaterial({color:0x7eaa5e,roughness:1,side:THREE.DoubleSide});
     const rock=new THREE.MeshStandardMaterial({color:0x667a62,roughness:1});
-    const laneBoard=(title,accent=0x207744)=>{
-      const canvas=document.createElement('canvas');canvas.width=512;canvas.height=192;
-      const ctx=canvas.getContext('2d');
-      ctx.fillStyle='#173f32';ctx.fillRect(0,0,512,192);
-      ctx.strokeStyle='#e7f4eb';ctx.lineWidth=10;ctx.strokeRect(8,8,496,176);
-      ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.font='bold 58px Arial';ctx.fillText(title,256,98,470);
-      const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
-      const board=new THREE.Mesh(new THREE.PlaneGeometry(5.7,2.15),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));
-      return board;
+    // One canvas texture per unique message, reused by both toll plazas.
+    // Larger board lettering and higher contrast for the chase/cockpit camera.
+    const tollTextures=new Map();
+    // Reuse both GPU textures and materials across toll plazas.
+    const tollBoardMaterials=new Map();
+    const laneBoard=(title)=>{
+      let tex=tollTextures.get(title);
+      if(!tex){
+        const canvas=document.createElement('canvas');canvas.width=512;canvas.height=192;
+        const ctx=canvas.getContext('2d');
+        ctx.fillStyle=title==='CERRADO'?'#752b28':'#165439';
+        ctx.fillRect(0,0,512,192);
+        ctx.strokeStyle='#f7f8f0';ctx.lineWidth=12;ctx.strokeRect(8,8,496,176);
+        ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.font='bold 66px Arial';ctx.fillText(title,256,98,472);
+        tex=new THREE.CanvasTexture(canvas);
+        tex.colorSpace=THREE.SRGBColorSpace;
+        tex.anisotropy=Math.min(4,world?.userData?.maxAnisotropy||4);
+        tollTextures.set(title,tex);
+      }
+      if(!tollBoardMaterials.has(title)){
+        tollBoardMaterials.set(title,new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide,depthWrite:false}));
+      }
+      return new THREE.Mesh(new THREE.PlaneGeometry(7.8,2.5),tollBoardMaterials.get(title));
+    };
+    const tollStatusMaterials={
+      open:new THREE.MeshBasicMaterial({color:0x35dc73}),
+      closed:new THREE.MeshBasicMaterial({color:0xf04c42})
     };
     const gantry=(i,labels)=>{
       const group=new THREE.Group();
@@ -346,7 +364,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       labels.forEach((label,j)=>{
         const x=(j-1)*11.2;
         const board=laneBoard(label);board.position.set(x,8.4,.6);group.add(board);
-        const light=cube(2,.35,.4,new THREE.MeshBasicMaterial({color:label==='CERRADO'?0xf04c42:0x35dc73}),x,6.9,.6);
+        const light=cube(2,.35,.4,label==='CERRADO'?tollStatusMaterials.closed:tollStatusMaterials.open,x,6.9,.6);
         group.add(light);
       });
       place(group,i,1,0,.1);
@@ -360,12 +378,60 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       for(const x of [-51,-35,35,51]){
         group.add(cube(2.6,21,2.6,mats.concrete,x,10.5,0));
       }
+      // Repeated diagonal side bracing makes the elevated viaduct readable
+      // from the chase camera. Shared PBR material; decorative, no collisions.
+      const braceGeo=new THREE.BoxGeometry(.38,1, .38);
+      const braceCount=hi?16:8;
+      const braces=new THREE.InstancedMesh(braceGeo,steel,braceCount);
+      const braceDummy=new THREE.Object3D();
+      const braceAxis=new THREE.Vector3(0,1,0);
+      for(let j=0;j<braceCount;j++){
+        const side=j%2?-1:1;
+        const span=Math.floor(j/2);
+        const x=-45+span*(90/Math.max(1,braceCount/2-1));
+        const start=new THREE.Vector3(x,22.4,side*5.4);
+        const end=new THREE.Vector3(x+4,18.5,side*5.4);
+        const delta=end.clone().sub(start);
+        braceDummy.position.copy(start).add(end).multiplyScalar(.5);
+        braceDummy.quaternion.setFromUnitVectors(braceAxis,delta.clone().normalize());
+        braceDummy.scale.set(1,delta.length(),1);
+        braceDummy.updateMatrix();braces.setMatrixAt(j,braceDummy.matrix);
+      }
+      braces.instanceMatrix.needsUpdate=true;
+      braces.computeBoundingSphere();
+      braces.castShadow=false;braces.receiveShadow=false;
+      group.add(braces);
       for(const x of [-44,44]){
         const abutment=new THREE.Mesh(new THREE.ConeGeometry(17,22,7),rock);
         abutment.position.set(x,5,0);group.add(abutment);
       }
       place(group,i,1,0,.2);
     };
+    // Reflective roadside delineators announce both toll plazas without new lights
+    // or collisions. One instanced mesh per plaza, away from the racing ribbon.
+    const reflectorGeo=new THREE.BoxGeometry(.24,1.2,.18);
+    const reflectorMat=new THREE.MeshBasicMaterial({color:0xffe5a2});
+    const tollDelineators=(center)=>{
+      const count=20,mesh=new THREE.InstancedMesh(reflectorGeo,reflectorMat,count);
+      const marker=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const side=j%2===0?1:-1;
+        const offset=Math.floor(j/2)*7;
+        const k=(center-85+offset+N)%N;
+        marker.position.copy(node(k,side,24,.8));
+        marker.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+        marker.scale.set(1,1,1);
+        marker.updateMatrix();
+        mesh.setMatrixAt(j,marker.matrix);
+      }
+      mesh.instanceMatrix.needsUpdate=true;
+      // Rebuild instance bounds after placement so off-screen toll markers can be culled.
+      // This affects rendering only; markers have no collision bodies.
+      mesh.computeBoundingSphere();
+      world.add(mesh);
+    };
+    tollDelineators(Math.floor(N*.16));
+    tollDelineators(Math.floor(N*.85));
     gantry(Math.floor(N*.16),['QUICK PASS','ABIERTO','CERRADO']);
     viaduct(Math.floor(N*.62));
     gantry(Math.floor(N*.85),['QUICK PASS','ABIERTO','CERRADO']);
@@ -398,6 +464,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       dummy.scale.set(1.2+.7*Math.abs(Math.sin(j*3.1)),1+.55*Math.abs(Math.cos(j)),1.2);
       dummy.updateMatrix();hillMesh.setMatrixAt(j,dummy.matrix);
     }
+    hillMesh.instanceMatrix.needsUpdate=true;
+    hillMesh.computeBoundingSphere(); // Correct culling bounds after ridge placement.
+    hillMesh.castShadow=false; // Distant backdrop: avoid unnecessary shadow passes.
     world.add(hillMesh);
     const fieldGeo=new THREE.PlaneGeometry(40,70),fields=hi?24:10;
     const fieldMesh=new THREE.InstancedMesh(fieldGeo,grass,fields);
@@ -407,6 +476,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       dummy.rotation.set(-Math.PI/2,0,-Math.atan2(tangents[k].x,tangents[k].z));
       dummy.scale.set(1,1,1);dummy.updateMatrix();fieldMesh.setMatrixAt(j,dummy.matrix);
     }
+    fieldMesh.instanceMatrix.needsUpdate=true;
+    fieldMesh.computeBoundingSphere(); // Avoid incorrect culling of instanced pasture patches.
+    fieldMesh.castShadow=false;
     world.add(fieldMesh);
     streetlights(0,N,1,80);
     sign('RUTA 27 · CALDERA',Math.floor(N*.08),1,22);
@@ -414,6 +486,11 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('SANTA ANA',Math.floor(N*.28),1,23);
     sign('ESCAZU',Math.floor(N*.74),-1,23);
     sign('CIUDAD COLON',Math.floor(N*.42),1,24);
+    // Roadside wayfinding: artistic sequence, not surveyed exit coordinates.
+    sign('SALIDA · GUACHIPELIN',Math.floor(N*.18),-1,25);
+    sign('SALIDA · LA GUACIMA',Math.floor(N*.48),1,25);
+    sign('ATENAS · OROTINA',Math.floor(N*.67),-1,25);
+    sign('CALDERA · PUNTARENAS',Math.floor(N*.89),1,25);
     sign('HACIA CALDERA',Math.floor(N*.93),-1,23);
   } else if(id==='ruta2'){
     sign('RUTA 2 · CERRO DE LA MUERTE',Math.floor(N*.08),1,23);
