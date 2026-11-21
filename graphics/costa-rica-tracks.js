@@ -541,12 +541,13 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       color:0x667b75,roughness:1,metalness:0,flatShading:true
     });
     const ridgeMesh=new THREE.InstancedMesh(
-      new THREE.IcosahedronGeometry(1,1),ridgeMaterial,ridgeCount);
+      new THREE.IcosahedronGeometry(1,hi?2:1),ridgeMaterial,ridgeCount);
     const ridgeDummy=new THREE.Object3D();
     for(let j=0;j<ridgeCount;j++){
       const k=Math.floor(N*(.32+.40*(j+.5)/ridgeCount));
       const side=j%2?1:-1;
-      const h=24+15*Math.abs(Math.sin(j*1.37));
+      // Alternating highland summits break up the repeated rounded-hill skyline.
+      const h=24+15*Math.abs(Math.sin(j*1.37))+8*Math.abs(Math.sin(j*2.71));
       ridgeDummy.position.copy(node(k,side,145+20*Math.abs(Math.sin(j*1.9)),h*.2));
       ridgeDummy.rotation.set(0,j*.73,0);
       ridgeDummy.scale.set(29+12*Math.abs(Math.cos(j)),h,23+8*Math.abs(Math.sin(j)));
