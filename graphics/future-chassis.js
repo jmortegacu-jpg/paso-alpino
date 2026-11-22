@@ -245,6 +245,18 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
         bezel.rotation.x=Math.PI/2;
         bezel.castShadow=false;
         group.add(bezel);
+        // Readable gauge needles in the Aurora cockpit, without changing
+        // dashboard collision, steering controls or the instrument rig.
+        const needle=new THREE.Mesh(
+          new THREE.BoxGeometry(.008,.065,.006),
+          new THREE.MeshStandardMaterial({
+            color:0xe94b36,metalness:.18,roughness:.38,
+            emissive:0x50140b,emissiveIntensity:.22
+          }));
+        needle.position.set(driverX+dx+.012,dashY+.048,dashZ+.125);
+        needle.rotation.z=dx<0?-.43:.35;
+        needle.castShadow=false;
+        group.add(needle);
       }
     }
   }
