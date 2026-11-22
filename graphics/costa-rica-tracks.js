@@ -577,6 +577,27 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     outcrops.castShadow=false;
     outcrops.receiveShadow=false;
     world.add(outcrops);
+    // Offshore rocky islets reinforce the Pacific coast silhouette from the
+    // driving camera. Deterministic, original instanced geometry; no colliders.
+    const isletCount=hi?12:quality==='media'?7:4;
+    const isletGeo=new THREE.IcosahedronGeometry(1,1);
+    const isletMat=new THREE.MeshStandardMaterial({color:0x646f67,roughness:.97,metalness:0,flatShading:true});
+    const islets=new THREE.InstancedMesh(isletGeo,isletMat,isletCount);
+    const isletDummy=new THREE.Object3D();
+    for(let j=0;j<isletCount;j++){
+      const first=j<Math.ceil(isletCount*.55);
+      const k=Math.floor(N*(first?.05+.25*(j+.5)/Math.ceil(isletCount*.55):.71+.24*(j-Math.ceil(isletCount*.55)+.5)/Math.max(1,isletCount-Math.ceil(isletCount*.55))));
+      const side=first?1:-1;
+      isletDummy.position.copy(node(k,side,110+22*Math.abs(Math.sin(j*1.9)),2.1));
+      isletDummy.rotation.set(.08*j,j*.71,.05*j);
+      isletDummy.scale.set(7+4*Math.abs(Math.sin(j)),3.2+2.4*Math.abs(Math.cos(j)),9+4*Math.abs(Math.sin(j*.7)));
+      isletDummy.updateMatrix();
+      islets.setMatrixAt(j,isletDummy.matrix);
+    }
+    islets.instanceMatrix.needsUpdate=true;
+    islets.computeBoundingSphere();
+    islets.castShadow=false;islets.receiveShadow=false;
+    world.add(islets);
     // Destination names are real; their positions on this arcade loop are illustrative.
     sign('DOMINICAL · UVITA',Math.floor(N*.25),-1,24);
     sign('RUTA 34 · HACIA PALMAR NORTE',Math.floor(N*.73),1,24);
