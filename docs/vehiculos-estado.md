@@ -80,3 +80,8 @@
 - ID real `aurora` en `graphics/future-chassis.js`: dos aletas satinadas de difusor trasero, material `material.trim` existente, geometría ligera sin alterar rig, dimensiones funcionales, ejes, física, colisiones, controles ni multijugador.
 - Commit `4341d0c851d61a45698de0567769326eeb47d36f`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 . Pista del mismo turno Ruta 1: afloramientos de bosque seco, commit `47cdadbd1e9f697d378f0000636d0a5aeb98ce7c`, PR #37; siguiente Ruta 34.
 - Verificado: lectura y escritura aceptada por GitHub. [x] detalle visible propuesto para cámara exterior; [ ] comprobar posición y ausencia de solapamiento en render WebGL; [ ] capturas; [ ] FPS móvil/PC; [ ] parser; [ ] físicas/red; [ ] compatibilidad PR. **Sin merge ni Netlify**.
+
+## 2026-11-22 03:00 Costa Rica — Aurora V12
+- ID `aurora`, `graphics/future-chassis.js`: tres lamas traseras horizontales en carbono, encima del difusor, para reforzar la profundidad de la zaga desde cámara exterior. Geometría visual ligera; sin cambios a rig, ejes, colisiones, físicas, controles ni multijugador.
+- Commit `a99ef6935e43a66f85bfd4a9554fdf1dfc3790de`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 . Pista paralela única Ruta 34, islotes rocosos marinos instanciados, commit `76aed46c39cd02036d806547a83e01cdac083bf6`, PR #38; siguiente Ruta 2.
+- [x] Escritura GitHub; [ ] validar posición y oclusión con capturas reales; [ ] parser; [ ] WebGL; [ ] FPS móvil/PC; [ ] físicas y multijugador; [ ] conflictos PR concurrentes. No fusionar ni publicar Netlify.
