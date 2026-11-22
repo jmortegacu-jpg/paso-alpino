@@ -396,6 +396,38 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     portalStruts.computeBoundingSphere();
     portalStruts.castShadow=false;
     world.add(portalStruts);
+    // High-contrast tunnel portal warning blades, visible from the driving camera.
+    // Four low-poly amber/black boards share two instanced draw calls; no lights/colliders.
+    const portalBladeCount=4;
+    const bladeFrame=new THREE.InstancedMesh(new THREE.BoxGeometry(.52,3.2,.14),
+      new THREE.MeshStandardMaterial({color:0xf3ae34,roughness:.72,metalness:0}),portalBladeCount);
+    const bladeStripe=new THREE.InstancedMesh(new THREE.BoxGeometry(.56,.27,.16),
+      new THREE.MeshStandardMaterial({color:0x202524,roughness:.9,metalness:0}),portalBladeCount*3);
+    const bladeOrigin=new THREE.Object3D(),bladeDummy=new THREE.Object3D(),bladeWorld=new THREE.Matrix4();
+    for(let p=0;p<2;p++){
+      const k=(start+p*count)%N;
+      bladeOrigin.position.copy(points[k]);
+      bladeOrigin.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      bladeOrigin.updateMatrix();
+      for(let side=0;side<2;side++){
+        const index=p*2+side;
+        bladeDummy.position.set(side===0?-14.75:14.75,2.85,0);
+        bladeDummy.rotation.set(0,0,0);bladeDummy.updateMatrix();
+        bladeWorld.multiplyMatrices(bladeOrigin.matrix,bladeDummy.matrix);
+        bladeFrame.setMatrixAt(index,bladeWorld);
+        for(let stripe=0;stripe<3;stripe++){
+          bladeDummy.position.y=2.12+stripe*.72;
+          bladeDummy.position.z=.10;
+          bladeDummy.updateMatrix();
+          bladeWorld.multiplyMatrices(bladeOrigin.matrix,bladeDummy.matrix);
+          bladeStripe.setMatrixAt(index*3+stripe,bladeWorld);
+        }
+      }
+    }
+    for(const blades of [bladeFrame,bladeStripe]){
+      blades.instanceMatrix.needsUpdate=true;
+      blades.computeBoundingSphere();blades.castShadow=false;world.add(blades);
+    }
     // Route 32-inspired reflective roadside delineators near the tunnel approach.
     // Decorative only: well outside the driveable ribbon, no physics or collisions.
     // MOPT (2026-04-10): reflective markers and flexible delineators on RN 32.
