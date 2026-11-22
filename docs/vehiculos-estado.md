@@ -69,3 +69,8 @@
 - Commit `d96598ff567bd34689e2736e754761ebeb0953c1`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45.
 - Pista paralela única Ruta 32 Zurquí: paneles de techo instanciados, commit `a731136b875bfd393495e83c83b8be1db2332682`, PR #42; siguiente Puntarenas.
 - [x] Escritura confirmada GitHub; [ ] render exterior y conducción (posición bajo cristal); [ ] parser JS; [ ] WebGL/FPS móvil/PC; [ ] física/multijugador; [ ] resolver conflictos PR. Sin merge ni Netlify.
+
+## 2026-11-21 21:04 Costa Rica — Aurora V12
+- Modelo aurora, graphics/future-chassis.js: dos agujas rojas 3D con material PBR y emisión tenue en instrumentos de cabina; detalle visual sin cambios físicos. Commit 5daeade343fd0315f7984de7f72d9197b7995c22, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Pista paralela Puntarenas: toldos de paseo marítimo instanciados, commit a52dd0a1dddfc1342fcd6f4281fb3660c0322182, PR #39. Siguiente Ruta 1 Guanacaste.
+- Verificado: GitHub aceptó escrituras. Pendientes parser, WebGL, cámara, FPS, físicas, multijugador y compatibilidad PR. [x] detalle visual; [ ] capturas reales; [ ] integración. Sin merge ni Netlify.
