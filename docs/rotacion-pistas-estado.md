@@ -85,3 +85,12 @@ Nota: las ramas PR #33-35 mantienen versiones independientes del archivo de segu
 - Checklist Ruta 1: [x] hito de copa amplia y señal; [ ] captura conductor y exterior; [ ] WebGL/FPS; [ ] integración.
 - Checklist Vehículos: [x] líneas de capó; [ ] visual/FPS; [ ] WebGL/física/red; [ ] compatibilidad.
 - Global: [ ] seis pistas integradas y probadas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas superadas; [ ] bloqueos resueltos. **NO LISTO PARA NETLIFY**. Sin fusionar ni desplegar.
+
+
+## Revisión — 2026-11-22 00:00 Costa Rica
+- Pista **5/6 Ruta 1 Interamericana Norte Guanacaste**, ID `ruta1` (escena `alpino`); próxima **6/6 Ruta 34 Costanera Sur**. Historial consultado: se evitó repetir guanacaste, cerros, ganado y cercas.
+- Código: afloramientos ocre de suelo/roca estilizados, `THREE.InstancedMesh` con 28/15/7 instancias según calidad, geometría dodecaédrica y material PBR mate. Colocados a 88–102 unidades laterales, fuera de la calzada; sin colliders ni luces dinámicas. Commit `47cdadbd1e9f697d378f0000636d0a5aeb98ce7c`. PR borrador #37 https://github.com/jmortegacu-jpg/paso-alpino/pull/37 .
+- Vehículo paralelo: Aurora V12, dos aletas satinadas del difusor trasero, commit `4341d0c851d61a45698de0567769326eeb47d36f`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 . Detalle visual sin cambios de físicas, controles, colisiones o red.
+- Referencias contextuales: Área de Conservación Guanacaste https://www.acguanacaste.ac.cr/ ; ICT https://es.visitcostarica.com/where-to-go/guanacaste . No se copiaron fotos ni modelos; representación estilizada sin precisión GPS.
+- Verificado: lectura de fuentes GitHub y aceptación de ambos commits. No se ejecutaron parser JavaScript, WebGL, capturas de cámara, FPS móvil/PC, física ni multijugador. Compatibilidad entre PR pendientes, no fusionar ni desplegar.
+- Checklist Ruta 1: [x] afloramientos instanciados adaptativos; [ ] visibilidad desde conducción y exterior; [ ] FPS/WebGL; [ ] conflictos de PR. Global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas superadas. **No listo para Netlify**.
