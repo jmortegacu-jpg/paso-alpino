@@ -565,6 +565,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       slat.castShadow=false;
     }
   }
+  // Aurora V12: paired machined exhaust surrounds visible in chase camera.
+  // Original lightweight rings only; do not change exhaust physics or hitboxes.
+  if(M.id==='aurora'){
+    const exhaustY=Math.max(.15,M.B.yb(R)+.065)+.125;
+    for(const s of [-1,1]){
+      const tip=add(new THREE.TorusGeometry(.105,.021,6,high?20:12),
+        material.trim,s*cw(R)*.49,exhaustY,R+.117);
+      tip.castShadow=false;
+      const bore=add(new THREE.CircleGeometry(.081,high?20:12),
+        material.vent,s*cw(R)*.49,exhaustY,R+.106);
+      bore.castShadow=false;
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
