@@ -89,3 +89,12 @@ Fecha local: 2026-11-16 18:03, Costa Rica.
 - Verificado: lectura de archivos, IDs y PR abiertos; GitHub confirmó los dos commits. PR #39 y #45 figuraban abiertos, borrador y fusionables individualmente antes de la escritura; #46 también abierto. No se comprobó compatibilidad conjunta.
 - Pendientes: parser JS, inspección WebGL, oclusión/escala de escaleras y extractores, FPS móvil/PC, físicas, multijugador y conciliación PR #36/#39/#44/#46.
 - Checklist Puntarenas: [x] detalle portuario 3D instanciado; [ ] cámara, FPS y colisiones; [ ] integrar PR. Vehículos: [x] detalle de capó; [ ] validación visual/física. **No listo para Netlify; sin merge ni despliegue.**
+
+## Turno 2026-11-21 21:04 Costa Rica — Puntarenas (4/6)
+- Pista: Paseo de los Turistas, ID puntarenas; siguiente: Ruta 1 Guanacaste, ID ruta1. Historial revisado para evitar repetir muelle, balizas y escaleras.
+- Mejora: 36/18 toldos costeros según calidad, geometría compartida y THREE.InstancedMesh con matrices y bounding sphere actualizadas; posiciones basadas en puntos, tangentes y normales del trazado. Decorativos sin colisiones ni luces dinámicas. Commit a52dd0a1dddfc1342fcd6f4281fb3660c0322182, PR borrador #39 https://github.com/jmortegacu-jpg/paso-alpino/pull/39 .
+- Fuentes contextuales: INCOP https://incop.go.cr/terminal-de-cruceros/ e ICT https://es.visitcostarica.com/ . Diseño artístico original, no cartografía exacta ni fotografías copiadas.
+### Vehículos
+- Aurora V12, ID aurora, graphics/future-chassis.js: agujas rojas tridimensionales en dos instrumentos de cabina; no cambia física, controles, ejes ni red. Commit 5daeade343fd0315f7984de7f72d9197b7995c22, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Verificado: commits GitHub aceptados. Pendientes: parser JS ejecutado, WebGL, cámara, orientación de toldos, FPS móvil/PC, físicas, multijugador, conflictos e integración de PR.
+- Checklist Puntarenas: [x] toldos instanciados; [ ] visual/FPS; [ ] integración. Vehículos: [x] agujas 3D; [ ] cámara interior/FPS. Global: [ ] seis pistas integradas; [ ] PR compatibles; [ ] WebGL/FPS/físicas/multijugador; [ ] bloqueos resueltos. NO LISTO PARA PUBLICACIÓN. Sin merge ni Netlify.
