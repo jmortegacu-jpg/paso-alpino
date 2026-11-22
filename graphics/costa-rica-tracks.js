@@ -490,6 +490,36 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       const i=Math.floor(N*(j+.4)/36);
       kiosk(i,-1,31, j%3===0?0xf2d9aa:j%3===1?0xa0c7cf:0xf1bc91);
     }
+    // Continuous shaded promenade: original canvas awnings above the existing
+    // seafront kiosks. Instanced roofs create a recognizable streetscape at
+    // driving speed without extra lights, collisions or per-kiosk draw calls.
+    {
+      const awningCount=hi?36:18;
+      const awningMat=new THREE.MeshStandardMaterial({
+        color:0xf1d8a7,roughness:.91,metalness:0,side:THREE.DoubleSide
+      });
+      const awnings=new THREE.InstancedMesh(
+        new THREE.BoxGeometry(5.8,.13,3.5),awningMat,awningCount);
+      const awningDummy=new THREE.Object3D();
+      for(let j=0;j<awningCount;j++){
+        const kioskIndex=hi?j:j*2;
+        const i=Math.floor(N*(kioskIndex+.4)/36);
+        const p=points[Math.max(0,Math.min(N-1,i))];
+        const tangent=tangents[Math.max(0,Math.min(N-1,i))];
+        const normal=normals[Math.max(0,Math.min(N-1,i))];
+        awningDummy.position.set(
+          p.x-normal.x*31,p.y+5.1,p.z-normal.z*31);
+        awningDummy.rotation.set(0,-Math.atan2(tangent.z,tangent.x),0);
+        awningDummy.scale.set(1,1,1);
+        awningDummy.updateMatrix();
+        awnings.setMatrixAt(j,awningDummy.matrix);
+      }
+      awnings.instanceMatrix.needsUpdate=true;
+      awnings.computeBoundingSphere();
+      awnings.castShadow=false;
+      awnings.receiveShadow=false;
+      world.add(awnings);
+    }
     sign('PASEO DE LOS TURISTAS',Math.floor(N*.06),-1,20);
     sign('PUNTARENAS',Math.floor(N*.50),-1,20);
     sign('EL FARO · LA PUNTA',Math.floor(N*.16),-1,22);
