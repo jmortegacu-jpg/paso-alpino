@@ -618,6 +618,29 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       mesh.castShadow=false;
       world.add(mesh);
     }
+    // Original stylized resplendent-quetzal silhouettes on distant montane perches.
+    // Each bird uses three low-poly instanced shapes; no animated fauna or collisions.
+    const quetzalCount=hi?5:quality==='media'?3:2;
+    const qGreen=new THREE.MeshStandardMaterial({color:0x147c55,roughness:.86,metalness:.03,flatShading:true});
+    const qRed=new THREE.MeshStandardMaterial({color:0xb43d38,roughness:.9,metalness:0});
+    const qBody=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),qGreen,quetzalCount);
+    const qChest=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),qRed,quetzalCount);
+    const qTail=new THREE.InstancedMesh(new THREE.ConeGeometry(.24,5.5,5),qGreen,quetzalCount);
+    const qDummy=new THREE.Object3D();
+    for(let j=0;j<quetzalCount;j++){
+      const k=Math.floor(N*(.40+.17*(j+.5)/quetzalCount));
+      const p=node(k,j%2?1:-1,64+13*Math.abs(Math.sin(j*1.9)),8.6);
+      qDummy.rotation.set(0,j*.91,0);qDummy.scale.set(.72,.95,.62);
+      qDummy.position.copy(p);qDummy.updateMatrix();qBody.setMatrixAt(j,qDummy.matrix);
+      qDummy.scale.set(.48,.39,.49);qDummy.position.y=p.y-.35;
+      qDummy.updateMatrix();qChest.setMatrixAt(j,qDummy.matrix);
+      qDummy.rotation.set(Math.PI,0,j*.08);qDummy.scale.set(1,1,1);
+      qDummy.position.y=p.y-3.0;qDummy.updateMatrix();qTail.setMatrixAt(j,qDummy.matrix);
+    }
+    for(const mesh of [qBody,qChest,qTail]){
+      mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
+      mesh.castShadow=false;world.add(mesh);
+    }
     // Driver-readable roadside identification, not a reproduction of a real sign.
     sign('PARQUE EOLICO LOS SANTOS',Math.floor(N*.07),1,18);
     sign('COOPESANTOS',Math.floor(N*.15),-1,18);
