@@ -445,6 +445,30 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       crown.computeBoundingSphere();
       crown.castShadow=false;world.add(crown);
     }
+    // Exposed ochre volcanic-soil outcrops along the dry-forest pasture edge.
+    // Instanced low-poly shapes add a readable warm roadside landmark without
+    // changing the race ribbon or introducing colliders / dynamic lights.
+    {
+      const count=hi?28:quality==='media'?15:7;
+      const rock=new THREE.InstancedMesh(
+        new THREE.DodecahedronGeometry(1,0),
+        new THREE.MeshStandardMaterial({color:0xa36a43,roughness:.98,metalness:0,flatShading:true}),
+        count);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const k=Math.floor(N*(.11+.70*(j+.5)/count))%N;
+        const side=j%2?1:-1;
+        const radius=1.8+2.3*Math.abs(Math.sin(j*1.81));
+        dummy.position.copy(node(k,side,88+14*Math.abs(Math.sin(j*.83)),radius*.28));
+        dummy.rotation.set(.13*j,.71*j,.09*j);
+        dummy.scale.set(radius*1.6,radius*.65,radius*1.25);
+        dummy.updateMatrix();rock.setMatrixAt(j,dummy.matrix);
+      }
+      rock.instanceMatrix.needsUpdate=true;
+      rock.computeBoundingSphere();
+      rock.castShadow=false;rock.receiveShadow=false;
+      world.add(rock);
+    }
     sign('BOSQUE SECO · GUANACASTE',Math.floor(N*.31),1,24);
     sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
