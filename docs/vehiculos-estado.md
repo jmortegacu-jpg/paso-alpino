@@ -91,3 +91,10 @@
 - Modelo `aurora`: dos embellecedores de salida de escape de geometría original, toros metálicos con fondo oscuro, para distinguir la zaga desde cámara exterior. Commit `03bce087a393fa5341d58712be4f56cc642b53ef`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
 - Pista única paralela Ruta 2, siluetas de quetzales instanciadas, commit `70c8b4550add3168bc89bd7cc2015280b137c5cb`, PR #33; siguiente Ruta 27.
 - [x] escritura de código; [ ] parseo JS; [ ] capturas reales y visibilidad de escapes; [ ] WebGL/FPS móvil/PC; [ ] físicas y multijugador; [ ] compatibilidad PR. No se tocaron colisiones, ruedas ni controles. Sin merge ni Netlify.
+
+## 2026-11-22 09:04 Costa Rica — Aurora V12
+- Modelo `aurora` (diseño original), archivo `graphics/future-chassis.js`. Se agregó un remate metálico horizontal de zaga con extremos verticales, visible potencialmente desde cámara exterior; utiliza `material.trim` PBR existente, sin alterar ruedas, física, controles, colisiones ni red.
+- Commit `200a22a467cb48b6ba2295d04baf21b7a0e6ca84`; PR borrador [#45](https://github.com/jmortegacu-jpg/paso-alpino/pull/45) [skip netlify]. PR no fusionable al consultar antes del cambio.
+- Pista paralela: Ruta 27, paneles de peligro en extremos del viaducto, commit `24bd24eaaf4403abf11bc25cfa198cb82c0b3028`, PR #34. Próxima Ruta 32.
+- [x] Commit GitHub confirmado; [ ] parser JS; [ ] render real desde exterior/cabina y solapamientos; [ ] FPS/WebGL; [ ] físicas/multijugador; [ ] conflictos de integración. **Sin merge ni Netlify**.
+
