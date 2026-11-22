@@ -82,3 +82,11 @@ Publicación: **NO LISTA**. Sin merge ni Netlify.
 - Fuentes paisajísticas previamente documentadas: MOPT https://www.mopt.go.cr/node/1059 ; ICT https://es.visitcostarica.com/ . No se incorporaron activos externos.
 - Verificado: lectura de código anterior y commits aceptados por GitHub. Pendiente: parseo JS, compilación GLSL WebGL, capturas desde conducción/exterior, FPS móvil/PC, físicas y multijugador. PR #38/#40 y #45 requieren conciliación conjunta; no se ha probado compatibilidad.
 - Checklist Ruta 34: [x] shader con dos escalas de espuma; [ ] validar aspecto/escala y FPS; [ ] WebGL; [ ] integrar PR #40. Vehículos: [x] detalle visual; [ ] capturas y rendimiento. Global: [ ] seis pistas validadas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas; [ ] bloqueos resueltos. **NO LISTO**. Sin merge ni Netlify.
+
+## Turno 2026-11-22 03:00 Costa Rica — Ruta 34 Costanera Sur
+- Pista 6/6, ID `costanera`; siguiente 1/6 Ruta 2 Cerro de la Muerte. Historial revisado: no se duplicaron relieve, espuma, rocas ni delineadores.
+- Cambio nuevo: 12/7/4 islotes rocosos mar adentro mediante `THREE.InstancedMesh`, PBR mate y geometría original; dos tramos costeros, fuera de calzada y sin colisiones. Commit `76aed46c39cd02036d806547a83e01cdac083bf6`, PR borrador #38 https://github.com/jmortegacu-jpg/paso-alpino/pull/38 . Paisaje inspirado en Costa Rica, no georreferenciado.
+- Vehículos: Aurora V12 ID `aurora`, tres lamas de rejilla trasera con material carbono existente; commit `a99ef6935e43a66f85bfd4a9554fdf1dfc3790de`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Referencias de contexto previamente documentadas: ICT https://es.visitcostarica.com/ ; SNIT https://www.snitcr.go.cr/ . No se copiaron fotografías ni activos protegidos.
+- [x] Escrituras de código aceptadas por GitHub; [ ] parseo JS; [ ] captura y render WebGL; [ ] FPS móvil/PC; [ ] físicas/multijugador; [ ] inspección de escala/visibilidad desde cabina y cámara exterior; [ ] compatibilidad PR #38/#40 y #45. PR #38 y #45 reportados fusionables individualmente antes de cambios, sin demostrar integración conjunta. Sin merge ni Netlify.
+- Checklist global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] PR conciliados; [ ] pruebas críticas; [ ] bloqueos resueltos. NO LISTO.
