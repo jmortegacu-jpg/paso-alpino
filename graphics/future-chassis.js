@@ -555,6 +555,16 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       blade.castShadow=false;
     }
   }
+  // Aurora V12: recessed rear grille slats add a clear layered silhouette
+  // above the diffuser in chase view, without touching collision geometry.
+  if(M.id==='aurora'){
+    const grilleY=Math.max(.15,M.B.yb(R)+.065)+.21;
+    for(let j=0;j<3;j++){
+      const slat=box(cw(R)*.92,.018,.025,material.carbon,
+        0,grilleY+j*.043,R+.083,.006);
+      slat.castShadow=false;
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
