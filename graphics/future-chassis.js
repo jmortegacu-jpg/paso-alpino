@@ -495,6 +495,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       group.add(projector);
     }
   }
+  // Aurora V12: twin sculpted dark headlamp eyebrows, with a satin upper edge.
+  // The wide outer sweep is visible from the chase camera and helps define
+  // the original grand-tourer front fascia without changing the body shell.
+  if(M.id==='aurora'){
+    const z=F-.28,eyebrowY=M.B.ye(z)+.095,halfW=cw(z);
+    for(const side of [-1,1]){
+      const sweep=[[.43,.035],[.57,.072],[.73,.077],[.89,.015]];
+      curve(sweep.map(([x,y])=>[side*halfW*x,eyebrowY+y,z+.105]),
+        material.carbon,high?.043:.031);
+      curve(sweep.map(([x,y])=>[side*halfW*x,eyebrowY+y+.037,z+.11]),
+        material.trim,high?.014:.009);
+    }
+  }
   // Distinct curved LED silhouettes: designed as luminous volume, not stickers.
   const headY=M.B.ye(F-.29)+.035,hz=F-.27;
   for(const s of [-1,1]){
