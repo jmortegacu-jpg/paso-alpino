@@ -544,6 +544,17 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
              [x+s*.13,taY-.036,tailZ-.018]],material.tail,high?.015:.011);
     }
   }
+  // Aurora V12: paired satin diffuser blades emphasize the lower rear
+  // silhouette from chase camera, with no collision or drivetrain changes.
+  if(M.id==='aurora'){
+    for(const s of [-1,1]){
+      const x=s*cw(R)*.58;
+      const blade=box(.018,.115,.29,material.trim,
+        x,Math.max(.15,M.B.yb(R)+.065)+.035,R+.062,.008);
+      blade.rotation.z=s*.10;
+      blade.castShadow=false;
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
