@@ -131,3 +131,13 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Checklist Ruta 27: [x] reflectores viaducto; [ ] cámara conducción y exterior; [ ] rendimiento; [ ] resolver conflicto PR.
 - Checklist vehículos: [x] tomas laterales; [ ] captura exterior; [ ] FPS/WebGL; [ ] integración.
 - Global: [ ] seis pistas integradas y verificadas; [ ] vehículos; [ ] PR compatibles; [ ] físicas, multijugador y FPS; [ ] autorización expresa. **NO LISTO PARA NETLIFY. Sin fusión ni despliegue.**
+
+## 2026-11-22 09:04 Costa Rica — Ruta 27 (2/6)
+- ID verificado: `ruta27` en `graphics/costa-rica-tracks.js`; siguiente pista: **Ruta 32 Zurquí (3/6)**. Historial de rama consultado; no se repitieron reflectores ámbar ni parapetos anteriores.
+- Mejora: cuatro paneles de peligro de alto contraste en extremos del viaducto, con tres bandas diagonales por panel. Geometría original, sin texturas externas, luces dinámicas, colisiones ni alteración del trazado. Commit `24bd24eaaf4403abf11bc25cfa198cb82c0b3028`; PR borrador [#34](https://github.com/jmortegacu-jpg/paso-alpino/pull/34) [skip netlify].
+- Fuentes contextuales existentes: [CNC](https://cnc.go.cr/proyectos/en-marcha/corredor-vial-san-jose-caldera-ruta-27), [Globalvia](https://globalviaruta27.com/). Paneles y viaducto son escenográficos; no georreferenciados.
+- Vehículos: `aurora`, remate satinado de zaga y esquinas en cámara exterior, commit `200a22a467cb48b6ba2295d04baf21b7a0e6ca84`, PR borrador [#45](https://github.com/jmortegacu-jpg/paso-alpino/pull/45).
+- Verificado: lectura de código e historial y commits aceptados por GitHub. PR #34 aparecía fusionable individualmente antes de este cambio; PR #45 no fusionable. Compatibilidad cruzada sin verificar.
+- [x] Señales de viaducto añadidas; [ ] capturas y legibilidad en conducción; [ ] parser JS; [ ] WebGL y FPS móvil/PC; [ ] física y multijugador; [ ] conciliación de PR.
+- Global: [ ] seis pistas probadas e integradas; [ ] vehículos probados; [ ] PR compatibles; [ ] bloqueos resueltos. **NO LISTO PARA PUBLICACIÓN.** Sin merge ni Netlify.
+
