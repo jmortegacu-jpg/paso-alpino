@@ -98,3 +98,8 @@
 - Pista paralela: Ruta 27, paneles de peligro en extremos del viaducto, commit `24bd24eaaf4403abf11bc25cfa198cb82c0b3028`, PR #34. Próxima Ruta 32.
 - [x] Commit GitHub confirmado; [ ] parser JS; [ ] render real desde exterior/cabina y solapamientos; [ ] FPS/WebGL; [ ] físicas/multijugador; [ ] conflictos de integración. **Sin merge ni Netlify**.
 
+
+## 2026-11-22 11:57 Costa Rica — Aurora V12
+- ID `aurora` en `graphics/future-chassis.js`. Parrilla delantera oscura con tres lamas satinadas PBR de geometría ligera, sin cambios en física, controles, ruedas, colisiones ni red. Commit `7fec6214077125932ac29e1904de01a5759d55e3`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Pista del turno: Ruta 32 Zurquí, paneles de advertencia instanciados en las bocas del túnel, commit `bacb26208ef18527edb9c2309399cead6d34a476`, PR #42; siguiente Puntarenas.
+- [x] GitHub confirmó escrituras; [ ] validar posición frontal desde cámara exterior; [ ] parser JS; [ ] WebGL y FPS móvil/PC; [ ] físicas y multijugador; [ ] resolver conflictos PR #42/#45. Sin merge ni Netlify.
