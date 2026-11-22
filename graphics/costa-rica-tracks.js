@@ -420,6 +420,21 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       reflectorMesh.computeBoundingSphere();
       reflectorMesh.castShadow=false;
       group.add(reflectorMesh);
+      // High-contrast end-of-viaduct hazard panels: original geometry,
+      // visible from the chase camera without textures, lights or collisions.
+      // The bridge is scenic, not a surveyed road-navigation reference.
+      const hazardMat=new THREE.MeshBasicMaterial({color:0xffd45e,side:THREE.DoubleSide});
+      const hazardDark=new THREE.MeshBasicMaterial({color:0x202b30,side:THREE.DoubleSide});
+      for(const x of [-54,54]){
+        for(const side of [-1,1]){
+          const plate=cube(1.45,.86,.10,hazardDark,x,24.2,side*5.48);
+          plate.castShadow=false;group.add(plate);
+          for(let stripe=0;stripe<3;stripe++){
+            const slash=cube(.15,.71,.115,hazardMat,x+(stripe-1)*.37,24.2,side*5.55);
+            slash.rotation.z=-.44;slash.castShadow=false;group.add(slash);
+          }
+        }
+      }
       // Repeated diagonal side bracing makes the elevated viaduct readable
       // from the chase camera. Shared PBR material; decorative, no collisions.
       const braceGeo=new THREE.BoxGeometry(.38,1, .38);
