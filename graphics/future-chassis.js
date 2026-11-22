@@ -578,6 +578,17 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       bore.castShadow=false;
     }
   }
+  // Aurora V12: a continuous satin lip above the rear exhaust/grille area.
+  // Stronger rear silhouette in chase view, with original low-poly geometry.
+  if(M.id==='aurora'){
+    const lipY=Math.max(.15,M.B.yb(R)+.065)+.355;
+    const lip=box(cw(R)*1.22,.028,.052,material.trim,0,lipY,R+.108,.008);
+    lip.castShadow=false;
+    for(const s of [-1,1]){
+      const corner=box(.034,.075,.052,material.trim,s*cw(R)*.61,lipY-.025,R+.108);
+      corner.castShadow=false;
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
