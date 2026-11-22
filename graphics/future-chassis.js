@@ -462,6 +462,17 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       floor.rotation.y=side*.13;
     }
   }
+  // Aurora V12: broad inset grille with satin horizontal crossbars.
+  // Exterior silhouette cue only; keep the bumper shell, collision rig and wheels intact.
+  if(M.id==='aurora'){
+    const grilleZ=F-.058,grilleW=cw(grilleZ)*.50,grilleY=M.B.ys(grilleZ)-.20;
+    box(grilleW*2,.22,.035,material.carbon,0,grilleY,grilleZ+.027,.008);
+    for(const level of [-1,0,1]){
+      const slat=box(grilleW*1.84,.016,.045,material.trim,
+        0,grilleY+level*.068,grilleZ+.052,.005);
+      slat.castShadow=false;
+    }
+  }
   // Recessed lens housings share the car's front fender proportions.
   for(const sign of [-1,1]){
     const z=F-.28,x=sign*cw(z)*.69,y=M.B.ye(z)+.012;
