@@ -84,3 +84,13 @@ Rotación: Ruta 2 Cerro de la Muerte → Ruta 27 → Ruta 32 Zurquí → Puntare
 - Pruebas: GitHub confirmó escrituras. No ejecutadas sintaxis JS, WebGL, FPS, física, multijugador ni capturas; pendiente verificar altura real del techo y oclusión de luz trasera. PR #42/#45 concurrentes con otros cambios en los mismos módulos: compatibilidad sin demostrar.
 - Checklist Ruta 32: [x] paneles de techo instanciados; [ ] cámara y WebGL; [ ] FPS móvil/PC; [ ] integrar PR. Vehículos: [x] luz trasera visual; [ ] cámaras, física, FPS y compatibilidad.
 - Global: [ ] seis pistas integradas y probadas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas y bloqueos resueltos. Sin fusión ni Netlify.
+
+## 2026-11-22 11:57 Costa Rica — Ruta 32 Zurquí (3/6)
+- Pista única: ID `zurqui`, PR borrador #42 https://github.com/jmortegacu-jpg/paso-alpino/pull/42 . Siguiente: **4/6 Paseo de los Turistas Puntarenas**.
+- Código: cuatro tableros verticales de advertencia ámbar con doce franjas negras, geometría 3D original instanciada en las dos bocas del túnel, para reconocer los accesos desde la cámara de conducción. Dos draw calls, sin luces dinámicas, colisiones, ni alteración de carretera. Commit `bacb26208ef18527edb9c2309399cead6d34a476` [skip netlify].
+- Referencias de contexto: SINAC Braulio Carrillo https://www.sinac.go.cr/es/ac/accvc/pnbc/paginas/default.aspx y MOPT https://www.mopt.go.cr/node/1031 . Posiciones ilustrativas; no es una réplica georreferenciada. No se copiaron fotografías.
+### Vehículos
+- Modelo original Aurora V12, ID `aurora` en `graphics/future-chassis.js`: parrilla frontal oscura con tres barras satinadas PBR, visible en cámara exterior, sin cambios a ruedas, shell, ejes, físicas, controles o red. Commit `7fec6214077125932ac29e1904de01a5759d55e3`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 [skip netlify].
+- PR #42 y #45: borradores **no fusionables** al consultar antes de los cambios. No se ha probado compatibilidad cruzada.
+- Verificado: escrituras GitHub confirmadas. [x] geometría instanciada de acceso; [x] parrilla visual; [ ] parseo JS ejecutado; [ ] capturas reales desde conducción y exterior; [ ] WebGL/FPS móvil/PC; [ ] física y multijugador; [ ] integración y resolución de conflictos.
+- Estado global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas completas; [ ] bloqueos resueltos. **No listo para lanzamiento. No fusionar ni desplegar Netlify.**
