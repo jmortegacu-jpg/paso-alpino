@@ -558,6 +558,27 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       rails.computeBoundingSphere();
       rails.castShadow=false;
       pier.add(rails);
+      // Recognizable terminal canopy at the landward end of the pier: a broad
+      // raised roof and slender supports. Original geometry, no texture assets,
+      // dynamic lighting or collision bodies. Keep the roof outside the road.
+      const canopyRoof=new THREE.Mesh(
+        new THREE.BoxGeometry(12,.28,8.5),
+        new THREE.MeshStandardMaterial({color:0xc9d6d8,metalness:.36,roughness:.55}));
+      canopyRoof.position.set(9,8.25,0);
+      canopyRoof.receiveShadow=false;
+      canopyRoof.castShadow=false;
+      pier.add(canopyRoof);
+      const canopyPillars=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.11,.13,5.0,6),steel,4);
+      for(let j=0;j<4;j++){
+        d.position.set(j<2?4.2:13.8,5.61,j%2?-3.2:3.2);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        canopyPillars.setMatrixAt(j,d.matrix);
+      }
+      canopyPillars.instanceMatrix.needsUpdate=true;
+      canopyPillars.computeBoundingSphere();
+      canopyPillars.castShadow=false;
+      pier.add(canopyPillars);
       // Stylized mooring bollards: INCOP documents mooring fittings at the
       // cruise terminal. Four low-poly fixtures share one draw call.
       // Decorative only; positions and scale are not surveyed.
