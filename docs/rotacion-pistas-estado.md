@@ -101,3 +101,10 @@ Nota: las ramas PR #33-35 mantienen versiones independientes del archivo de segu
 ### Vehículos
 - Aurora V12 (`aurora`): dos tomas de aire frontales laterales con dos lamas satinadas cada una, material PBR existente, sin cambios de físicas/colisiones/ruedas/controles/red. Commit `d6a93b48cd71da3d40bc3c06db810247bf9dc724`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 [skip netlify].
 - Verificado: lectura de IDs, historial y aceptación de ambos commits por GitHub. PR #37 y #45 abiertos en borrador, **no fusionables** al consultar antes de edición. [x] detalles geométricos; [ ] parser JS; [ ] WebGL/capturas cámara; [ ] FPS móvil/PC; [ ] físicas y multijugador; [ ] compatibilidad PR. Global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] pruebas críticas; [ ] conflictos resueltos. No fusionar ni desplegar Netlify.
+
+## Revisión 2026-11-23 12:00 Costa Rica — Ruta 1 (5/6)
+- Pista trabajada: Ruta 1 Interamericana Norte Guanacaste (`ruta1` en escena `alpino`); siguiente: Ruta 34 Costanera Sur (`costanera`). Se consultó historial y PR #37 para evitar repetir elementos.
+- Código: 32/20/12 postes reflectivos originales por nivel gráfico, `InstancedMesh` para poste y placa, límites de visibilidad recalculados; fuera de calzada a distancia lateral 19, sin colisiones, física ni luces nuevas. Commit `3d150c1f54c32aaed5398131ca5cf8093d6f4538`, PR borrador #37 https://github.com/jmortegacu-jpg/paso-alpino/pull/37 [skip netlify].
+- Fuente contextual de paisaje: https://www.acguanacaste.ac.cr/ y https://es.visitcostarica.com/where-to-go/guanacaste ; señalización de diseño original, no réplica normativa ni cartografía precisa.
+- Vehículo en paralelo: Aurora V12 `aurora`, tomas laterales traseras cosméticas; commit `f50ac878ef163b2c6293cb8e616a202b3fdc0a6d`, PR borrador #45.
+- [x] GitHub aceptó código; [ ] parser JS; [ ] capturas conducción/exterior; [ ] WebGL/FPS móvil/PC; [ ] físicas/multijugador; [ ] conflictos de integración PR #37 (no fusionable antes del cambio). Global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas satisfactorias. No fusionar ni publicar Netlify.
