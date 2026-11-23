@@ -125,3 +125,8 @@
 - Modelo `aurora` Aurora V12: dos canards delanteros discretos de carbono con borde metálico PBR, geometría visual sin modificar físicas ni controles. Commit `e397f646bde49695c442950e4367b783695bce2b`; PR #45.
 - Pista simultánea: Ruta 2, bosque nuboso instanciado, commit `e16c88c609e90465eb2fa69f9745dd01ea6fcfa5`; PR #33. Próxima Ruta 27.
 - [x] Escritura GitHub; [ ] sintaxis ejecutada; [ ] capturas cámara exterior/conducción; [ ] WebGL; [ ] FPS móvil/PC; [ ] físicas y multijugador; [ ] resolver conflictos PR #45. Sin Netlify.
+
+## 2026-11-23 03:04 Costa Rica — Vehículos
+- Aurora V12, ID `aurora`, `graphics/future-chassis.js`: dos lentes traseros decorativos con biseles PBR para mejorar lectura de anchura desde cámara exterior. Commit `d42891bfda48e866063b0ad16243da9dad56584b`, PR borrador [#45](https://github.com/jmortegacu-jpg/paso-alpino/pull/45) [skip netlify]. Sin cambios intencionales en colisiones, ruedas, físicas, controles o red.
+- Pista paralela única: Ruta 27, dos marcadores de aproximación al viaducto, commit `f404a5e9dd4a0afe3fa6ab24c4e081095bbb47d5`, PR #34. Próxima Ruta 32.
+- [x] Código registrado en GitHub; [ ] parser JS; [ ] capturas de cámara exterior/conducción; [ ] FPS/WebGL; [ ] física y multijugador; [ ] PR #45 no fusionable antes de cambios, revisar de nuevo. **Sin merge ni Netlify.**
