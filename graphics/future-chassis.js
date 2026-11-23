@@ -690,6 +690,22 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       bezel.castShadow=false;
     }
   }
+  // Aurora V12: continuous slim rear light signature, recessed between the
+  // outer lenses. Cosmetic and tied to the existing brake-light material.
+  // The assembly remains inside the rear body envelope; no collider changes.
+  if(M.id==='aurora'){
+    const barY=Math.max(.15,M.B.yb(R)+.065)+.31;
+    const barWidth=Math.max(.30,cw(R)*1.18);
+    const darkPocket=box(barWidth+.10,.094,.022,material.carbon,
+      0,barY,R+.106,.006);
+    darkPocket.castShadow=false;
+    const lightBlade=box(barWidth,.036,.026,material.tail,
+      0,barY,R+.123,.004);
+    lightBlade.castShadow=false;
+    const lowerTrim=box(barWidth+.04,.012,.028,material.trim,
+      0,barY-.055,R+.118,.003);
+    lowerTrim.castShadow=false;
+  }
   // Aurora V12: original sculpted engine-deck louvers, visible from chase
   // camera. Cosmetic only; contained within the rear body envelope.
   if(M.id==='aurora'){
