@@ -150,3 +150,9 @@
 - Aurora V12, ID `aurora`, archivo `graphics/future-chassis.js`: banda luminosa trasera continua con bolsillo de carbono y ribete metálico PBR, reutiliza `material.tail` conectado al frenado. Geometría cosmética dentro del ancho trasero; no se editaron controles, ruedas, colisiones ni físicas. Commit `9b55864aaad208ab67108fb9a2c480c287659def`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 [skip netlify].
 - Pista paralela única: Ruta 34 Costanera Sur, mirador costero con techo y pilares instanciados, commit `f766cd606b6cc8e1b5eeb0f168fc66007112dc31`, PR #38. Próxima Ruta 2.
 - [x] Código guardado en GitHub; [ ] sintaxis ejecutada; [ ] WebGL, FPS móvil/PC y capturas exterior/cabina; [ ] comprobar luz trasera y frenado en ejecución; [ ] físicas y multijugador; [ ] resolver conflicto PR #45 y compatibilidad con PR #38. Sin merge ni Netlify.
+
+## 2026-11-23 17:58 Costa Rica — Vehículos
+- Aurora V12 (`aurora`, `graphics/future-chassis.js`): dos alojamientos delanteros oscuros con hojas dobles de luz diurna y remates satinados, materiales existentes; mejora visual prevista en vista frontal exterior. Commit `950f62c23c36c9952194ce696ef1b2d556a4f822`; PR borrador https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
+- Pista paralela única: Ruta 2 Cerro de la Muerte, siluetas de dantas instanciadas, commit `bfe86678f6f0fe5b1d526e77e16a1c3b5fc2b676`, PR #33; próxima Ruta 27.
+- Pruebas: GitHub aceptó código; [ ] parser JS [ ] capturas reales frontal/conductor [ ] FPS móvil/PC [ ] WebGL [ ] físicas/multijugador [ ] conciliación PR. Sin cambios intencionales en colisiones, ejes, ruedas o controles; no equivale a prueba de regresión.
+- Integración: PR #45 y #33 reportaron conflictos con main antes de estos commits. **No fusionar ni desplegar Netlify.**
