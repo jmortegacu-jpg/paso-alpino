@@ -629,6 +629,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       corner.castShadow=false;
     }
   }
+  // Aurora V12: two layered side sill accents make the lower body line
+  // read cleanly from chase camera. Kept within the wheel-track envelope.
+  if(M.id==='aurora'){
+    const sillLength=Math.max(.65,Math.min(1.8,Math.abs(F-R)*.31));
+    const sillZ=(F+R)*.5;
+    for(const s of [-1,1]){
+      const sillX=s*Math.min(cw(sillZ)*.79,M.wheels.track*.83);
+      const sillY=Math.max(.19,M.B.yb(sillZ)+.09);
+      const lower=box(.028,.07,sillLength,material.carbon,sillX,sillY,sillZ,.006);
+      const highlight=box(.014,.019,sillLength*.91,material.trim,sillX-s*.018,sillY+.053,sillZ,.004);
+      lower.castShadow=false;highlight.castShadow=false;
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
