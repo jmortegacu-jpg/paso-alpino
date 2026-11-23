@@ -650,6 +650,18 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       lower.castShadow=false;highlight.castShadow=false;
     }
   }
+  // Aurora V12: rear-quarter intake recess and satin upper blade.
+  // Cosmetic accents stay inside the original body width and wheel envelope.
+  if(M.id==='aurora'){
+    const z=R+(F-R)*.34;
+    const y=Math.max(.22,M.B.yr(z)+.35);
+    for(const s of [-1,1]){
+      const x=s*cw(z)*.91;
+      const recess=box(.018,.20,.46,material.carbon,x,y,z,.008);
+      const blade=box(.022,.027,.43,material.trim,x-s*.012,y+.105,z,.004);
+      recess.castShadow=false;blade.castShadow=false;
+    }
+  }
   // Aurora V12: twin low-profile aero canards frame the front corners.
   // Original cosmetic meshes inside body width; no hitbox or steering changes.
   if(M.id==='aurora'){
