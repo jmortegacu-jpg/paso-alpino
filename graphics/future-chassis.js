@@ -642,6 +642,21 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       lower.castShadow=false;highlight.castShadow=false;
     }
   }
+  // Aurora V12: twin low-profile aero canards frame the front corners.
+  // Original cosmetic meshes inside body width; no hitbox or steering changes.
+  if(M.id==='aurora'){
+    const frontZ=F-.24;
+    for(const s of [-1,1]){
+      const canard=box(.23,.025,.36,material.carbon,
+        s*cw(frontZ)*.76,Math.max(.19,M.B.yb(frontZ)+.20),frontZ,.006);
+      canard.rotation.y=s*.16;
+      canard.castShadow=false;
+      const edge=box(.19,.014,.035,material.trim,
+        s*cw(frontZ)*.76,Math.max(.19,M.B.yb(frontZ)+.20)+.021,frontZ-.14,.004);
+      edge.rotation.y=s*.16;
+      edge.castShadow=false;
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
