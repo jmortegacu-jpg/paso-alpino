@@ -369,6 +369,25 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       });
       place(group,i,1,0,.1);
     };
+    // Route 27: tall approach markers make the viaduct silhouette easier to
+    // recognize from the driving camera, without obstructing the race ribbon.
+    // Decorative only; positions are artistic, not surveyed road furniture.
+    const viaductApproachMarkers=(i)=>{
+      const group=new THREE.Group();
+      const stripeMat=new THREE.MeshBasicMaterial({color:0xffd77c});
+      const darkMat=new THREE.MeshStandardMaterial({color:0x25313a,roughness:.82});
+      for(const s of [-1,1]){
+        const post=cube(.42,5.1,.42,steel,s*24,2.55,0);
+        post.castShadow=false;group.add(post);
+        const board=cube(2.4,2.8,.18,darkMat,s*24,5.8,0);
+        board.castShadow=false;group.add(board);
+        for(let j=0;j<3;j++){
+          const band=cube(1.9,.26,.20,stripeMat,s*24,5.1+j*.63,.12);
+          band.castShadow=false;group.add(band);
+        }
+      }
+      place(group,i,1,0,.1);
+    };
     const viaduct=(i)=>{
       const group=new THREE.Group();
       // Stylized mountain-to-mountain viaduct. The deck is above the race road,
@@ -494,6 +513,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     gantry(Math.floor(N*.85),['QUICK PASS','ABIERTO','CERRADO']);
     sign('PEAJE · RUTA 27',Math.floor(N*.16),1,25);
     sign('VIADUCTO · RUTA 27',Math.floor(N*.62),-1,25);
+    viaductApproachMarkers(Math.floor(N*.59));
     sign('QUICK PASS',Math.floor(N*.85),1,25);
     // Suburban districts near the San Jose end: low-rise buildings, not
     // claimed to be exact real-world structures.
