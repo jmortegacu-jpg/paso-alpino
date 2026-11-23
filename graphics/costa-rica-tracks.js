@@ -559,6 +559,33 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     ridgeMesh.computeBoundingSphere();
     ridgeMesh.castShadow=false;ridgeMesh.receiveShadow=false;
     world.add(ridgeMesh);
+    // Bosque nuboso en parches: copas escalonadas de silueta amplia, separadas
+    // de la calzada y sin colisiones. Dos draw calls, densidad adaptable.
+    const cloudTreeCount=hi?36:quality==='media'?20:10;
+    const cloudTrunks=new THREE.InstancedMesh(
+      new THREE.CylinderGeometry(.35,.58,6,6),mats.bark,cloudTreeCount);
+    const cloudCrowns=new THREE.InstancedMesh(
+      new THREE.IcosahedronGeometry(1,1),
+      new THREE.MeshStandardMaterial({color:0x315d48,roughness:1,metalness:0,flatShading:true}),cloudTreeCount);
+    const cloudDummy=new THREE.Object3D();
+    for(let j=0;j<cloudTreeCount;j++){
+      const k=Math.floor(N*(.43+.19*(j+.5)/cloudTreeCount));
+      const side=j%2?1:-1;
+      const p=node(k,side,85+20*Math.abs(Math.sin(j*2.17)),-.3);
+      const scale=.8+.4*Math.abs(Math.sin(j*1.83));
+      cloudDummy.rotation.set(0,j*.83,0);
+      cloudDummy.scale.set(scale,scale,scale);
+      cloudDummy.position.copy(p);cloudDummy.position.y+=3*scale;
+      cloudDummy.updateMatrix();cloudTrunks.setMatrixAt(j,cloudDummy.matrix);
+      cloudDummy.scale.set(4.1*scale,3.0*scale,3.5*scale);
+      cloudDummy.position.copy(p);cloudDummy.position.y+=7.5*scale;
+      cloudDummy.updateMatrix();cloudCrowns.setMatrixAt(j,cloudDummy.matrix);
+    }
+    for(const mesh of [cloudTrunks,cloudCrowns]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;world.add(mesh);
+    }
     // High-altitude roadside delineators: inexpensive original geometry, no physics.
     // Keep posts off the racing ribbon; quality-scaled instance counts.
     const delineatorCount=hi?32:quality==='media'?20:12;
