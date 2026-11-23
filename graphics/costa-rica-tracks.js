@@ -568,6 +568,23 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       canopyRoof.receiveShadow=false;
       canopyRoof.castShadow=false;
       pier.add(canopyRoof);
+      // Readable terminal silhouette from the road: two contrasting fascia
+      // bands and a shallow canopy lip, all original static PBR geometry.
+      // No textures, lights, collision objects or borrowed signage.
+      const fasciaMat=new THREE.MeshStandardMaterial({
+        color:0x235c73,metalness:.18,roughness:.56
+      });
+      const fascia=new THREE.InstancedMesh(
+        new THREE.BoxGeometry(11.7,.38,.14),fasciaMat,2);
+      for(let j=0;j<2;j++){
+        d.position.set(9,8.02,j===0?-4.31:4.31);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        fascia.setMatrixAt(j,d.matrix);
+      }
+      fascia.instanceMatrix.needsUpdate=true;
+      fascia.computeBoundingSphere();
+      fascia.castShadow=false;
+      pier.add(fascia);
       const canopyPillars=new THREE.InstancedMesh(
         new THREE.CylinderGeometry(.11,.13,5.0,6),steel,4);
       for(let j=0;j<4;j++){
