@@ -668,6 +668,37 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
       mesh.castShadow=false;world.add(mesh);
     }
+    // Original low-poly tapir silhouettes in distant forest clearings.
+    // Decorative only: no animal collisions, AI or alteration to the track ribbon.
+    const tapirCount=hi?4:quality==='media'?3:2;
+    const tapirMat=new THREE.MeshStandardMaterial({color:0x353b36,roughness:.98,flatShading:true});
+    const tapirBodies=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),tapirMat,tapirCount);
+    const tapirHeads=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),tapirMat,tapirCount);
+    const tapirLegs=new THREE.InstancedMesh(new THREE.CylinderGeometry(.17,.22,1,5),tapirMat,tapirCount*4);
+    const tapirDummy=new THREE.Object3D();
+    for(let j=0;j<tapirCount;j++){
+      const k=Math.floor(N*(.49+.16*(j+.5)/tapirCount)),side=j%2?1:-1;
+      const p=node(k,side,58+8*Math.abs(Math.sin(j*2.4)),0);
+      tapirDummy.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+      tapirDummy.position.copy(p);tapirDummy.position.y+=1.45;
+      tapirDummy.scale.set(1.12,.77,1.68);tapirDummy.updateMatrix();
+      tapirBodies.setMatrixAt(j,tapirDummy.matrix);
+      tapirDummy.position.copy(p);tapirDummy.position.y+=1.73;
+      tapirDummy.position.z+=side*.85;tapirDummy.scale.set(.58,.56,.67);
+      tapirDummy.updateMatrix();tapirHeads.setMatrixAt(j,tapirDummy.matrix);
+      for(let l=0;l<4;l++){
+        tapirDummy.position.copy(p);
+        tapirDummy.position.x+=(l%2?-.53:.53);
+        tapirDummy.position.z+=(l<2?-.75:.75);
+        tapirDummy.position.y+=.49;tapirDummy.scale.set(1,1,1);
+        tapirDummy.rotation.set(0,0,0);tapirDummy.updateMatrix();
+        tapirLegs.setMatrixAt(j*4+l,tapirDummy.matrix);
+      }
+    }
+    for(const mesh of [tapirBodies,tapirHeads,tapirLegs]){
+      mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
+      mesh.castShadow=false;world.add(mesh);
+    }
     // Driver-readable roadside identification, not a reproduction of a real sign.
     sign('PARQUE EOLICO LOS SANTOS',Math.floor(N*.07),1,18);
     sign('COOPESANTOS',Math.floor(N*.15),-1,18);
