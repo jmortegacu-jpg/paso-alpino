@@ -598,6 +598,25 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     islets.computeBoundingSphere();
     islets.castShadow=false;islets.receiveShadow=false;
     world.add(islets);
+    // Subtle foam collars around the offshore islets, visible from the road.
+    // Original instanced geometry, no textures, lighting, physics or colliders.
+    const foamGeo=new THREE.TorusGeometry(1,.075,4,hi?28:16);
+    const foamMat=new THREE.MeshBasicMaterial({color:0xb6dedc,transparent:true,opacity:.55,depthWrite:false,side:THREE.DoubleSide});
+    const foamRings=new THREE.InstancedMesh(foamGeo,foamMat,isletCount);
+    const foamDummy=new THREE.Object3D();
+    for(let j=0;j<isletCount;j++){
+      const first=j<Math.ceil(isletCount*.55);
+      const k=Math.floor(N*(first?.05+.25*(j+.5)/Math.ceil(isletCount*.55):.71+.24*(j-Math.ceil(isletCount*.55)+.5)/Math.max(1,isletCount-Math.ceil(isletCount*.55))));
+      foamDummy.position.copy(node(k,first?1:-1,110+22*Math.abs(Math.sin(j*1.9)),.34));
+      foamDummy.rotation.set(-Math.PI/2,0,0);
+      foamDummy.scale.set(9+4*Math.abs(Math.sin(j)),11+4*Math.abs(Math.sin(j*.7)),1);
+      foamDummy.updateMatrix();
+      foamRings.setMatrixAt(j,foamDummy.matrix);
+    }
+    foamRings.instanceMatrix.needsUpdate=true;
+    foamRings.computeBoundingSphere();
+    foamRings.castShadow=false;foamRings.receiveShadow=false;
+    world.add(foamRings);
     // Destination names are real; their positions on this arcade loop are illustrative.
     sign('DOMINICAL · UVITA',Math.floor(N*.25),-1,24);
     sign('RUTA 34 · HACIA PALMAR NORTE',Math.floor(N*.73),1,24);
