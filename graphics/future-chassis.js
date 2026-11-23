@@ -635,7 +635,7 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const sillLength=Math.max(.65,Math.min(1.8,Math.abs(F-R)*.31));
     const sillZ=(F+R)*.5;
     for(const s of [-1,1]){
-      const sillX=s*Math.min(cw(sillZ)*.79,M.wheels.track*.83);
+      const sillX=s*cw(sillZ)*.79;
       const sillY=Math.max(.19,M.B.yb(sillZ)+.09);
       const lower=box(.028,.07,sillLength,material.carbon,sillX,sillY,sillZ,.006);
       const highlight=box(.014,.019,sillLength*.91,material.trim,sillX-s*.018,sillY+.053,sillZ,.004);
