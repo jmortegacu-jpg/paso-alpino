@@ -469,6 +469,34 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       rock.castShadow=false;rock.receiveShadow=false;
       world.add(rock);
     }
+    // Original shaded roadside bus-stop shelter: a recognisable rural Route 1
+    // silhouette viewed from the racing camera. Entirely decorative, beyond
+    // the road edge; shared PBR materials, instanced posts, no physics bodies.
+    {
+      const k=Math.floor(N*.64);
+      const base=node(k,1,64,0);
+      const tangent=node(Math.min(N-1,k+1),1,64,0).sub(node(Math.max(0,k-1),1,64,0)).normalize();
+      const angle=Math.atan2(tangent.x,tangent.z);
+      const shelter=new THREE.Group();
+      shelter.position.copy(base);shelter.rotation.y=angle;
+      const roof=new THREE.Mesh(new THREE.BoxGeometry(9,.34,3.8),
+        new THREE.MeshStandardMaterial({color:0xb76c43,metalness:.08,roughness:.82}));
+      roof.position.y=4.3;roof.rotation.z=.055;roof.castShadow=false;
+      shelter.add(roof);
+      const posts=new THREE.InstancedMesh(new THREE.CylinderGeometry(.13,.17,4.2,6),
+        new THREE.MeshStandardMaterial({color:0x777d75,metalness:.45,roughness:.65}),4);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<4;j++){
+        dummy.position.set(j%2?3.7:-3.7,2.1,j<2?-1.35:1.35);
+        dummy.updateMatrix();posts.setMatrixAt(j,dummy.matrix);
+      }
+      posts.instanceMatrix.needsUpdate=true;posts.computeBoundingSphere();
+      posts.castShadow=false;shelter.add(posts);
+      const bench=new THREE.Mesh(new THREE.BoxGeometry(5.6,.28,.75),
+        new THREE.MeshStandardMaterial({color:0x76533a,roughness:.9}));
+      bench.position.set(0,1.05,0);bench.castShadow=false;shelter.add(bench);
+      world.add(shelter);
+    }
     sign('BOSQUE SECO · GUANACASTE',Math.floor(N*.31),1,24);
     sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
