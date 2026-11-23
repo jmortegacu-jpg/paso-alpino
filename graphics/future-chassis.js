@@ -402,6 +402,14 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
         return [x,roof(z)+styleRidge(z,x,cw(z))+.024,z];
       });
       curve(insetPoints,material.vent,high?.065:.046);
+      // Slim satin-metal border follows the bonnet extractor skin.
+      // Cosmetic only; keeps the established body envelope and collisions.
+      if(high){
+        const extractorEdge=insetPoints.map(([x,y,z])=>[
+          x+side*.072,y+.009,z
+        ]);
+        curve(extractorEdge,material.trim,.009);
+      }
       // Dark recessed centre rib makes each bonnet extractor legible at
       // oblique camera angles; geometry only, with no collision change.
       curve(insetPoints.map(([x,y,z])=>[x,y+.012,z]),
