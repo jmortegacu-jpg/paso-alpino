@@ -657,6 +657,19 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       edge.castShadow=false;
     }
   }
+  // Aurora V12: high-contrast rear corner marker lenses improve the car's
+  // width reading in chase view. These are cosmetic, not dynamic lights.
+  if(M.id==='aurora'){
+    const rearLensY=Math.max(.15,M.B.yb(R)+.065)+.31;
+    for(const s of [-1,1]){
+      const lens=box(.17,.075,.025,material.tail,
+        s*cw(R)*.76,rearLensY,R+.116,.008);
+      lens.castShadow=false;
+      const bezel=box(.19,.015,.028,material.trim,
+        s*cw(R)*.76,rearLensY+.047,R+.115,.004);
+      bezel.castShadow=false;
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
