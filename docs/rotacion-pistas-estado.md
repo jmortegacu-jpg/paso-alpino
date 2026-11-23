@@ -125,3 +125,10 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Aurora V12, ID `aurora`, módulo `graphics/future-chassis.js`: dos marcos circulares metálicos de escapes traseros con interior oscuro, geometría original y detalle escalado por calidad; commit `03bce087a393fa5341d58712be4f56cc642b53ef`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 . Sin modificaciones intencionales de física, ruedas, controles, colisiones ni red.
 - [x] Lectura de archivos e historial; [x] dos commits aceptados por GitHub; [ ] parseo JavaScript; [ ] render WebGL y capturas desde conducción/exterior; [ ] comprobar quetzales y escapes sin solapamiento; [ ] FPS móvil/PC; [ ] físicas y multijugador; [ ] compatibilidad cruzada de PR. PR #33/#45 fusionables individualmente antes del cambio, integración conjunta no comprobada.
 - Checklist global: [ ] seis pistas integradas y verificadas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas aprobadas; [ ] bloqueos resueltos. Sin merge ni Netlify.
+
+## 2026-11-23 00:00 Costa Rica — Rotación 1/6 Ruta 2
+- Pista: Ruta 2 Cerro de la Muerte (tema `ruta2`), rama `feature/ruta2-coopesantos-landmark-20261115-15h`, PR #33. Siguiente: **Ruta 27**.
+- Cambio: 36/20/10 árboles de bosque nuboso según calidad, troncos y copas instanciados, fuera de la calzada, sin colisiones ni texturas ajenas. Commit `e16c88c609e90465eb2fa69f9745dd01ea6fcfa5`.
+- Fuentes de contexto: https://www.sinac.go.cr/ (ecosistemas de altura); https://www.coopesantos.com/servicios/generacion-de-energia/ (parque eólico). Posiciones artísticas, no GPS.
+- Vehículos: Aurora V12, canards delanteros, commit `e397f646bde49695c442950e4367b783695bce2b`, PR #45.
+- [x] Escritura GitHub; [ ] sintaxis ejecutada; [ ] WebGL/cámara; [ ] FPS móvil/PC; [ ] físicas; [ ] multijugador; [ ] compatibilidad de PR (conflictos conocidos). No fusionar ni publicar.
