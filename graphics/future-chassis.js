@@ -670,6 +670,25 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       bezel.castShadow=false;
     }
   }
+  // Aurora V12: original sculpted engine-deck louvers, visible from chase
+  // camera. Cosmetic only; contained within the rear body envelope.
+  if(M.id==='aurora'){
+    const deckZ=R+(F-R)*.24;
+    const deckY=Math.max(M.B.yt(deckZ),M.K.top(deckZ))+.012;
+    const deckSpan=Math.min(.82,cw(deckZ)*1.05);
+    for(let j=0;j<5;j++){
+      const z=deckZ+(j-2)*.105;
+      const slat=box(deckSpan,.018,.042,material.carbon,
+        0,deckY+.018,z,.006);
+      slat.rotation.x=-.12;
+      slat.castShadow=false;
+      for(const side of [-1,1]){
+        const edge=box(.018,.021,.048,material.trim,
+          side*(deckSpan*.5-.025),deckY+.021,z,.003);
+        edge.castShadow=false;
+      }
+    }
+  }
   // Rear diffuser, splitter, realistic undertray and aircraft-like rear wing.
   const rearY=Math.max(.15,M.B.yb(R)+.065);
   box(cw(R)*1.65,.055,.36,material.carbon,0,rearY,R+.045,.014);
