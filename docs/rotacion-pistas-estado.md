@@ -141,3 +141,13 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - [x] Señales de viaducto añadidas; [ ] capturas y legibilidad en conducción; [ ] parser JS; [ ] WebGL y FPS móvil/PC; [ ] física y multijugador; [ ] conciliación de PR.
 - Global: [ ] seis pistas probadas e integradas; [ ] vehículos probados; [ ] PR compatibles; [ ] bloqueos resueltos. **NO LISTO PARA PUBLICACIÓN.** Sin merge ni Netlify.
 
+
+## 2026-11-23 03:04 Costa Rica — Ruta 27 (2/6)
+- Pista: Ruta 27, ID `ruta27`; siguiente: **Ruta 32 Zurquí (3/6)**. Historial de la rama y PR #34 consultados para no duplicar los paneles de viaducto previos.
+- Código: dos marcadores verticales laterales de aproximación al viaducto, franjas ámbar de alto contraste y material compartido; sin colisiones, luces dinámicas, cambios de carretera o red. Commit `f404a5e9dd4a0afe3fa6ab24c4e081095bbb47d5`, PR borrador [#34](https://github.com/jmortegacu-jpg/paso-alpino/pull/34) [skip netlify].
+- Vehículos: Aurora V12 `aurora`, dos lentes de marcador trasero para cámara exterior, commit `d42891bfda48e866063b0ad16243da9dad56584b`, PR borrador [#45](https://github.com/jmortegacu-jpg/paso-alpino/pull/45).
+- Fuentes contextuales conservadas: [CNC](https://cnc.go.cr/proyectos/en-marcha/corredor-vial-san-jose-caldera-ruta-27), [Globalvia](https://globalviaruta27.com/). Elementos artísticos no georreferenciados; sin importar imágenes de terceros.
+- Verificado: lectura de archivos y commits aceptados por GitHub. PR #34 reportó mergeable=true y PR #45 mergeable=false **antes** de escribir; no implica compatibilidad entre ellos. No ejecutados parser JS, WebGL, FPS móvil/PC, capturas desde conductor/exterior, físicas ni multijugador.
+- Checklist Ruta 27: [x] nuevos marcadores; [ ] confirmar legibilidad y orientación visual; [ ] pruebas WebGL/FPS/físicas/red; [ ] integración de PR.
+- Checklist vehículos: [x] lentes traseros; [ ] capturas exterior; [ ] FPS/WebGL; [ ] reconciliar PR #45.
+- Global: [ ] seis pistas validadas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas; [ ] autorización de publicación. **NO LISTO PARA NETLIFY.** Sin merge ni despliegue.
