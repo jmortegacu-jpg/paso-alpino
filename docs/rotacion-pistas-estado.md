@@ -94,3 +94,13 @@ Rotación: Ruta 2 Cerro de la Muerte → Ruta 27 → Ruta 32 Zurquí → Puntare
 - PR #42 y #45: borradores **no fusionables** al consultar antes de los cambios. No se ha probado compatibilidad cruzada.
 - Verificado: escrituras GitHub confirmadas. [x] geometría instanciada de acceso; [x] parrilla visual; [ ] parseo JS ejecutado; [ ] capturas reales desde conducción y exterior; [ ] WebGL/FPS móvil/PC; [ ] física y multijugador; [ ] integración y resolución de conflictos.
 - Estado global: [ ] seis pistas integradas; [ ] vehículos validados; [ ] PR compatibles; [ ] pruebas críticas completas; [ ] bloqueos resueltos. **No listo para lanzamiento. No fusionar ni desplegar Netlify.**
+
+## 2026-11-23 05:55 Costa Rica — Ruta 32 Zurquí (turno 7)
+- Historial consultado: turno anterior Ruta 27 (2026-11-23 03:04); pista actual 3/6, ID `zurqui` en `graphics/costa-rica-tracks.js`; siguiente 4/6 `puntarenas`. No se repitió la mejora anterior de reflectores de portal.
+- Mejora de pista: 10/7/4 tableros de advertencia de curva ámbar, flecha oscura y poste según calidad, con tres `THREE.InstancedMesh` fuera de la calzada antes del túnel. Commit `1f008be1f67433a0b66f857db3b7408468dee3e9`, borrador [#42](https://github.com/jmortegacu-jpg/paso-alpino/pull/42) [skip netlify].
+- Fuentes: MOPT (2026-04-10) https://www.mopt.go.cr/noticias/2026/demarcacion-de-rn-32-iniciara-proximo-lunes-13-de-abril ; SINAC https://www.sinac.go.cr/ES/ac/accvc/pnbc/Paginas/default.aspx/ . Elementos artísticos originales, trazado aproximado, no señalización para navegación.
+### Vehículos
+- Aurora V12 `aurora`, `graphics/future-chassis.js`: cinco lamas oscuras en cubierta trasera y remates PBR, sin editar hitbox ni controladores. Commit `fc0d62ee63e9fa4668618c13ba16598557386889`, borrador [#45](https://github.com/jmortegacu-jpg/paso-alpino/pull/45) [skip netlify].
+- Integración: PR #42 no fusionable al consultar antes de editar; PR #45 figuraba fusionable individualmente; compatibilidad cruzada no comprobada.
+- Pruebas: [x] escritura GitHub; [ ] parser JS ejecutado; [ ] capturas conducción/exterior; [ ] WebGL y FPS móvil/PC; [ ] físicas; [ ] multijugador; [ ] conflictos resueltos.
+- Global: [ ] seis pistas integradas; [ ] vehículos verificados visualmente; [ ] PR compatibles; [ ] pruebas críticas satisfactorias. **No publicar en Netlify.**
