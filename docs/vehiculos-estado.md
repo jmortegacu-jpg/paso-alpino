@@ -108,3 +108,8 @@
 - Modelo `aurora`, archivo `graphics/future-chassis.js`: dos cejas de faro tridimensionales de doble trazo oscuro/satinado, geometría decorativa sobre fascia, LOD según calidad, sin modificar colisiones, ruedas, física, controles ni red. Commit `deaee71668d5e5e4ab586e4be8557656e2d68fa0`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 [skip netlify].
 - Pista paralela única: Puntarenas, cubierta portuaria y pilares instanciados, commit `ed6d30deb90e7c192f82cea3e6f27bc47ad09cb7`, PR #39; siguiente Ruta 1 Guanacaste.
 - [x] Escritura GitHub; [ ] parser JS; [ ] capturas reales de conducción/exterior y solapamientos; [ ] WebGL/FPS móvil/PC; [ ] física/multijugador; [ ] conflictos de integración PR #45. **Sin merge ni Netlify**.
+
+## 2026-11-22 18:05 Costa Rica — Aurora V12
+- Modelo original `aurora` en `graphics/future-chassis.js`: dos tomas de aire frontales de esquina y cuatro lamas satinadas PBR en total, visibles potencialmente desde cámara exterior. Geometría visual dentro de fascia; no se modificaron ruedas, rig, física, controles, colisiones ni multijugador. Commit `d6a93b48cd71da3d40bc3c06db810247bf9dc724`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 [skip netlify].
+- Pista paralela única: Ruta 1 Guanacaste, refugio rural de techo sombreado, commit `ad949453a8bedda926bd641c541ebecaf0a78d39`, PR #37; siguiente Ruta 34.
+- [x] Escritura GitHub; [ ] parser JavaScript; [ ] render WebGL y posición real; [ ] FPS móvil/PC; [ ] físicas y multijugador; [ ] compatibilidad PR #45 (no fusionable al consultar). Sin merge ni Netlify.
