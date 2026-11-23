@@ -473,6 +473,22 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       slat.castShadow=false;
     }
   }
+  // Aurora V12: twin layered front corner air curtains with satin blades.
+  // These visibly define the lower fascia from front/chase cameras while
+  // remaining inside the existing body silhouette and outside wheel rigs.
+  if(M.id==='aurora'){
+    const z=F-.12,halfW=cw(z),y=M.B.ys(z)-.21;
+    for(const side of [-1,1]){
+      const x=side*halfW*.76;
+      const intake=box(halfW*.27,.22,.026,material.carbon,x,y,z+.034,.007);
+      intake.rotation.y=side*.12;intake.castShadow=false;
+      for(const level of [-1,1]){
+        const blade=box(halfW*.23,.017,.046,material.trim,
+          x,y+level*.068,z+.058,.004);
+        blade.rotation.y=side*.12;blade.castShadow=false;
+      }
+    }
+  }
   // Recessed lens housings share the car's front fender proportions.
   for(const sign of [-1,1]){
     const z=F-.28,x=sign*cw(z)*.69,y=M.B.ye(z)+.012;
