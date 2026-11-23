@@ -145,3 +145,8 @@
 - Aurora V12 `aurora`, `graphics/future-chassis.js`: dos recesos de toma de aire en cuarto trasero y hojas superiores satinadas PBR con geometría decorativa dentro del ancho calculado de carrocería; potencial mejora lateral desde cámara exterior, pendiente captura. Commit `f50ac878ef163b2c6293cb8e616a202b3fdc0a6d`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 [skip netlify]. No se editaron física, colisiones, rig ni controles.
 - Pista paralela Ruta 1: postes reflectivos instanciados, commit `3d150c1f54c32aaed5398131ca5cf8093d6f4538`, PR #37. Próxima Ruta 34.
 - [x] Escritura GitHub; [ ] parser JS; [ ] render WebGL y capturas desde cámara exterior/conducción; [ ] FPS móvil/PC; [ ] físicas y multijugador; [ ] compatibilidad PR #45. Sin merge ni Netlify.
+
+## 2026-11-23 14:58 Costa Rica — Vehículos
+- Aurora V12, ID `aurora`, archivo `graphics/future-chassis.js`: banda luminosa trasera continua con bolsillo de carbono y ribete metálico PBR, reutiliza `material.tail` conectado al frenado. Geometría cosmética dentro del ancho trasero; no se editaron controles, ruedas, colisiones ni físicas. Commit `9b55864aaad208ab67108fb9a2c480c287659def`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 [skip netlify].
+- Pista paralela única: Ruta 34 Costanera Sur, mirador costero con techo y pilares instanciados, commit `f766cd606b6cc8e1b5eeb0f168fc66007112dc31`, PR #38. Próxima Ruta 2.
+- [x] Código guardado en GitHub; [ ] sintaxis ejecutada; [ ] WebGL, FPS móvil/PC y capturas exterior/cabina; [ ] comprobar luz trasera y frenado en ejecución; [ ] físicas y multijugador; [ ] resolver conflicto PR #45 y compatibilidad con PR #38. Sin merge ni Netlify.
