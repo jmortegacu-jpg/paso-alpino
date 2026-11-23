@@ -120,3 +120,8 @@
 - Commits `7672ecd119bbbec489df34319788438b8793cf3e` y `7ec6362f0bafeeb63da9afba01384803cafd10cc`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 [skip netlify].
 - Pista paralela: Ruta 34 Costanera Sur, espuma instanciada en islotes, commit `6dbb58b7d006e9f9ed3a5b1804893fe2e87811ee`, PR #38; siguiente Ruta 2.
 - [x] Parseo JS del módulo actualizado; [x] commits confirmados; [ ] capturas exterior/cabina y solapamientos; [ ] WebGL y FPS móvil/PC; [ ] físicas y multijugador; [ ] PR #45 con conflicto frente a main al consultar. No se tocaron controles, ejes ni colisiones. Sin merge ni Netlify.
+
+## 2026-11-23 00:00 Costa Rica — Vehículos
+- Modelo `aurora` Aurora V12: dos canards delanteros discretos de carbono con borde metálico PBR, geometría visual sin modificar físicas ni controles. Commit `e397f646bde49695c442950e4367b783695bce2b`; PR #45.
+- Pista simultánea: Ruta 2, bosque nuboso instanciado, commit `e16c88c609e90465eb2fa69f9745dd01ea6fcfa5`; PR #33. Próxima Ruta 27.
+- [x] Escritura GitHub; [ ] sintaxis ejecutada; [ ] capturas cámara exterior/conducción; [ ] WebGL; [ ] FPS móvil/PC; [ ] físicas y multijugador; [ ] resolver conflictos PR #45. Sin Netlify.
