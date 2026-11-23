@@ -464,6 +464,39 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     markerBody.castShadow=false;
     markerReflector.castShadow=false;
     world.add(markerBody,markerReflector);
+    // Route 32: amber curve chevrons before the Zurquí portal, inspired by
+    // MOPT's 2026 roadside marking program. Illustrative, not navigational.
+    // Shared meshes keep the distant warning pattern mobile-friendly.
+    const chevronStations=hi?10:quality==='media'?7:4;
+    const chevronBack=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(1.35,.86,.07),
+      new THREE.MeshStandardMaterial({color:0xe8b63d,roughness:.72,metalness:0}),
+      chevronStations);
+    const chevronArrow=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.84,.16,.085),
+      new THREE.MeshStandardMaterial({color:0x1e2626,roughness:.87,metalness:0}),
+      chevronStations);
+    const chevronPost=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.10,1.55,.10),
+      new THREE.MeshStandardMaterial({color:0x858b83,roughness:.82,metalness:.12}),
+      chevronStations);
+    const chev=new THREE.Object3D();
+    for(let j=0;j<chevronStations;j++){
+      const k=Math.max(0,Math.floor(start*.32+(start*.55)*(j+.5)/chevronStations));
+      const side=-1,at=node(k,side,22,1.92);
+      const yaw=Math.atan2(tangents[k].x,tangents[k].z);
+      chev.position.copy(at);chev.rotation.set(0,yaw,0);chev.updateMatrix();
+      chevronBack.setMatrixAt(j,chev.matrix);
+      chev.position.y+=.015;chev.position.x+=normals[k].x*side*.047;
+      chev.position.z+=normals[k].z*side*.047;
+      chev.rotation.z=-.43;chev.updateMatrix();chevronArrow.setMatrixAt(j,chev.matrix);
+      chev.position.copy(at);chev.position.y-=1.08;chev.rotation.set(0,yaw,0);
+      chev.updateMatrix();chevronPost.setMatrixAt(j,chev.matrix);
+    }
+    for(const mesh of [chevronBack,chevronArrow,chevronPost]){
+      mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
+      mesh.castShadow=false;world.add(mesh);
+    }
     streetlights(0,start-50,1,85);
   } else if(id==='costanera'){
     palms(hi?190:85,0,Math.floor(N*.48),1,31);
