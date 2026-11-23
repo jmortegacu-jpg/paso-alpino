@@ -356,6 +356,29 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
   }
   if(id==='ruta1'){
     guanacastePastures();
+    // Original roadside reflective delineators: visible at low camera height.
+    // Shared geometry/material and no physics colliders or light sources.
+    {
+      const count=hi?32:quality==='media'?20:12;
+      const post=new THREE.InstancedMesh(new THREE.BoxGeometry(.22,1.18,.22),
+        new THREE.MeshStandardMaterial({color:0xe6e0cb,roughness:.83}),count);
+      const reflector=new THREE.InstancedMesh(new THREE.BoxGeometry(.25,.25,.025),
+        new THREE.MeshBasicMaterial({color:0xf5b847,side:THREE.DoubleSide}),count);
+      const o=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const k=Math.floor(N*(j+.5)/count)%N,side=j%2?1:-1;
+        const p=node(k,side,19,.59),angle=Math.atan2(tangents[k].x,tangents[k].z);
+        o.position.copy(p);o.rotation.set(0,angle,0);o.scale.set(1,1,1);
+        o.updateMatrix();post.setMatrixAt(j,o.matrix);
+        o.position.y+=.31;o.position.x+=normals[k].x*side*.125;
+        o.position.z+=normals[k].z*side*.125;
+        o.updateMatrix();reflector.setMatrixAt(j,o.matrix);
+      }
+      for(const mesh of [post,reflector]){
+        mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
+        mesh.castShadow=false;world.add(mesh);
+      }
+    }
     // Cortez amarillo (Handroanthus ochraceus): stylized seasonal flowering
     // silhouette. Original procedural geometry, not a botanical reconstruction.
     // Keep trees outside the driving ribbon and avoid new physics colliders.
