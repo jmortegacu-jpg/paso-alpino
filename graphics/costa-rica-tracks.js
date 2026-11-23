@@ -617,6 +617,45 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     foamRings.computeBoundingSphere();
     foamRings.castShadow=false;foamRings.receiveShadow=false;
     world.add(foamRings);
+    // Coastal lookout pavilion: a recognizable shaded roadside viewpoint,
+    // deliberately well outside the drivable corridor. Original lightweight
+    // geometry and shared PBR materials; no collider or imported asset.
+    const lookoutK=Math.floor(N*.58);
+    const lookoutPos=node(lookoutK,-1,68,0);
+    const lookout=new THREE.Group();
+    lookout.position.copy(lookoutPos);
+    lookout.rotation.y=Math.atan2(tangents[lookoutK].x,tangents[lookoutK].z);
+    const shelterRoof=new THREE.Mesh(
+      new THREE.ConeGeometry(5.8,2.2,4),
+      new THREE.MeshStandardMaterial({color:0x9b6144,roughness:.88,metalness:0,flatShading:true})
+    );
+    shelterRoof.rotation.y=Math.PI/4;
+    shelterRoof.position.y=4.9;
+    shelterRoof.castShadow=hi;
+    lookout.add(shelterRoof);
+    const shelterPosts=new THREE.InstancedMesh(
+      new THREE.CylinderGeometry(.19,.24,4.1,6),
+      new THREE.MeshStandardMaterial({color:0xd5c8ac,roughness:.83,metalness:0}),
+      4
+    );
+    const shelterPostDummy=new THREE.Object3D();
+    for(let j=0;j<4;j++){
+      shelterPostDummy.position.set(j%2?3.25:-3.25,2.05,j<2?-3.25:3.25);
+      shelterPostDummy.updateMatrix();
+      shelterPosts.setMatrixAt(j,shelterPostDummy.matrix);
+    }
+    shelterPosts.instanceMatrix.needsUpdate=true;
+    shelterPosts.computeBoundingSphere();
+    shelterPosts.castShadow=hi;
+    lookout.add(shelterPosts);
+    const lookoutDeck=new THREE.Mesh(
+      new THREE.BoxGeometry(8.5,.24,8.5),
+      new THREE.MeshStandardMaterial({color:0x9d9784,roughness:.92,metalness:0})
+    );
+    lookoutDeck.position.y=.12;
+    lookoutDeck.receiveShadow=true;
+    lookout.add(lookoutDeck);
+    world.add(lookout);
     // Destination names are real; their positions on this arcade loop are illustrative.
     sign('DOMINICAL · UVITA',Math.floor(N*.25),-1,24);
     sign('RUTA 34 · HACIA PALMAR NORTE',Math.floor(N*.73),1,24);
