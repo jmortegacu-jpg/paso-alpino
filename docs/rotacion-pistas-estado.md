@@ -132,3 +132,12 @@ Estado: rama sin fusionar, sin publicación Netlify.
 - Fuentes de contexto: https://www.sinac.go.cr/ (ecosistemas de altura); https://www.coopesantos.com/servicios/generacion-de-energia/ (parque eólico). Posiciones artísticas, no GPS.
 - Vehículos: Aurora V12, canards delanteros, commit `e397f646bde49695c442950e4367b783695bce2b`, PR #45.
 - [x] Escritura GitHub; [ ] sintaxis ejecutada; [ ] WebGL/cámara; [ ] FPS móvil/PC; [ ] físicas; [ ] multijugador; [ ] compatibilidad de PR (conflictos conocidos). No fusionar ni publicar.
+
+## 2026-11-23 17:58 Costa Rica — Ruta 2 (1/6)
+- Historial: turno previo Ruta 34 PR #38, rotación retoma Ruta 2. ID real `ruta2`; próxima **Ruta 27 San José–Caldera (2/6)**.
+- Mejora de escenario: cuatro/tres/dos siluetas originales de dantas según calidad, cuerpos, cabezas y patas instanciados con material mate, en claros del bosque fuera de la carretera. Commit `bfe86678f6f0fe5b1d526e77e16a1c3b5fc2b676`; PR borrador https://github.com/jmortegacu-jpg/paso-alpino/pull/33.
+- Fuentes de contexto: https://www.sinac.go.cr/ ; https://www.coopesantos.com/servicios/generacion-de-energia/ . Distribución artística, no ubicaciones GPS ni imágenes copiadas.
+- Vehículo del mismo turno: Aurora V12, firma diurna doble delantera, commit `950f62c23c36c9952194ce696ef1b2d556a4f822`, PR #45.
+- Verificado: escrituras GitHub; no se ejecutaron parser, WebGL, FPS, cámaras, físicas o multijugador. PR #33 y #45 no fusionables frente a main en consulta previa; compatibilidad cruzada pendiente.
+- Checklist Ruta 2: [x] aerogeneradores [x] vegetación montana [x] quetzales [x] dantas decorativas [ ] capturas de conducción [ ] WebGL/FPS [ ] integración.
+- Checklist global: [ ] seis pistas integradas [ ] vehículos validados [ ] PR compatibles [ ] pruebas críticas [ ] bloqueos resueltos. **No listo para lanzamiento. Sin merge ni Netlify.**
