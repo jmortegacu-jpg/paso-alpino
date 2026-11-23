@@ -140,3 +140,8 @@
 ## 2026-11-23 08:58 Costa Rica — Vehículos
 - Modelo Aurora V12 (`aurora`), `graphics/future-chassis.js`: ribete satinado adicional a ambos extractores del capó solo en calidad alta, geometría de presentación sin modificar física/colisiones. Commit `d2384a1601cf49c71e70112b0c12e12f35c173ba`; PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 .
 - Pendiente: render WebGL, capturas conducción/exterior, FPS móvil/PC, parser JS, físicas, multijugador y compatibilidad PR. No se fusionó ni desplegó.
+
+## 2026-11-23 12:00 Costa Rica — Vehículos
+- Aurora V12 `aurora`, `graphics/future-chassis.js`: dos recesos de toma de aire en cuarto trasero y hojas superiores satinadas PBR con geometría decorativa dentro del ancho calculado de carrocería; potencial mejora lateral desde cámara exterior, pendiente captura. Commit `f50ac878ef163b2c6293cb8e616a202b3fdc0a6d`, PR borrador #45 https://github.com/jmortegacu-jpg/paso-alpino/pull/45 [skip netlify]. No se editaron física, colisiones, rig ni controles.
+- Pista paralela Ruta 1: postes reflectivos instanciados, commit `3d150c1f54c32aaed5398131ca5cf8093d6f4538`, PR #37. Próxima Ruta 34.
+- [x] Escritura GitHub; [ ] parser JS; [ ] render WebGL y capturas desde cámara exterior/conducción; [ ] FPS móvil/PC; [ ] físicas y multijugador; [ ] compatibilidad PR #45. Sin merge ni Netlify.
