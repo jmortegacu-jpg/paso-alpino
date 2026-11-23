@@ -809,6 +809,24 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
       wh.spin.add(spokes);
     }
   }
+  // Aurora V12: paired sculpted daytime-running-light blades.
+  // Low-cost decorative geometry inside the front fascia; no light sources,
+  // collision shapes, physics or controls are modified.
+  if(M.id==='aurora'){
+    const lampY=Math.max(.21,M.B.yb(F)+.20);
+    const lampX=Math.max(.32,cw(F)*.69);
+    for(const side of [-1,1]){
+      const recess=box(.26,.105,.045,material.carbon,
+        side*lampX,lampY,F+.055,.018);
+      recess.castShadow=false;
+      const upper=box(.215,.021,.048,material.head,
+        side*lampX,lampY+.028,F+.081,.007);
+      upper.castShadow=false;
+      const lower=box(.17,.016,.048,material.trim,
+        side*lampX,lampY-.023,F+.083,.004);
+      lower.castShadow=false;
+    }
+  }
   // Protect silhouettes from flying mirrors: the mirror housings are
   // tightly anchored inside the fender envelope rather than on a free arm.
   // Add a narrow metal roof centerline to reinforce the canopy geometry.
