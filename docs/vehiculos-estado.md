@@ -130,3 +130,9 @@
 - Aurora V12, ID `aurora`, `graphics/future-chassis.js`: dos lentes traseros decorativos con biseles PBR para mejorar lectura de anchura desde cámara exterior. Commit `d42891bfda48e866063b0ad16243da9dad56584b`, PR borrador [#45](https://github.com/jmortegacu-jpg/paso-alpino/pull/45) [skip netlify]. Sin cambios intencionales en colisiones, ruedas, físicas, controles o red.
 - Pista paralela única: Ruta 27, dos marcadores de aproximación al viaducto, commit `f404a5e9dd4a0afe3fa6ab24c4e081095bbb47d5`, PR #34. Próxima Ruta 32.
 - [x] Código registrado en GitHub; [ ] parser JS; [ ] capturas de cámara exterior/conducción; [ ] FPS/WebGL; [ ] física y multijugador; [ ] PR #45 no fusionable antes de cambios, revisar de nuevo. **Sin merge ni Netlify.**
+
+## 2026-11-23 05:55 Costa Rica — Aurora V12
+- Modelo `aurora` en `graphics/future-chassis.js`; cinco lamas longitudinales cortas de carbono en cubierta de motor trasera y diez pequeños remates metálicos PBR. Geometría original sin assets externos ni cambios intencionales en físicas, colisiones o controles.
+- Commit `fc0d62ee63e9fa4668618c13ba16598557386889` [skip netlify], PR borrador [#45](https://github.com/jmortegacu-jpg/paso-alpino/pull/45).
+- Pista simultánea: Ruta 32 Zurquí, paneles de advertencia de curva instanciados, commit `1f008be1f67433a0b66f857db3b7408468dee3e9`, PR #42. Siguiente pista Puntarenas.
+- [x] commits GitHub; [ ] sintaxis ejecutada; [ ] captura de cámara exterior/conducción; [ ] FPS/WebGL móvil/PC; [ ] físicas/multijugador; [ ] validar integración PR #42/#45. Sin merge ni Netlify.
