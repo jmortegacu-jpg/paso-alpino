@@ -297,6 +297,20 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     g.add(beamPivot);
     place(g,Math.floor(N*.15),1,42,.1);
   }
+  // Generic mangrove-inspired grove for Route 34 coastal environments.
+  // The circuit is fictional: these are not surveyed tree positions.
+  function coastalMangroves(){
+    const count=hi?80:28,root=new THREE.InstancedMesh(new THREE.CylinderGeometry(.2,.3,4.5,5),mats.bark,count);
+    const crown=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(3.3,1),mats.foliage,count);
+    const o=new THREE.Object3D();
+    for(let j=0;j<count;j++){
+      const k=Math.floor(N*(.37+.24*(j+.5)/count)),p=node(k,1,56+24*Math.abs(Math.sin(j*5.7)),-.2);
+      o.rotation.set(0,j*2.4,0);o.scale.setScalar(.8+.3*Math.abs(Math.sin(j*1.9)));
+      o.position.copy(p).add(new THREE.Vector3(0,2.2,0));o.updateMatrix();root.setMatrixAt(j,o.matrix);
+      o.position.copy(p).add(new THREE.Vector3(0,5.8,0));o.scale.multiplyScalar(1.6);o.updateMatrix();crown.setMatrixAt(j,o.matrix);
+    }
+    world.add(root,crown);
+  }
   function ferns(count){
     const mat=new THREE.MeshStandardMaterial({color:0x327445,roughness:.94,side:THREE.DoubleSide});
     const geometry=new THREE.ConeGeometry(1.55,2.4,7);
@@ -1498,20 +1512,6 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     }
     sign('SALIDA TUNEL ZURQUI',start+count+Math.floor(N*.018),1,22);
     streetlights(0,start-50,1,85);
-  // Generic mangrove-inspired grove for Route 34 coastal environments.
-  // The circuit is fictional: these are not surveyed tree positions.
-  function coastalMangroves(){
-    const count=hi?80:28,root=new THREE.InstancedMesh(new THREE.CylinderGeometry(.2,.3,4.5,5),mats.bark,count);
-    const crown=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(3.3,1),mats.foliage,count);
-    const o=new THREE.Object3D();
-    for(let j=0;j<count;j++){
-      const k=Math.floor(N*(.37+.24*(j+.5)/count)),p=node(k,1,56+24*Math.abs(Math.sin(j*5.7)),-.2);
-      o.rotation.set(0,j*2.4,0);o.scale.setScalar(.8+.3*Math.abs(Math.sin(j*1.9)));
-      o.position.copy(p).add(new THREE.Vector3(0,2.2,0));o.updateMatrix();root.setMatrixAt(j,o.matrix);
-      o.position.copy(p).add(new THREE.Vector3(0,5.8,0));o.scale.multiplyScalar(1.6);o.updateMatrix();crown.setMatrixAt(j,o.matrix);
-    }
-    world.add(root,crown);
-  }
   } else if(id==='costanera'){
     coastalMangroves();
     // Coastal foothills beyond the drivable ribbon. Two instanced meshes,
