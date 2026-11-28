@@ -14,8 +14,6 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     concrete:new THREE.MeshStandardMaterial({color:0x777971,roughness:.93,side:THREE.DoubleSide}),
     stone:new THREE.MeshStandardMaterial({color:0x777060,roughness:.97,side:THREE.DoubleSide}),
     // Subtle damp concrete: a restrained PBR sheen, without reflection probes or new textures.
-    tunnel:new THREE.MeshPhysicalMaterial({color:0x575d57,metalness:0,roughness:.72,clearcoat:.16,clearcoatRoughness:.34,side:THREE.DoubleSide}),
-    // Subtle damp concrete: a restrained PBR sheen, without reflection probes or new textures.
     tunnel:new THREE.MeshPhysicalMaterial({color:0x535d59,metalness:0,roughness:.81,clearcoat:.09,clearcoatRoughness:.42,side:THREE.DoubleSide}),
     sand:new THREE.MeshStandardMaterial({color:0xb3a27a,roughness:1}),
     lamp:new THREE.MeshBasicMaterial({color:0xffd399}),
@@ -1455,6 +1453,30 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
       mesh.castShadow=false;world.add(mesh);
     }
+    // Reflective tunnel-wall delineators. Geometry is batched and does not
+    // introduce real lights, shadows, road colliders or extra physics objects.
+    // Their position is relative to this fictional circuit, not surveyed road data.
+    const reflectorCount=Math.floor(count/(hi?12:22));
+    if(reflectorCount>0){
+      const markerGeo=new THREE.BoxGeometry(.14,.48,.32);
+      const markerMat=new THREE.MeshBasicMaterial({color:0xffd99b});
+      const markers=new THREE.InstancedMesh(markerGeo,markerMat,reflectorCount*2);
+      const dummy=new THREE.Object3D();
+      let instance=0;
+      for(let j=0;j<reflectorCount;j++){
+        const k=(start+Math.floor((j+.5)*count/reflectorCount))%N;
+        for(const side of [-1,1]){
+          dummy.position.copy(node(k,side,14.25,2.35));
+          dummy.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+          dummy.scale.set(1,1,1);dummy.updateMatrix();
+          markers.setMatrixAt(instance++,dummy.matrix);
+        }
+      }
+      markers.instanceMatrix.needsUpdate=true;
+      markers.frustumCulled=false;
+      world.add(markers);
+    }
+    sign('SALIDA TUNEL ZURQUI',start+count+Math.floor(N*.018),1,22);
     streetlights(0,start-50,1,85);
   // Generic mangrove-inspired grove for Route 34 coastal environments.
   // The circuit is fictional: these are not surveyed tree positions.
