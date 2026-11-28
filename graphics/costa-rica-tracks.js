@@ -573,6 +573,35 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('EL FARO · LA PUNTA',Math.floor(N*.16),-1,22);
     sign('MUELLE DE CRUCEROS',Math.floor(N*.70),-1,22);
     lighthouse();
+    // Generic tourist pier, inspired by the cruise-pier setting documented by ICT.
+    // Decorative only: exact geometry, length and position are artistic, not surveyed.
+    // All supports are at least 39 world units from the road centre.
+    const pier=new THREE.Group();
+    const deckMat=new THREE.MeshStandardMaterial({color:0x9d9587,roughness:.91});
+    const pilingMat=new THREE.MeshStandardMaterial({color:0x858b89,roughness:.87,metalness:.12});
+    const railingMat=new THREE.MeshStandardMaterial({color:0xc8d0cc,metalness:.32,roughness:.5});
+    const pierLength=hi?56:42,deckY=2.7;
+    pier.add(cube(pierLength,.65,8.4,deckMat,-pierLength/2,deckY,0));
+    const pileCount=hi?8:6;
+    for(let j=0;j<pileCount;j++){
+      const x=-(3+j*(pierLength-6)/(pileCount-1));
+      for(const z of [-3.5,3.5]){
+        pier.add(cube(.7,4.8,.7,pilingMat,x,.2,z));
+        pier.add(cube(.17,1.25,.17,railingMat,x,deckY+1.05,z));
+      }
+    }
+    for(const z of [-4.0,4.0])pier.add(cube(pierLength,.13,.13,railingMat,-pierLength/2,deckY+1.65,z));
+    // place() aligns the local negative X axis to the positive roadside normal.
+    place(pier,Math.floor(N*.70),1,40,-.1);
+    // Compact seating and visitor kiosks reinforce the documented promenade.
+    const benchMat=new THREE.MeshStandardMaterial({color:0x946b46,roughness:.88});
+    for(let j=0;j<(hi?12:5);j++){
+      const bench=new THREE.Group();
+      bench.add(cube(2.4,.22,.75,benchMat,0,.9,0));
+      bench.add(cube(2.4,.95,.17,benchMat,0,1.35,-.37));
+      for(const x of [-.95,.95])bench.add(cube(.14,.85,.14,mats.black,x,.45,0));
+      place(bench,Math.floor(N*(j+.4)/(hi?12:5)),-1,43);
+    }
     beachWalkers(hi?18:8);
     // ICT confirms kiosks, local Churchill refreshments and recreational areas
     // along the promenade. Locations below are artistic, not surveyed positions.
