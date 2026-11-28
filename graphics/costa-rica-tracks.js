@@ -416,6 +416,293 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('CIUDAD COLON',Math.floor(N*.42),1,24);
     sign('HACIA CALDERA',Math.floor(N*.93),-1,23);
   } else if(id==='ruta2'){
+    // Parque Eolico Los Santos: up to 15 stylized turbines near Casa Mata/La Paz.
+    // Positions below are scenic approximations along a fictional loop, NOT GPS.
+    // The landmark is deliberately near the first part of the route, before the
+    // high-altitude forest/páramo sector; all parts remain outside the roadway.
+    const windWhite=new THREE.MeshStandardMaterial({color:0xe6e9e7,metalness:.12,roughness:.53});
+    const windDark=new THREE.MeshStandardMaterial({color:0x56656b,metalness:.3,roughness:.62});
+    const windCount=hi?15:7;
+    const towerGeo=new THREE.CylinderGeometry(1.1,2.1,44,8);
+    const towerMesh=new THREE.InstancedMesh(towerGeo,windWhite,windCount);
+    const hubGeo=new THREE.SphereGeometry(1.6,8,6);
+    const hubMesh=new THREE.InstancedMesh(hubGeo,windDark,windCount);
+    const rotorGeo=new THREE.BoxGeometry(1.45,25,.42);
+    rotorGeo.translate(0,12.2,0);
+    const rotors=[];
+    const marker=new THREE.Object3D();
+    for(let j=0;j<windCount;j++){
+      const fraction=.09+.18*(j+.35)/windCount;
+      const k=Math.floor(N*fraction),side=j%2?1:-1;
+      const offset=65+24*Math.abs(Math.sin(j*2.8));
+      const p=node(k,side,offset,-.3);
+      marker.position.copy(p);marker.position.y+=22;
+      marker.rotation.set(0,0,0);marker.scale.set(1,1,1);
+      marker.updateMatrix();towerMesh.setMatrixAt(j,marker.matrix);
+      marker.position.y=p.y+45;marker.updateMatrix();hubMesh.setMatrixAt(j,marker.matrix);
+      // One group per visible rotor, three simple blades, slow rotation.
+      // A per-mesh callback runs only while its rotor is actually rendered.
+      const rotor=new THREE.Group();
+      for(let b=0;b<3;b++){
+        const pivot=new THREE.Group();pivot.rotation.z=b*Math.PI*2/3;
+        const blade=new THREE.Mesh(rotorGeo,windWhite);pivot.add(blade);rotor.add(pivot);
+      }
+      rotor.position.copy(p);rotor.position.y+=45;
+      rotor.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      const visibleBlade=rotor.children[0].children[0];
+      visibleBlade.onBeforeRender=()=>{
+        rotor.rotation.z=performance.now()*.00024+j*.61;
+      };
+      world.add(rotor);rotors.push(rotor);
+    }
+    towerMesh.instanceMatrix.needsUpdate=true;hubMesh.instanceMatrix.needsUpdate=true;
+    // Recalculate bounds after setting instance transforms so off-screen turbines can be culled safely.
+    towerMesh.computeBoundingSphere();hubMesh.computeBoundingSphere();
+    world.add(towerMesh,hubMesh);
+    // High-elevation landscape: compact, original wind-shaped shrubs.
+    // Restrict to the upper section of the fictional loop; keep roadside clear.
+    // Two instanced meshes regardless of plant count, with no collision bodies.
+    const shrubCount=hi?96:quality==='media'?48:24;
+    const shrubCrownMat=new THREE.MeshStandardMaterial({color:0x526b43,roughness:1,flatShading:true});
+    const shrubStemMat=new THREE.MeshStandardMaterial({color:0x655d4c,roughness:1});
+    const shrubCrown=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.4,0),shrubCrownMat,shrubCount);
+    const shrubStem=new THREE.InstancedMesh(new THREE.CylinderGeometry(.16,.23,1.2,5),shrubStemMat,shrubCount);
+    const shrubDummy=new THREE.Object3D();
+    for(let j=0;j<shrubCount;j++){
+      const k=Math.floor(N*(.34+.33*(j+.5)/shrubCount));
+      const side=j%2?1:-1,dist=31+12*Math.abs(Math.sin(j*2.39));
+      const p=node(k,side,dist,-.3),size=.65+.65*Math.abs(Math.sin(j*1.71));
+      shrubDummy.rotation.set(0,j*1.13,0);
+      shrubDummy.position.copy(p);shrubDummy.position.y+=1.15*size;
+      shrubDummy.scale.set(1.5*size,.55*size,1.2*size);
+      shrubDummy.updateMatrix();shrubCrown.setMatrixAt(j,shrubDummy.matrix);
+      shrubDummy.position.copy(p);shrubDummy.position.y+=.55*size;
+      shrubDummy.scale.set(size,size,size);shrubDummy.updateMatrix();
+      shrubStem.setMatrixAt(j,shrubDummy.matrix);
+    }
+    shrubCrown.instanceMatrix.needsUpdate=true;
+    shrubStem.instanceMatrix.needsUpdate=true;
+    shrubCrown.computeBoundingSphere();shrubStem.computeBoundingSphere();
+    world.add(shrubCrown,shrubStem);
+    // Wind-shaped upper-montane tree silhouettes, set well back from the roadway.
+    // Shared low-poly geometry, two draw calls, no collision bodies or textures.
+    const montaneCount=hi?18:quality==='media'?10:6;
+    const montaneTrunks=new THREE.InstancedMesh(
+      new THREE.CylinderGeometry(.32,.52,5,5),mats.bark,montaneCount);
+    const montaneCrowns=new THREE.InstancedMesh(
+      new THREE.ConeGeometry(3.1,7.5,6),mats.foliage,montaneCount);
+    const montaneDummy=new THREE.Object3D();
+    for(let j=0;j<montaneCount;j++){
+      const k=Math.floor(N*(.38+.22*(j+.5)/montaneCount));
+      const side=j%2?1:-1;
+      const p=node(k,side,64+13*Math.abs(Math.sin(j*1.9)),-.3);
+      const scale=.72+.32*Math.abs(Math.sin(j*2.7));
+      montaneDummy.rotation.set(0,j*.91,0);
+      montaneDummy.scale.set(scale,scale,scale);
+      montaneDummy.position.copy(p);montaneDummy.position.y+=2.5*scale;
+      montaneDummy.updateMatrix();montaneTrunks.setMatrixAt(j,montaneDummy.matrix);
+      montaneDummy.position.copy(p);montaneDummy.position.y+=7.1*scale;
+      montaneDummy.updateMatrix();montaneCrowns.setMatrixAt(j,montaneDummy.matrix);
+    }
+    for(const mesh of [montaneTrunks,montaneCrowns]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;
+      world.add(mesh);
+    }
+    // Sparse highland rock outcrops: original low-poly geometry, no physics bodies.
+    // Keep these beyond the driving corridor and scale counts for mobile GPUs.
+    const rockCount=hi?24:quality==='media'?12:6;
+    const rockMesh=new THREE.InstancedMesh(
+      new THREE.DodecahedronGeometry(2.4,0),
+      new THREE.MeshStandardMaterial({color:0x777c72,roughness:.98,metalness:0}),
+      rockCount);
+    const rockDummy=new THREE.Object3D();
+    for(let j=0;j<rockCount;j++){
+      const k=Math.floor(N*(.61+.17*(j+.5)/rockCount));
+      const side=j%2?1:-1;
+      const p=node(k,side,58+18*Math.abs(Math.sin(j*1.71)),-1.1);
+      const scale=.7+.55*Math.abs(Math.sin(j*2.31));
+      rockDummy.position.copy(p);
+      rockDummy.rotation.set(j*.17,j*.83,j*.11);
+      rockDummy.scale.set(scale*1.4,scale*.65,scale);
+      rockDummy.updateMatrix();
+      rockMesh.setMatrixAt(j,rockDummy.matrix);
+    }
+    rockMesh.instanceMatrix.needsUpdate=true;
+    rockMesh.computeBoundingSphere();
+    rockMesh.castShadow=false;
+    world.add(rockMesh);
+    // Layered highland ridgeline: cool distant silhouettes create atmospheric
+    // depth behind the wind farm from the driver's view. Original geometry,
+    // no textures, collisions or dynamic lights; quality-scaled instances.
+    const ridgeCount=hi?16:quality==='media'?9:5;
+    const ridgeMaterial=new THREE.MeshStandardMaterial({
+      color:0x667b75,roughness:1,metalness:0,flatShading:true
+    });
+    const ridgeMesh=new THREE.InstancedMesh(
+      new THREE.IcosahedronGeometry(1,hi?2:1),ridgeMaterial,ridgeCount);
+    const ridgeDummy=new THREE.Object3D();
+    for(let j=0;j<ridgeCount;j++){
+      const k=Math.floor(N*(.32+.40*(j+.5)/ridgeCount));
+      const side=j%2?1:-1;
+      // Alternating highland summits break up the repeated rounded-hill skyline.
+      const h=24+15*Math.abs(Math.sin(j*1.37))+8*Math.abs(Math.sin(j*2.71));
+      ridgeDummy.position.copy(node(k,side,145+20*Math.abs(Math.sin(j*1.9)),h*.2));
+      ridgeDummy.rotation.set(0,j*.73,0);
+      ridgeDummy.scale.set(29+12*Math.abs(Math.cos(j)),h,23+8*Math.abs(Math.sin(j)));
+      ridgeDummy.updateMatrix();ridgeMesh.setMatrixAt(j,ridgeDummy.matrix);
+      const shade=.8+.18*Math.abs(Math.sin(j*1.53));
+      ridgeMesh.setColorAt(j,new THREE.Color().setRGB(shade,shade,shade));
+    }
+    ridgeMesh.instanceMatrix.needsUpdate=true;
+    ridgeMesh.computeBoundingSphere();
+    ridgeMesh.castShadow=false;ridgeMesh.receiveShadow=false;
+    world.add(ridgeMesh);
+    // Bosque nuboso en parches: copas escalonadas de silueta amplia, separadas
+    // de la calzada y sin colisiones. Dos draw calls, densidad adaptable.
+    const cloudTreeCount=hi?36:quality==='media'?20:10;
+    const cloudTrunks=new THREE.InstancedMesh(
+      new THREE.CylinderGeometry(.35,.58,6,6),mats.bark,cloudTreeCount);
+    const cloudCrowns=new THREE.InstancedMesh(
+      new THREE.IcosahedronGeometry(1,1),
+      new THREE.MeshStandardMaterial({color:0x315d48,roughness:1,metalness:0,flatShading:true}),cloudTreeCount);
+    const cloudDummy=new THREE.Object3D();
+    for(let j=0;j<cloudTreeCount;j++){
+      const k=Math.floor(N*(.43+.19*(j+.5)/cloudTreeCount));
+      const side=j%2?1:-1;
+      const p=node(k,side,85+20*Math.abs(Math.sin(j*2.17)),-.3);
+      const scale=.8+.4*Math.abs(Math.sin(j*1.83));
+      cloudDummy.rotation.set(0,j*.83,0);
+      cloudDummy.scale.set(scale,scale,scale);
+      cloudDummy.position.copy(p);cloudDummy.position.y+=3*scale;
+      cloudDummy.updateMatrix();cloudTrunks.setMatrixAt(j,cloudDummy.matrix);
+      cloudDummy.scale.set(4.1*scale,3.0*scale,3.5*scale);
+      cloudDummy.position.copy(p);cloudDummy.position.y+=7.5*scale;
+      cloudDummy.updateMatrix();cloudCrowns.setMatrixAt(j,cloudDummy.matrix);
+    }
+    for(const mesh of [cloudTrunks,cloudCrowns]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;world.add(mesh);
+    }
+    // High-altitude roadside delineators: inexpensive original geometry, no physics.
+    // Keep posts off the racing ribbon; quality-scaled instance counts.
+    const delineatorCount=hi?32:quality==='media'?20:12;
+    const postGeo=new THREE.BoxGeometry(.18,1.35,.18);
+    const postMat=new THREE.MeshStandardMaterial({color:0xd9dcd6,roughness:.83,metalness:0});
+    const bandGeo=new THREE.BoxGeometry(.21,.25,.21);
+    const bandMat=new THREE.MeshBasicMaterial({color:0xe7b34b});
+    const posts=new THREE.InstancedMesh(postGeo,postMat,delineatorCount);
+    const bands=new THREE.InstancedMesh(bandGeo,bandMat,delineatorCount);
+    const postDummy=new THREE.Object3D();
+    for(let j=0;j<delineatorCount;j++){
+      const k=Math.floor(N*(.32+.47*(j+.5)/delineatorCount));
+      const side=j%2?1:-1;
+      const p=node(k,side,22,-.12);
+      postDummy.position.copy(p);postDummy.position.y+=.675;
+      postDummy.rotation.set(0,0,0);postDummy.scale.set(1,1,1);
+      postDummy.updateMatrix();posts.setMatrixAt(j,postDummy.matrix);
+      postDummy.position.y=p.y+1.03;
+      postDummy.updateMatrix();bands.setMatrixAt(j,postDummy.matrix);
+    }
+    for(const mesh of [posts,bands]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;
+      world.add(mesh);
+    }
+    // Montane safety guardrail: paired lightweight rails and posts along a
+    // short scenic outer curve, away from the drivable surface. Decorative only.
+    // Geometry is original and LOD-scaled; no rigid bodies or road edits.
+    const railCount=hi?26:quality==='media'?16:9;
+    const railPosts=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.22,1.3,.22),
+      new THREE.MeshStandardMaterial({color:0x8e9997,metalness:.48,roughness:.43}),
+      railCount);
+    const railBeams=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.18,.27,5.2),
+      new THREE.MeshStandardMaterial({color:0xc3cac5,metalness:.55,roughness:.38}),
+      railCount);
+    const railDummy=new THREE.Object3D();
+    for(let j=0;j<railCount;j++){
+      const k=Math.floor(N*(.46+.085*(j+.5)/railCount));
+      const p=node(k,1,26,-.15);
+      railDummy.position.copy(p);
+      railDummy.position.y+=.65;
+      railDummy.rotation.set(0,0,0);
+      railDummy.scale.set(1,1,1);
+      railDummy.updateMatrix();
+      railPosts.setMatrixAt(j,railDummy.matrix);
+      railDummy.position.y=p.y+1.13;
+      railDummy.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      railDummy.updateMatrix();
+      railBeams.setMatrixAt(j,railDummy.matrix);
+    }
+    for(const mesh of [railPosts,railBeams]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;
+      world.add(mesh);
+    }
+    // Original stylized resplendent-quetzal silhouettes on distant montane perches.
+    // Each bird uses three low-poly instanced shapes; no animated fauna or collisions.
+    const quetzalCount=hi?5:quality==='media'?3:2;
+    const qGreen=new THREE.MeshStandardMaterial({color:0x147c55,roughness:.86,metalness:.03,flatShading:true});
+    const qRed=new THREE.MeshStandardMaterial({color:0xb43d38,roughness:.9,metalness:0});
+    const qBody=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),qGreen,quetzalCount);
+    const qChest=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),qRed,quetzalCount);
+    const qTail=new THREE.InstancedMesh(new THREE.ConeGeometry(.24,5.5,5),qGreen,quetzalCount);
+    const qDummy=new THREE.Object3D();
+    for(let j=0;j<quetzalCount;j++){
+      const k=Math.floor(N*(.40+.17*(j+.5)/quetzalCount));
+      const p=node(k,j%2?1:-1,64+13*Math.abs(Math.sin(j*1.9)),8.6);
+      qDummy.rotation.set(0,j*.91,0);qDummy.scale.set(.72,.95,.62);
+      qDummy.position.copy(p);qDummy.updateMatrix();qBody.setMatrixAt(j,qDummy.matrix);
+      qDummy.scale.set(.48,.39,.49);qDummy.position.y=p.y-.35;
+      qDummy.updateMatrix();qChest.setMatrixAt(j,qDummy.matrix);
+      qDummy.rotation.set(Math.PI,0,j*.08);qDummy.scale.set(1,1,1);
+      qDummy.position.y=p.y-3.0;qDummy.updateMatrix();qTail.setMatrixAt(j,qDummy.matrix);
+    }
+    for(const mesh of [qBody,qChest,qTail]){
+      mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
+      mesh.castShadow=false;world.add(mesh);
+    }
+    // Original low-poly tapir silhouettes in distant forest clearings.
+    // Decorative only: no animal collisions, AI or alteration to the track ribbon.
+    const tapirCount=hi?4:quality==='media'?3:2;
+    const tapirMat=new THREE.MeshStandardMaterial({color:0x353b36,roughness:.98,flatShading:true});
+    const tapirBodies=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),tapirMat,tapirCount);
+    const tapirHeads=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),tapirMat,tapirCount);
+    const tapirLegs=new THREE.InstancedMesh(new THREE.CylinderGeometry(.17,.22,1,5),tapirMat,tapirCount*4);
+    const tapirDummy=new THREE.Object3D();
+    for(let j=0;j<tapirCount;j++){
+      const k=Math.floor(N*(.49+.16*(j+.5)/tapirCount)),side=j%2?1:-1;
+      const p=node(k,side,58+8*Math.abs(Math.sin(j*2.4)),0);
+      tapirDummy.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+      tapirDummy.position.copy(p);tapirDummy.position.y+=1.45;
+      tapirDummy.scale.set(1.12,.77,1.68);tapirDummy.updateMatrix();
+      tapirBodies.setMatrixAt(j,tapirDummy.matrix);
+      tapirDummy.position.copy(p);tapirDummy.position.y+=1.73;
+      tapirDummy.position.z+=side*.85;tapirDummy.scale.set(.58,.56,.67);
+      tapirDummy.updateMatrix();tapirHeads.setMatrixAt(j,tapirDummy.matrix);
+      for(let l=0;l<4;l++){
+        tapirDummy.position.copy(p);
+        tapirDummy.position.x+=(l%2?-.53:.53);
+        tapirDummy.position.z+=(l<2?-.75:.75);
+        tapirDummy.position.y+=.49;tapirDummy.scale.set(1,1,1);
+        tapirDummy.rotation.set(0,0,0);tapirDummy.updateMatrix();
+        tapirLegs.setMatrixAt(j*4+l,tapirDummy.matrix);
+      }
+    }
+    for(const mesh of [tapirBodies,tapirHeads,tapirLegs]){
+      mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
+      mesh.castShadow=false;world.add(mesh);
+    }
+    // Driver-readable roadside identification, not a reproduction of a real sign.
+    sign('PARQUE EOLICO LOS SANTOS',Math.floor(N*.07),1,18);
+    sign('COOPESANTOS',Math.floor(N*.15),-1,18);
+    sign('CASA MATA · LA PAZ',Math.floor(N*.23),1,19);
     sign('RUTA 2 · CERRO DE LA MUERTE',Math.floor(N*.08),1,23);
     sign('HACIA PEREZ ZELEDON',Math.floor(N*.55),-1,23);
     sign('PARAMO · ALTA MONTANA',Math.floor(N*.27),1,24);
