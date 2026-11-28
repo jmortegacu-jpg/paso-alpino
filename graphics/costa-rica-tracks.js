@@ -15,6 +15,8 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     stone:new THREE.MeshStandardMaterial({color:0x777060,roughness:.97,side:THREE.DoubleSide}),
     // Subtle damp concrete: a restrained PBR sheen, without reflection probes or new textures.
     tunnel:new THREE.MeshPhysicalMaterial({color:0x575d57,metalness:0,roughness:.72,clearcoat:.16,clearcoatRoughness:.34,side:THREE.DoubleSide}),
+    // Subtle damp concrete: a restrained PBR sheen, without reflection probes or new textures.
+    tunnel:new THREE.MeshPhysicalMaterial({color:0x535d59,metalness:0,roughness:.81,clearcoat:.09,clearcoatRoughness:.42,side:THREE.DoubleSide}),
     sand:new THREE.MeshStandardMaterial({color:0xb3a27a,roughness:1}),
     lamp:new THREE.MeshBasicMaterial({color:0xffd399}),
     foliage:new THREE.MeshStandardMaterial({color:0x1b5634,roughness:.94,side:THREE.DoubleSide}),
@@ -95,6 +97,14 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       const p=node(k,s,27+7*Math.abs(Math.sin(i*11.3)),0),h=6+2*Math.sin(i*.6);
       d.position.copy(p);d.position.y+=h;d.scale.set(1.2,1.15,1.25);d.updateMatrix();crown.setMatrixAt(i,d.matrix);
       e.position.copy(p);e.position.y+=2.1;e.scale.set(1,1,1);e.updateMatrix();trunk.setMatrixAt(i,e.matrix);
+    }
+    // Matrices are authored once; bound the instanced forest after placement so
+    // off-screen stands can be culled without touching the driving physics.
+    for(const mesh of [crown,trunk]){
+      mesh.instanceMatrix.needsUpdate=true;
+      mesh.computeBoundingSphere();
+      mesh.castShadow=false;
+      mesh.receiveShadow=false;
     }
     world.add(crown,trunk);
   }
@@ -226,6 +236,10 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       d.position.copy(p);d.rotation.y=k*1.52;const scale=.6+.45*Math.abs(Math.sin(k*.7));
       d.scale.set(scale,scale,scale);d.updateMatrix();mesh.setMatrixAt(k,d.matrix);
     }
+    mesh.instanceMatrix.needsUpdate=true;
+    mesh.computeBoundingSphere();
+    mesh.castShadow=false;
+    mesh.receiveShadow=false;
     world.add(mesh);
   }
 
@@ -1162,21 +1176,230 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     gg.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
     gg.setIndex(inds);gg.computeVertexNormals();
     const vault=new THREE.Mesh(gg,mats.tunnel);vault.receiveShadow=true;world.add(vault);
-    // Bright linear light strips and reinforced stone portal frames.
-    for(let k=0;k<=count;k+=hi?28:48){
-      const pt=node(start+k,0,0,9.96),m=new THREE.Mesh(new THREE.BoxGeometry(2.4,.12,2),mats.lamp);
-      m.position.copy(pt);m.rotation.y=Math.atan2(tangents[(start+k)%N].x,tangents[(start+k)%N].z);world.add(m);
-    }
-    for(const k of [start,start+count]){
-      const frame=new THREE.Group(),seg=12;
-      for(let j=0;j<seg;j++){
-        const a=Math.PI*j/seg,b=Math.PI*(j+1)/seg;
-        const center=(a+b)/2;
-        const strut=new THREE.Mesh(new THREE.BoxGeometry(.55,.48,2.4),mats.stone);
-        strut.position.set(Math.cos(center)*14.8,1.2+Math.sin(center)*9.2,0);
-        strut.rotation.z=center+Math.PI/2;frame.add(strut);
+    // Concrete vault ribs provide depth and speed cues in the driving camera.
+    // One instanced draw call, no dynamic lights or collision surfaces.
+    const ribStep=hi?10:18;
+    const ribCount=Math.max(1,Math.floor(count/ribStep));
+    const ribs=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.20,.20,2.0),
+      new THREE.MeshStandardMaterial({color:0x78817b,roughness:.92,metalness:0}),
+      ribCount*9);
+    const ribDummy=new THREE.Object3D();
+    const ribMatrix=new THREE.Matrix4();
+    for(let ri=0;ri<ribCount;ri++){
+      const k=(start+(ri+1)*ribStep)%N;
+      const origin=new THREE.Object3D();
+      origin.position.copy(points[k]);
+      origin.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      origin.updateMatrix();
+      for(let j=0;j<9;j++){
+        const theta=Math.PI*(j+.5)/9;
+        ribDummy.position.set(Math.cos(theta)*14.25,1.25+Math.sin(theta)*8.92,0);
+        ribDummy.rotation.set(0,0,theta);
+        ribDummy.updateMatrix();
+        ribMatrix.multiplyMatrices(origin.matrix,ribDummy.matrix);
+        ribs.setMatrixAt(ri*9+j,ribMatrix);
       }
-      place(frame,k,1,0,.15);
+    }
+    ribs.instanceMatrix.needsUpdate=true;
+    ribs.computeBoundingSphere();
+    ribs.castShadow=false;
+    ribs.receiveShadow=false;
+    world.add(ribs);
+    // Paired low-profile safety-reflector bands inside the tunnel create
+    // readable depth cues from the driver's viewpoint. Instanced, no lights.
+    const bandStep=hi?14:25;
+    const bandStations=Math.max(1,Math.floor(count/bandStep));
+    const wallBands=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.12,.12,1.25),
+      new THREE.MeshStandardMaterial({color:0xe3d8ac,emissive:0x554719,
+        emissiveIntensity:.24,roughness:.68,metalness:0}),
+      bandStations*2);
+    const bandDummy=new THREE.Object3D(),bandWorld=new THREE.Matrix4();
+    for(let station=0;station<bandStations;station++){
+      const k=(start+(station+1)*bandStep)%N;
+      const bandOrigin=new THREE.Object3D();
+      bandOrigin.position.copy(points[k]);
+      bandOrigin.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      bandOrigin.updateMatrix();
+      for(let side=0;side<2;side++){
+        bandDummy.position.set(side===0?-14.42:14.42,2.12,0);
+        bandDummy.rotation.set(0,0,0);
+        bandDummy.updateMatrix();
+        bandWorld.multiplyMatrices(bandOrigin.matrix,bandDummy.matrix);
+        wallBands.setMatrixAt(station*2+side,bandWorld);
+      }
+    }
+    wallBands.instanceMatrix.needsUpdate=true;
+    wallBands.computeBoundingSphere();
+    wallBands.castShadow=false;
+    wallBands.receiveShadow=false;
+    world.add(wallBands);
+    // Warm ceiling wayfinding markers: subtle repeating panels provide a
+    // readable tunnel rhythm without expensive point lights or physics meshes.
+    const ceilingStep=hi?22:38;
+    const ceilingCount=Math.max(1,Math.floor(count/ceilingStep));
+    const ceilingMarkers=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(1.05,.045,.52),
+      new THREE.MeshStandardMaterial({color:0xd9d9bd,emissive:0x554c2d,
+        emissiveIntensity:.18,metalness:.05,roughness:.74}),
+      ceilingCount);
+    const ceilingDummy=new THREE.Object3D();
+    for(let j=0;j<ceilingCount;j++){
+      const k=(start+(j+1)*ceilingStep)%N;
+      ceilingDummy.position.copy(points[k]);
+      ceilingDummy.position.y+=10.08;
+      ceilingDummy.rotation.set(0,Math.atan2(tangents[k].x,tangents[k].z),0);
+      ceilingDummy.updateMatrix();
+      ceilingMarkers.setMatrixAt(j,ceilingDummy.matrix);
+    }
+    ceilingMarkers.instanceMatrix.needsUpdate=true;
+    ceilingMarkers.computeBoundingSphere();
+    ceilingMarkers.castShadow=false;
+    ceilingMarkers.receiveShadow=false;
+    world.add(ceilingMarkers);
+    // Bright linear light strips and reinforced stone portal frames.
+    // Shared tunnel-light geometry/material; one draw call instead of one per strip.
+    const lampStep=hi?28:48, lampCount=Math.floor(count/lampStep)+1;
+    const strips=new THREE.InstancedMesh(new THREE.BoxGeometry(2.4,.12,2),mats.lamp,lampCount);
+    const stripTransform=new THREE.Object3D();
+    for(let j=0;j<lampCount;j++){
+      const k=start+j*lampStep,pt=node(k,0,0,9.96);
+      stripTransform.position.copy(pt);
+      stripTransform.rotation.set(0,Math.atan2(tangents[k%N].x,tangents[k%N].z),0);
+      stripTransform.updateMatrix();
+      strips.setMatrixAt(j,stripTransform.matrix);
+    }
+    strips.instanceMatrix.needsUpdate=true;
+    strips.computeBoundingSphere();
+    world.add(strips);
+    // Both portal arches share one instanced mesh (24 struts, one draw call).
+    // Build transforms in world space to preserve each portal's road alignment.
+    const portalSegments=12;
+    const portalStruts=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.55,.48,2.4),mats.stone,portalSegments*2);
+    const localStrut=new THREE.Object3D();
+    const portalMatrix=new THREE.Matrix4();
+    for(const [portalIndex,k] of [start,start+count].entries()){
+      const idx=k%N,cp=points[idx];
+      // Match the existing portal placement along the road centerline.
+      const angle=Math.atan2(tangents[idx].x,tangents[idx].z);
+      const origin=new THREE.Object3D();
+      origin.position.copy(cp);origin.position.y+=.15;
+      origin.rotation.y=angle;origin.updateMatrix();
+      for(let j=0;j<portalSegments;j++){
+        const center=Math.PI*(j+.5)/portalSegments;
+        localStrut.position.set(Math.cos(center)*14.8,1.2+Math.sin(center)*9.2,0);
+        localStrut.rotation.set(0,0,center+Math.PI/2);
+        localStrut.updateMatrix();
+        portalMatrix.multiplyMatrices(origin.matrix,localStrut.matrix);
+        portalStruts.setMatrixAt(portalIndex*portalSegments+j,portalMatrix);
+      }
+    }
+    portalStruts.instanceMatrix.needsUpdate=true;
+    portalStruts.computeBoundingSphere();
+    portalStruts.castShadow=false;
+    world.add(portalStruts);
+    // High-contrast tunnel portal warning blades, visible from the driving camera.
+    // Four low-poly amber/black boards share two instanced draw calls; no lights/colliders.
+    const portalBladeCount=4;
+    const bladeFrame=new THREE.InstancedMesh(new THREE.BoxGeometry(.52,3.2,.14),
+      new THREE.MeshStandardMaterial({color:0xf3ae34,roughness:.72,metalness:0}),portalBladeCount);
+    const bladeStripe=new THREE.InstancedMesh(new THREE.BoxGeometry(.56,.27,.16),
+      new THREE.MeshStandardMaterial({color:0x202524,roughness:.9,metalness:0}),portalBladeCount*3);
+    const bladeOrigin=new THREE.Object3D(),bladeDummy=new THREE.Object3D(),bladeWorld=new THREE.Matrix4();
+    for(let p=0;p<2;p++){
+      const k=(start+p*count)%N;
+      bladeOrigin.position.copy(points[k]);
+      bladeOrigin.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);
+      bladeOrigin.updateMatrix();
+      for(let side=0;side<2;side++){
+        const index=p*2+side;
+        bladeDummy.position.set(side===0?-14.75:14.75,2.85,0);
+        bladeDummy.rotation.set(0,0,0);bladeDummy.updateMatrix();
+        bladeWorld.multiplyMatrices(bladeOrigin.matrix,bladeDummy.matrix);
+        bladeFrame.setMatrixAt(index,bladeWorld);
+        for(let stripe=0;stripe<3;stripe++){
+          bladeDummy.position.y=2.12+stripe*.72;
+          bladeDummy.position.z=.10;
+          bladeDummy.updateMatrix();
+          bladeWorld.multiplyMatrices(bladeOrigin.matrix,bladeDummy.matrix);
+          bladeStripe.setMatrixAt(index*3+stripe,bladeWorld);
+        }
+      }
+    }
+    for(const blades of [bladeFrame,bladeStripe]){
+      blades.instanceMatrix.needsUpdate=true;
+      blades.computeBoundingSphere();blades.castShadow=false;world.add(blades);
+    }
+    // Route 32-inspired reflective roadside delineators near the tunnel approach.
+    // Decorative only: well outside the driveable ribbon, no physics or collisions.
+    // MOPT (2026-04-10): reflective markers and flexible delineators on RN 32.
+    const markerCount=hi?28:quality==='media'?18:10;
+    const markerBody=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.17,1.12,.17),
+      new THREE.MeshStandardMaterial({color:0xd9ded9,roughness:.83}),
+      markerCount);
+    const markerReflector=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.19,.19,.035),
+      new THREE.MeshBasicMaterial({color:0xffe7a1}),
+      markerCount);
+    const markerDummy=new THREE.Object3D();
+    const approachEnd=Math.max(1,start-12);
+    for(let j=0;j<markerCount;j++){
+      const k=Math.floor(approachEnd*(j+.5)/markerCount);
+      const side=j%2===0?1:-1;
+      const pos=node(k,side,20,.56);
+      const yaw=Math.atan2(tangents[k].x,tangents[k].z);
+      markerDummy.position.copy(pos);
+      markerDummy.rotation.set(0,yaw,0);
+      markerDummy.updateMatrix();
+      markerBody.setMatrixAt(j,markerDummy.matrix);
+      markerDummy.position.y+=.30;
+      markerDummy.position.x+=normals[k].x*side*.105;
+      markerDummy.position.z+=normals[k].z*side*.105;
+      markerDummy.updateMatrix();
+      markerReflector.setMatrixAt(j,markerDummy.matrix);
+    }
+    markerBody.instanceMatrix.needsUpdate=true;
+    markerReflector.instanceMatrix.needsUpdate=true;
+    markerBody.computeBoundingSphere();
+    markerReflector.computeBoundingSphere();
+    markerBody.castShadow=false;
+    markerReflector.castShadow=false;
+    world.add(markerBody,markerReflector);
+    // Route 32: amber curve chevrons before the Zurquí portal, inspired by
+    // MOPT's 2026 roadside marking program. Illustrative, not navigational.
+    // Shared meshes keep the distant warning pattern mobile-friendly.
+    const chevronStations=hi?10:quality==='media'?7:4;
+    const chevronBack=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(1.35,.86,.07),
+      new THREE.MeshStandardMaterial({color:0xe8b63d,roughness:.72,metalness:0}),
+      chevronStations);
+    const chevronArrow=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.84,.16,.085),
+      new THREE.MeshStandardMaterial({color:0x1e2626,roughness:.87,metalness:0}),
+      chevronStations);
+    const chevronPost=new THREE.InstancedMesh(
+      new THREE.BoxGeometry(.10,1.55,.10),
+      new THREE.MeshStandardMaterial({color:0x858b83,roughness:.82,metalness:.12}),
+      chevronStations);
+    const chev=new THREE.Object3D();
+    for(let j=0;j<chevronStations;j++){
+      const k=Math.max(0,Math.floor(start*.32+(start*.55)*(j+.5)/chevronStations));
+      const side=-1,at=node(k,side,22,1.92);
+      const yaw=Math.atan2(tangents[k].x,tangents[k].z);
+      chev.position.copy(at);chev.rotation.set(0,yaw,0);chev.updateMatrix();
+      chevronBack.setMatrixAt(j,chev.matrix);
+      chev.position.y+=.015;chev.position.x+=normals[k].x*side*.047;
+      chev.position.z+=normals[k].z*side*.047;
+      chev.rotation.z=-.43;chev.updateMatrix();chevronArrow.setMatrixAt(j,chev.matrix);
+      chev.position.copy(at);chev.position.y-=1.08;chev.rotation.set(0,yaw,0);
+      chev.updateMatrix();chevronPost.setMatrixAt(j,chev.matrix);
+    }
+    for(const mesh of [chevronBack,chevronArrow,chevronPost]){
+      mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
+      mesh.castShadow=false;world.add(mesh);
     }
     streetlights(0,start-50,1,85);
   // Generic mangrove-inspired grove for Route 34 coastal environments.
