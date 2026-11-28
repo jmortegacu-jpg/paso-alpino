@@ -283,12 +283,47 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       obj.position.copy(p).add(new THREE.Vector3(0,3.2,0));obj.updateMatrix();trunks.setMatrixAt(j,obj.matrix);
       obj.position.copy(p).add(new THREE.Vector3(0,8.5,0));obj.scale.multiplyScalar(1.5);obj.updateMatrix();crowns.setMatrixAt(j,obj.matrix);
     }
+    // Instance transforms are written after mesh construction: refresh their
+    // culling bounds to avoid disappearing groves at the driving-camera edge.
+    trunks.instanceMatrix.needsUpdate=true;crowns.instanceMatrix.needsUpdate=true;
+    trunks.computeBoundingSphere();crowns.computeBoundingSphere();
+    trunks.castShadow=false;crowns.castShadow=false;
     world.add(trunks,crowns);
+    // Guanacaste-inspired wide shade canopies: original stylized geometry,
+    // not an exact botanical model or a claim about a particular tree location.
+    // Two instanced meshes regardless of quality, no collisions or shadows.
+    const canopyCount=hi?26:quality==='media'?14:7;
+    const canopyMat=new THREE.MeshStandardMaterial({color:0x577c39,roughness:.98,side:THREE.DoubleSide});
+    const canopyGeo=new THREE.SphereGeometry(1,9,5);
+    const canopyMesh=new THREE.InstancedMesh(canopyGeo,canopyMat,canopyCount);
+    const canopyStems=new THREE.InstancedMesh(new THREE.CylinderGeometry(.38,.58,1,6),mats.bark,canopyCount);
+    const canopyObj=new THREE.Object3D();
+    for(let j=0;j<canopyCount;j++){
+      const k=Math.floor(N*(j+.45)/canopyCount),side=j%2?1:-1;
+      const p=node(k,side,75+8*Math.abs(Math.sin(j*4.9)),0);
+      const height=8+2*Math.abs(Math.sin(j*1.7)),spread=8+2*Math.abs(Math.sin(j*2.9));
+      canopyObj.position.copy(p);canopyObj.position.y+=height*.5;
+      canopyObj.rotation.set(0,j*.7,0);canopyObj.scale.set(.58,height,.58);
+      canopyObj.updateMatrix();canopyStems.setMatrixAt(j,canopyObj.matrix);
+      // Vary canopy silhouette deterministically; preserve a fixed GPU instance budget.
+      // Place foliage above the trunk and keep the road corridor free.
+      canopyObj.position.copy(p);canopyObj.position.y+=height+1.3;
+      canopyObj.rotation.set(0,j*.7,0);
+      const crownHeight=2.1+0.65*Math.abs(Math.sin(j*2.13));
+      canopyObj.scale.set(spread,crownHeight,spread*(.78+.16*Math.abs(Math.sin(j*1.31))));
+      canopyObj.updateMatrix();canopyMesh.setMatrixAt(j,canopyObj.matrix);
+    }
+    canopyMesh.instanceMatrix.needsUpdate=true;canopyStems.instanceMatrix.needsUpdate=true;
+    canopyMesh.computeBoundingSphere();canopyStems.computeBoundingSphere();
+    world.add(canopyStems,canopyMesh);
     const white=new THREE.MeshStandardMaterial({color:0xe6e2d3,roughness:.95});
     const dark=new THREE.MeshStandardMaterial({color:0x3d342e,roughness:.96});
     const cowBody=new THREE.BoxGeometry(2.7,1.35,1.35);
     const cowHead=new THREE.BoxGeometry(.9,.9,.85);
     const cowLeg=new THREE.CylinderGeometry(.15,.2,1.15,5);
+    // Reuse the same ear geometry across all cattle; each mesh keeps its own transform.
+    // This avoids allocating identical GPU buffers for every decorative animal.
+    const cowEar=new THREE.BoxGeometry(.38,.15,.26);
     const cowCount=hi?20:8;
     for(let j=0;j<cowCount;j++){
       const k=Math.floor(N*(j+.7)/cowCount),side=j%2?1:-1;
@@ -298,8 +333,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       for(const x of [-.9,.9])for(const z of [-.43,.43]){
         const leg=new THREE.Mesh(cowLeg,coat);leg.position.set(x,.6,z);cow.add(leg);
       }
-      const earGeo=new THREE.BoxGeometry(.38,.15,.26);
-      for(const z of [-.57,.57]){const ear=new THREE.Mesh(earGeo,coat);ear.position.set(1.5,2.19,z);cow.add(ear);}
+      for(const z of [-.57,.57]){const ear=new THREE.Mesh(cowEar,coat);ear.position.set(1.5,2.19,z);cow.add(ear);}
       // Cattle remain behind the roadside vegetation and never enter the road.
       place(cow,k,side,60+11*Math.abs(Math.sin(j*3.7)),-.1);
       cow.rotation.y+=Math.sin(j*4.7)*1.4;
@@ -313,10 +347,180 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       const k=Math.floor(N*j/postCount),side=j%2?1:-1;
       obj.position.copy(node(k,side,42,.75));obj.rotation.set(0,0,0);obj.scale.set(1,1,1);obj.updateMatrix();posts.setMatrixAt(j,obj.matrix);
     }
+    // Transforms are assigned after construction; refresh culling bounds so
+    // roadside fence posts do not vanish prematurely near the driving camera.
+    posts.instanceMatrix.needsUpdate=true;
+    posts.computeBoundingSphere();
+    posts.castShadow=false;
     world.add(posts);
   }
   if(id==='ruta1'){
     guanacastePastures();
+    // Original roadside reflective delineators: visible at low camera height.
+    // Shared geometry/material and no physics colliders or light sources.
+    {
+      const count=hi?32:quality==='media'?20:12;
+      const post=new THREE.InstancedMesh(new THREE.BoxGeometry(.22,1.18,.22),
+        new THREE.MeshStandardMaterial({color:0xe6e0cb,roughness:.83}),count);
+      const reflector=new THREE.InstancedMesh(new THREE.BoxGeometry(.25,.25,.025),
+        new THREE.MeshBasicMaterial({color:0xf5b847,side:THREE.DoubleSide}),count);
+      const o=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const k=Math.floor(N*(j+.5)/count)%N,side=j%2?1:-1;
+        const p=node(k,side,19,.59),angle=Math.atan2(tangents[k].x,tangents[k].z);
+        o.position.copy(p);o.rotation.set(0,angle,0);o.scale.set(1,1,1);
+        o.updateMatrix();post.setMatrixAt(j,o.matrix);
+        o.position.y+=.31;o.position.x+=normals[k].x*side*.125;
+        o.position.z+=normals[k].z*side*.125;
+        o.updateMatrix();reflector.setMatrixAt(j,o.matrix);
+      }
+      for(const mesh of [post,reflector]){
+        mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
+        mesh.castShadow=false;world.add(mesh);
+      }
+    }
+    // Cortez amarillo (Handroanthus ochraceus): stylized seasonal flowering
+    // silhouette. Original procedural geometry, not a botanical reconstruction.
+    // Keep trees outside the driving ribbon and avoid new physics colliders.
+    {
+      const count=hi?12:quality==='media'?7:4;
+      const trunk=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.24,.43,6.4,6),
+        mats.bark,count);
+      const blossoms=new THREE.InstancedMesh(
+        new THREE.IcosahedronGeometry(3.6,1),
+        new THREE.MeshStandardMaterial({color:0xe9bb32,roughness:.92,flatShading:true}),
+        count);
+      const o=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const k=Math.floor(N*(j+.37)/count)%N;
+        const side=j%2?1:-1;
+        const p=node(k,side,53+6*Math.sin(j*2.1),0);
+        const scale=.8+.22*(.5+.5*Math.sin(j*3.7));
+        o.position.copy(p);o.position.y+=3.2*scale;
+        o.rotation.set(0,j*1.9,0);o.scale.setScalar(scale);o.updateMatrix();
+        trunk.setMatrixAt(j,o.matrix);
+        o.position.y+=5.1*scale;
+        o.scale.set(1.25*scale,.68*scale,1.18*scale);o.updateMatrix();
+        blossoms.setMatrixAt(j,o.matrix);
+      }
+      for(const mesh of [trunk,blossoms]){
+        mesh.instanceMatrix.needsUpdate=true;
+        mesh.computeBoundingSphere();
+        mesh.castShadow=false;
+        world.add(mesh);
+      }
+    }
+    // Warm dry-season foothills beyond the cattle pastures. Their broad,
+    // staggered silhouettes improve landscape depth from the driving camera.
+    // All geometry is decorative and stays far outside the racing corridor.
+    {
+      const ridgeCount=hi?20:quality==='media'?11:6;
+      const ridgeMat=new THREE.MeshStandardMaterial({
+        color:0x8a936b,roughness:.96,metalness:0,flatShading:true
+      });
+      const ridgeGeo=new THREE.IcosahedronGeometry(1,hi?2:1);
+      const ridge=new THREE.InstancedMesh(ridgeGeo,ridgeMat,ridgeCount);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<ridgeCount;j++){
+        const k=Math.floor(N*(j+.38)/ridgeCount)%N;
+        const side=j%2?1:-1;
+        const height=17+15*Math.abs(Math.sin(j*1.37));
+        dummy.position.copy(node(k,side,145+28*Math.abs(Math.sin(j*.93)),height*.24));
+        dummy.rotation.set(0,j*.73,0);
+        dummy.scale.set(30+13*Math.abs(Math.cos(j)),height,23+9*Math.abs(Math.sin(j)));
+        dummy.updateMatrix();ridge.setMatrixAt(j,dummy.matrix);
+        const tint=.78+.19*Math.abs(Math.sin(j*1.73));
+        ridge.setColorAt(j,new THREE.Color().setRGB(tint,tint,tint));
+      }
+      ridge.instanceMatrix.needsUpdate=true;
+      ridge.computeBoundingSphere();
+      ridge.castShadow=false;ridge.receiveShadow=false;
+      world.add(ridge);
+    }
+    // Distinctive dry-forest roadside landmark: low, broad guanacaste canopy.
+    // Decorative silhouette is well outside the road and uses shared geometry.
+    {
+      const crownCount=hi?9:quality==='media'?6:3;
+      const crown=new THREE.InstancedMesh(
+        new THREE.IcosahedronGeometry(1,hi?2:1),
+        new THREE.MeshStandardMaterial({color:0x477044,roughness:.95,flatShading:true}),
+        crownCount);
+      const trunk=new THREE.Mesh(
+        new THREE.CylinderGeometry(.85,1.45,11,hi?10:6),
+        mats.bark);
+      const k=Math.floor(N*.34);
+      const base=node(k,1,76,0);
+      trunk.position.copy(base);trunk.position.y+=5.5;
+      trunk.castShadow=false;world.add(trunk);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<crownCount;j++){
+        const a=2*Math.PI*j/crownCount;
+        dummy.position.copy(base);
+        dummy.position.x+=Math.cos(a)*7.2;
+        dummy.position.z+=Math.sin(a)*7.2;
+        dummy.position.y+=12.8+1.5*Math.sin(j*2.4);
+        dummy.scale.set(8.2,3.1,7.4);
+        dummy.rotation.set(0,a,0);dummy.updateMatrix();
+        crown.setMatrixAt(j,dummy.matrix);
+      }
+      crown.instanceMatrix.needsUpdate=true;
+      crown.computeBoundingSphere();
+      crown.castShadow=false;world.add(crown);
+    }
+    // Exposed ochre volcanic-soil outcrops along the dry-forest pasture edge.
+    // Instanced low-poly shapes add a readable warm roadside landmark without
+    // changing the race ribbon or introducing colliders / dynamic lights.
+    {
+      const count=hi?28:quality==='media'?15:7;
+      const rock=new THREE.InstancedMesh(
+        new THREE.DodecahedronGeometry(1,0),
+        new THREE.MeshStandardMaterial({color:0xa36a43,roughness:.98,metalness:0,flatShading:true}),
+        count);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const k=Math.floor(N*(.11+.70*(j+.5)/count))%N;
+        const side=j%2?1:-1;
+        const radius=1.8+2.3*Math.abs(Math.sin(j*1.81));
+        dummy.position.copy(node(k,side,88+14*Math.abs(Math.sin(j*.83)),radius*.28));
+        dummy.rotation.set(.13*j,.71*j,.09*j);
+        dummy.scale.set(radius*1.6,radius*.65,radius*1.25);
+        dummy.updateMatrix();rock.setMatrixAt(j,dummy.matrix);
+      }
+      rock.instanceMatrix.needsUpdate=true;
+      rock.computeBoundingSphere();
+      rock.castShadow=false;rock.receiveShadow=false;
+      world.add(rock);
+    }
+    // Original shaded roadside bus-stop shelter: a recognisable rural Route 1
+    // silhouette viewed from the racing camera. Entirely decorative, beyond
+    // the road edge; shared PBR materials, instanced posts, no physics bodies.
+    {
+      const k=Math.floor(N*.64);
+      const base=node(k,1,64,0);
+      const tangent=node(Math.min(N-1,k+1),1,64,0).sub(node(Math.max(0,k-1),1,64,0)).normalize();
+      const angle=Math.atan2(tangent.x,tangent.z);
+      const shelter=new THREE.Group();
+      shelter.position.copy(base);shelter.rotation.y=angle;
+      const roof=new THREE.Mesh(new THREE.BoxGeometry(9,.34,3.8),
+        new THREE.MeshStandardMaterial({color:0xb76c43,metalness:.08,roughness:.82}));
+      roof.position.y=4.3;roof.rotation.z=.055;roof.castShadow=false;
+      shelter.add(roof);
+      const posts=new THREE.InstancedMesh(new THREE.CylinderGeometry(.13,.17,4.2,6),
+        new THREE.MeshStandardMaterial({color:0x777d75,metalness:.45,roughness:.65}),4);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<4;j++){
+        dummy.position.set(j%2?3.7:-3.7,2.1,j<2?-1.35:1.35);
+        dummy.updateMatrix();posts.setMatrixAt(j,dummy.matrix);
+      }
+      posts.instanceMatrix.needsUpdate=true;posts.computeBoundingSphere();
+      posts.castShadow=false;shelter.add(posts);
+      const bench=new THREE.Mesh(new THREE.BoxGeometry(5.6,.28,.75),
+        new THREE.MeshStandardMaterial({color:0x76533a,roughness:.9}));
+      bench.position.set(0,1.05,0);bench.castShadow=false;shelter.add(bench);
+      world.add(shelter);
+    }
+    sign('BOSQUE SECO · GUANACASTE',Math.floor(N*.31),1,24);
     sign('RUTA 1 · LIBERIA',Math.floor(N*.08),1,22);
     sign('INTERAMERICANA NORTE',Math.floor(N*.55),-1,23);
     sign('HACIA GUANACASTE',Math.floor(N*.79),1,23);
