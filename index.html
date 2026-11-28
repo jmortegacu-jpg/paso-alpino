@@ -929,7 +929,12 @@ function buildWorld(def){
   {const COUNT=Math.round(2500*QUAL[quality].trees*theme.trees);
     // Tiered spruce silhouettes replace single low-poly cones; still one instanced draw call.
     const spruceProfile=[[0,8.9],[.15,8.3],[.95,7.0],[.26,7.0],[1.4,5.7],[.38,5.7],[1.9,4.1],[.48,4.1],[2.35,2.4],[.55,2.4],[.35,1.7],[0,1.7]];
-    const spruce=new THREE.LatheGeometry(spruceProfile.map(([rad,y])=>new THREE.Vector2(rad,y)),11);
+    // The Zurquí landscape is humid evergreen forest, not an alpine conifer stand.
+    // Broadleaf canopy is an original low-poly silhouette with the same instanced
+    // draw-call budget as the alpine foliage (no external textures or assets).
+    const humidCanopy=[[0,11.4],[1.2,11.2],[2.7,10.3],[3.5,8.8],[3.8,7.2],[3.2,5.8],[1.9,5.1],[0,5.1]];
+    const treeProfile=theme.cr==='zurqui'?humidCanopy:spruceProfile;
+    const spruce=new THREE.LatheGeometry(treeProfile.map(([rad,y])=>new THREE.Vector2(rad,y)),11);
     const fol=new THREE.InstancedMesh(spruce,new THREE.MeshStandardMaterial({roughness:.94,metalness:0,envMapIntensity:.32,flatShading:true}),COUNT);
     const trunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(.28,.38,2,5).translate(0,1,0),new THREE.MeshStandardMaterial({color:'#4a3626',roughness:1}),COUNT);
     const o=new THREE.Object3D(),c=new THREE.Color();let k=0,tries=0;const maxH=Math.min(115,theme.snow*.75);
@@ -939,7 +944,7 @@ function buildWorld(def){
       if(Math.abs(heightAt(x+4,z)-h)+Math.abs(heightAt(x,z+4)-h)>3.2)continue;
       if(fbm(x*0.006+40,z*0.006,3)<0.42)continue;
       const s=.7+Math.random()*.9;o.position.set(x,h-.3,z);o.scale.set(s,s*(.85+Math.random()*.4),s);o.rotation.y=Math.random()*6;o.updateMatrix();
-      fol.setMatrixAt(k,o.matrix);trunk.setMatrixAt(k,o.matrix);c.setHSL(.29+Math.random()*.05,.38+Math.random()*.15,.16+Math.random()*.07);fol.setColorAt(k,c);k++;}
+      fol.setMatrixAt(k,o.matrix);trunk.setMatrixAt(k,o.matrix);c.setHSL(theme.cr==='zurqui'?.31+Math.random()*.075:.29+Math.random()*.05,theme.cr==='zurqui'?.43+Math.random()*.16:.38+Math.random()*.15,theme.cr==='zurqui'?.19+Math.random()*.10:.16+Math.random()*.07);fol.setColorAt(k,c);k++;}
     fol.count=trunk.count=k;world.add(fol,trunk);}
   // Costa Rica-specific scenery is rebuilt with each circuit; no impact on
   // collision physics, global track length, player controls or netcode.
