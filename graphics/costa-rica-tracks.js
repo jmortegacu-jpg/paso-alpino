@@ -878,10 +878,211 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       for(const x of [-1.1,1.1])bench.add(cube(.18,1.05,.65,mats.black,x,.53,0));
       place(bench,k,1,23,.2);
     }
+    // Continuous shaded promenade: original canvas awnings above the existing
+    // seafront kiosks. Instanced roofs create a recognizable streetscape at
+    // driving speed without extra lights, collisions or per-kiosk draw calls.
+    {
+      const awningCount=hi?36:18;
+      const awningMat=new THREE.MeshStandardMaterial({
+        color:0xf1d8a7,roughness:.91,metalness:0,side:THREE.DoubleSide
+      });
+      const awnings=new THREE.InstancedMesh(
+        new THREE.BoxGeometry(5.8,.13,3.5),awningMat,awningCount);
+      const awningDummy=new THREE.Object3D();
+      for(let j=0;j<awningCount;j++){
+        const kioskIndex=hi?j:j*2;
+        const i=Math.floor(N*(kioskIndex+.4)/36);
+        const p=points[Math.max(0,Math.min(N-1,i))];
+        const tangent=tangents[Math.max(0,Math.min(N-1,i))];
+        const normal=normals[Math.max(0,Math.min(N-1,i))];
+        awningDummy.position.set(
+          p.x-normal.x*31,p.y+5.1,p.z-normal.z*31);
+        awningDummy.rotation.set(0,-Math.atan2(tangent.z,tangent.x),0);
+        awningDummy.scale.set(1,1,1);
+        awningDummy.updateMatrix();
+        awnings.setMatrixAt(j,awningDummy.matrix);
+      }
+      awnings.instanceMatrix.needsUpdate=true;
+      awnings.computeBoundingSphere();
+      awnings.castShadow=false;
+      awnings.receiveShadow=false;
+      world.add(awnings);
+    }
     sign('PASEO DE LOS TURISTAS',Math.floor(N*.06),-1,20);
     sign('PUNTARENAS',Math.floor(N*.50),-1,20);
     sign('EL FARO · LA PUNTA',Math.floor(N*.16),-1,22);
     sign('MUELLE DE CRUCEROS',Math.floor(N*.70),-1,22);
+    // Original stylized pier: a recognizable coastal landmark, not a surveyed
+    // reconstruction. Keep it beyond the roadside wall and out of collisions.
+    // Reuse shared materials and instance the pilings to limit draw calls.
+    {
+      const pier=new THREE.Group();
+      const wood=new THREE.MeshStandardMaterial({color:0x92765a,roughness:.94});
+      const steel=new THREE.MeshStandardMaterial({color:0x6c777b,metalness:.35,roughness:.68});
+      const length=hi?58:42;
+      const deck=new THREE.Mesh(new THREE.BoxGeometry(length,.65,7),wood);
+      deck.position.set(length/2,2.8,0);deck.receiveShadow=true;pier.add(deck);
+      const count=hi?18:12;
+      const posts=new THREE.InstancedMesh(new THREE.CylinderGeometry(.32,.4,6,6),steel,count);
+      const d=new THREE.Object3D();
+      for(let j=0;j<count;j++){
+        const side=j%2?-2.9:2.9;
+        d.position.set(4+(length-8)*Math.floor(j/2)/Math.max(1,count/2-1),.15,side);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        posts.setMatrixAt(j,d.matrix);
+      }
+      posts.instanceMatrix.needsUpdate=true;
+      posts.computeBoundingSphere();
+      posts.castShadow=false;
+      pier.add(posts);
+      // Both pier handrails share one geometry/material and one instanced draw.
+      const rails=new THREE.InstancedMesh(new THREE.BoxGeometry(length,.15,.12),steel,2);
+      for(let j=0;j<2;j++){
+        d.position.set(length/2,4.05,j===0?-3.3:3.3);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        rails.setMatrixAt(j,d.matrix);
+      }
+      rails.instanceMatrix.needsUpdate=true;
+      rails.computeBoundingSphere();
+      rails.castShadow=false;
+      pier.add(rails);
+      // Recognizable terminal canopy at the landward end of the pier: a broad
+      // raised roof and slender supports. Original geometry, no texture assets,
+      // dynamic lighting or collision bodies. Keep the roof outside the road.
+      const canopyRoof=new THREE.Mesh(
+        new THREE.BoxGeometry(12,.28,8.5),
+        new THREE.MeshStandardMaterial({color:0xc9d6d8,metalness:.36,roughness:.55}));
+      canopyRoof.position.set(9,8.25,0);
+      canopyRoof.receiveShadow=false;
+      canopyRoof.castShadow=false;
+      pier.add(canopyRoof);
+      // Readable terminal silhouette from the road: two contrasting fascia
+      // bands and a shallow canopy lip, all original static PBR geometry.
+      // No textures, lights, collision objects or borrowed signage.
+      const fasciaMat=new THREE.MeshStandardMaterial({
+        color:0x235c73,metalness:.18,roughness:.56
+      });
+      const fascia=new THREE.InstancedMesh(
+        new THREE.BoxGeometry(11.7,.38,.14),fasciaMat,2);
+      for(let j=0;j<2;j++){
+        d.position.set(9,8.02,j===0?-4.31:4.31);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        fascia.setMatrixAt(j,d.matrix);
+      }
+      fascia.instanceMatrix.needsUpdate=true;
+      fascia.computeBoundingSphere();
+      fascia.castShadow=false;
+      pier.add(fascia);
+      const canopyPillars=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.11,.13,5.0,6),steel,4);
+      for(let j=0;j<4;j++){
+        d.position.set(j<2?4.2:13.8,5.61,j%2?-3.2:3.2);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        canopyPillars.setMatrixAt(j,d.matrix);
+      }
+      canopyPillars.instanceMatrix.needsUpdate=true;
+      canopyPillars.computeBoundingSphere();
+      canopyPillars.castShadow=false;
+      pier.add(canopyPillars);
+      // Stylized mooring bollards: INCOP documents mooring fittings at the
+      // cruise terminal. Four low-poly fixtures share one draw call.
+      // Decorative only; positions and scale are not surveyed.
+      const bollardGeo=new THREE.CylinderGeometry(.28,.36,.75,8);
+      const bollards=new THREE.InstancedMesh(bollardGeo,steel,4);
+      const bollardDummy=new THREE.Object3D();
+      for(let j=0;j<4;j++){
+        bollardDummy.position.set(length*(j<2?.24:.78),3.55,j%2?-2.4:2.4);
+        bollardDummy.rotation.set(0,0,0);
+        bollardDummy.scale.set(1,1,1);
+        bollardDummy.updateMatrix();
+        bollards.setMatrixAt(j,bollardDummy.matrix);
+      }
+      bollards.instanceMatrix.needsUpdate=true;
+      bollards.computeBoundingSphere();
+      bollards.castShadow=false;
+      pier.add(bollards);
+      // Pier safety beacons add a legible silhouette at dusk without
+      // dynamic lights or per-object draw calls. Decorative only.
+      const beaconCount=hi?6:4;
+      const beaconPosts=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.065,.085,1.35,6),
+        steel,beaconCount);
+      const beaconLamps=new THREE.InstancedMesh(
+        new THREE.SphereGeometry(.19,8,6),
+        new THREE.MeshBasicMaterial({color:0xffd5a0}),beaconCount);
+      for(let j=0;j<beaconCount;j++){
+        const along=4+(length-8)*Math.floor(j/2)/Math.max(1,Math.ceil(beaconCount/2)-1);
+        const across=j%2?-3.18:3.18;
+        d.position.set(along,4.75,across);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        beaconPosts.setMatrixAt(j,d.matrix);
+        d.position.y=5.49;d.updateMatrix();
+        beaconLamps.setMatrixAt(j,d.matrix);
+      }
+      for(const mesh of [beaconPosts,beaconLamps]){
+        mesh.instanceMatrix.needsUpdate=true;
+        mesh.computeBoundingSphere();
+        mesh.castShadow=false;
+        pier.add(mesh);
+      }
+      // Two low-poly safety ladders at the seaward end of the pier.
+      // Original geometry, decorative only; no collider or dynamic light.
+      const ladderRails=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.045,.045,2.8,6),steel,4);
+      const ladderRungs=new THREE.InstancedMesh(
+        new THREE.CylinderGeometry(.038,.038,.78,6),steel,hi?12:8);
+      for(let j=0;j<4;j++){
+        d.position.set(length-1.4,2.65,j<2?-3.52:3.52);
+        d.position.x+=(j%2?-.37:.37);
+        d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();
+        ladderRails.setMatrixAt(j,d.matrix);
+      }
+      const rungSteps=hi?6:4;
+      for(let j=0;j<2*rungSteps;j++){
+        const side=j<rungSteps?-3.52:3.52;
+        d.position.set(length-1.4,1.45+(j%rungSteps)*(.42*(6/rungSteps)),side);
+        d.rotation.set(0,0,Math.PI/2);d.scale.set(1,1,1);d.updateMatrix();
+        ladderRungs.setMatrixAt(j,d.matrix);
+      }
+      for(const mesh of [ladderRails,ladderRungs]){
+        mesh.instanceMatrix.needsUpdate=true;
+        mesh.computeBoundingSphere();
+        mesh.castShadow=false;
+        pier.add(mesh);
+      }
+      // The promenade is a fictional racing circuit, so the pier position
+      // is approximate; its roadway clearance must be checked in WebGL.
+      place(pier,Math.floor(N*.70),1,36,-.1);
+    }
+    // Original low-poly coastal seabirds (pelican-like silhouettes), kept well
+    // beyond the driving corridor. Shared geometry and instancing for mobile.
+    {
+      const birdCount=hi?12:5;
+      const wingGeo=new THREE.ConeGeometry(1.65,5.4,3);
+      const wingMat=new THREE.MeshStandardMaterial({color:0xd7d0bd,roughness:.92,side:THREE.DoubleSide});
+      const left=new THREE.InstancedMesh(wingGeo,wingMat,birdCount);
+      const right=new THREE.InstancedMesh(wingGeo,wingMat,birdCount);
+      const dummy=new THREE.Object3D();
+      for(let j=0;j<birdCount;j++){
+        const k=Math.floor(N*(j+.45)/birdCount);
+        const center=node(k,1,62+9*Math.sin(j*2.7)**2,12+5*Math.sin(j*1.8)**2);
+        const yaw=Math.atan2(tangents[k].x,tangents[k].z);
+        for(const [mesh,side] of [[left,-1],[right,1]]){
+          dummy.position.copy(center);
+          dummy.position.x+=side*1.2*Math.cos(yaw);
+          dummy.position.z-=side*1.2*Math.sin(yaw);
+          dummy.rotation.set(0,yaw,side*(Math.PI/2.9));
+          dummy.scale.setScalar(.72+.14*(j%3));
+          dummy.updateMatrix();mesh.setMatrixAt(j,dummy.matrix);
+        }
+      }
+      for(const mesh of [left,right]){
+        mesh.instanceMatrix.needsUpdate=true;
+        mesh.computeBoundingSphere();
+        mesh.castShadow=false;
+        world.add(mesh);
+      }
+    }
     lighthouse();
     // Generic tourist pier, inspired by the cruise-pier setting documented by ICT.
     // Decorative only: exact geometry, length and position are artistic, not surveyed.
@@ -948,6 +1149,9 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       const k=j*26,p=node(k,1,24,.42);
       o.position.copy(p);o.rotation.y=Math.atan2(tangents[k].x,tangents[k].z);o.updateMatrix();wall.setMatrixAt(j,o.matrix);
     }
+    wall.instanceMatrix.needsUpdate=true;
+    wall.computeBoundingSphere();
+    wall.castShadow=false;
     world.add(wall);
   }
 }
