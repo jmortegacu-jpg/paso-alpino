@@ -279,35 +279,6 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     g.add(beamPivot);
     place(g,Math.floor(N*.15),1,42,.1);
   }
-  // Stylized cruise pier: structural cues from INCOP's Puntarenas terminal.
-  // Not a surveyed/georeferenced replica; no third-party images or textures.
-  function puntarenasPier(){
-    const g=new THREE.Group();
-    const steel=new THREE.MeshStandardMaterial({color:0x697981,metalness:.72,roughness:.42});
-    const deckMat=new THREE.MeshStandardMaterial({color:0x999d97,metalness:.08,roughness:.84});
-    // The local X axis points out toward the sea after place() rotates the group.
-    g.add(cube(76,.9,7.5,deckMat,0,2.4,0));
-    const pileGeo=new THREE.CylinderGeometry(.48,.57,6.5,7);
-    const piles=new THREE.InstancedMesh(pileGeo,steel,20),dummy=new THREE.Object3D();
-    let n=0;
-    for(let j=0;j<10;j++)for(const side of [-1,1]){
-      dummy.position.set(-34+j*7.5,-1.1,side*2.65);
-      dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();
-      piles.setMatrixAt(n++,dummy.matrix);
-    }
-    piles.instanceMatrix.needsUpdate=true;g.add(piles);
-    // Two low truss sections; no dynamic lights or costly transparent materials.
-    for(const side of [-1,1]){
-      g.add(cube(76,.14,.14,steel,0,4.1,side*3.4));
-      for(let j=0;j<9;j++){
-        const post=cube(.13,1.5,.13,steel,-32+j*8,3.3,side*3.4);
-        g.add(post);
-      }
-    }
-    const platform=cube(15,.9,17,deckMat,34,2.4,0);g.add(platform);
-    // Position is illustrative within the fictional circuit, not a GPS claim.
-    place(g,Math.floor(N*.62),1,66,0);
-  }
   function ferns(count){
     const mat=new THREE.MeshStandardMaterial({color:0x327445,roughness:.94,side:THREE.DoubleSide});
     const geometry=new THREE.ConeGeometry(1.55,2.4,7);
@@ -1960,26 +1931,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
       }
     }
     lighthouse();
-    // Generic tourist pier, inspired by the cruise-pier setting documented by ICT.
-    // Decorative only: exact geometry, length and position are artistic, not surveyed.
-    // All supports are at least 39 world units from the road centre.
-    const pier=new THREE.Group();
-    const deckMat=new THREE.MeshStandardMaterial({color:0x9d9587,roughness:.91});
-    const pilingMat=new THREE.MeshStandardMaterial({color:0x858b89,roughness:.87,metalness:.12});
-    const railingMat=new THREE.MeshStandardMaterial({color:0xc8d0cc,metalness:.32,roughness:.5});
-    const pierLength=hi?56:42,deckY=2.7;
-    pier.add(cube(pierLength,.65,8.4,deckMat,-pierLength/2,deckY,0));
-    const pileCount=hi?8:6;
-    for(let j=0;j<pileCount;j++){
-      const x=-(3+j*(pierLength-6)/(pileCount-1));
-      for(const z of [-3.5,3.5]){
-        pier.add(cube(.7,4.8,.7,pilingMat,x,.2,z));
-        pier.add(cube(.17,1.25,.17,railingMat,x,deckY+1.05,z));
-      }
-    }
-    for(const z of [-4.0,4.0])pier.add(cube(pierLength,.13,.13,railingMat,-pierLength/2,deckY+1.65,z));
-    // place() aligns the local negative X axis to the positive roadside normal.
-    place(pier,Math.floor(N*.70),1,40,-.1);
+    // (Only one pier: the detailed instanced cruise pier above; the two simpler versions from other branches were left out.)
     // Compact seating and visitor kiosks reinforce the documented promenade.
     const benchMat=new THREE.MeshStandardMaterial({color:0x946b46,roughness:.88});
     for(let j=0;j<(hi?12:5);j++){
@@ -2015,7 +1967,6 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     ring.rotation.x=-Math.PI/2;ring.position.y=.08;court.add(ring);
     place(court,Math.floor(N*.88),-1,76,.2);
 
-    puntarenasPier();
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
     // Low coastal guard wall along the beach, broken into individual meshes.
     const wallGeo=new THREE.BoxGeometry(12,.5,.48);
