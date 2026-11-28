@@ -423,6 +423,69 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
   }
     if(id==='zurqui'){
     rainforestTrees(hi?350:145);ferns(hi?230:90);
+    // Narrow forest streams inspired by SINAC's documented rivers and quebradas.
+    // Decorative only, outside the race ribbon; not claimed to match surveyed sites.
+    // Procedural meshes and materials require no third-party textures or licenses.
+    const streamWater=new THREE.MeshPhysicalMaterial({
+      color:0x326f70,metalness:.04,roughness:.19,clearcoat:.65,
+      clearcoatRoughness:.12,transparent:true,opacity:.86,side:THREE.DoubleSide
+    });
+    const streamStone=new THREE.MeshStandardMaterial({color:0x5c675e,roughness:.98});
+    const streamCount=hi?4:2;
+    const bankGeo=new THREE.IcosahedronGeometry(1.25,0);
+    for(let stream=0;stream<streamCount;stream++){
+      const center=Math.floor(N*(.09+stream*.19)),side=stream%2?1:-1;
+      const verts=[],idx=[],samples=15;
+      for(let j=0;j<=samples;j++){
+        const k=(center+j*3)%N,dist=46+j*2.1+2*Math.sin(j*.8+stream);
+        for(const offset of [-2.1,2.1]){
+          const p=node(k,side,dist+offset,-.45);
+          verts.push(p.x,p.y,p.z);
+        }
+        if(j<samples){const a=j*2;idx.push(a,a+2,a+1,a+1,a+2,a+3);}
+      }
+      const geo=new THREE.BufferGeometry();
+      geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+      geo.setIndex(idx);geo.computeVertexNormals();
+      const streamMesh=new THREE.Mesh(geo,streamWater);
+      streamMesh.receiveShadow=true;world.add(streamMesh);
+      // Small bankside stones with bounded polygon count.
+      for(let j=0;j<6;j++){
+        const k=(center+j*7)%N;
+        const stone=new THREE.Mesh(bankGeo,streamStone);
+        stone.position.copy(node(k,side,46+j*4.5+(j%2?3:-3),-.1));
+        stone.scale.set(1.5+j%3,.7,1+j%2);
+        world.add(stone);
+      }
+    }
+
+    // Lightweight humid mountain haze: camera-facing translucent wisps, NOT
+    // true volumetric fog. No lights, render targets, textures or road collisions.
+    // Inspired by the humid, forested Braulio Carrillo landscape documented by SINAC.
+    const hazeCount=hi?16:6;
+    const hazeCanvas=document.createElement('canvas');
+    hazeCanvas.width=128;hazeCanvas.height=128;
+    const hazeCtx=hazeCanvas.getContext('2d');
+    if(hazeCtx){
+      const grad=hazeCtx.createRadialGradient(64,64,8,64,64,63);
+      grad.addColorStop(0,'rgba(224,237,228,0.24)');
+      grad.addColorStop(.55,'rgba(219,235,227,0.12)');
+      grad.addColorStop(1,'rgba(219,235,227,0)');
+      hazeCtx.fillStyle=grad;hazeCtx.fillRect(0,0,128,128);
+      const hazeTex=new THREE.CanvasTexture(hazeCanvas);
+      const hazeMat=new THREE.SpriteMaterial({map:hazeTex,transparent:true,
+        depthWrite:false,opacity:.7,fog:true});
+      for(let j=0;j<hazeCount;j++){
+        const k=Math.floor(N*(j+.45)/hazeCount);
+        const side=j%2?1:-1;
+        const sprite=new THREE.Sprite(hazeMat);
+        sprite.position.copy(node(k,side,42+12*Math.abs(Math.sin(j*3.2)),8+5*Math.sin(j*.8)));
+        sprite.scale.set(35+12*(j%3),12+5*(j%2),1);
+        sprite.renderOrder=1;
+        world.add(sprite);
+      }
+    }
+
     sign('RUTA 32 · ZURQUI',Math.floor(N*.07),1,20);
     sign('PARQUE BRAULIO CARRILLO',Math.floor(N*.46),-1,20);
     sign('TUNEL ZURQUI',Math.floor(N*.25),1,22);
@@ -496,6 +559,31 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
     sign('MUELLE DE CRUCEROS',Math.floor(N*.70),-1,22);
     lighthouse();
     beachWalkers(hi?18:8);
+    // ICT confirms kiosks, local Churchill refreshments and recreational areas
+    // along the promenade. Locations below are artistic, not surveyed positions.
+    sign('CHURCHILL Y ARTESANIAS',Math.floor(N*.32),-1,24);
+    sign('PARQUE Y DEPORTES',Math.floor(N*.88),-1,24);
+    // A lightweight original recreation court beyond the urban roadside.
+    // No physics changes, licensed textures or new runtime dependencies.
+    const court=new THREE.Group();
+    const courtMat=new THREE.MeshStandardMaterial({color:0x648b83,roughness:.88,side:THREE.DoubleSide});
+    const lineMat=new THREE.MeshBasicMaterial({color:0xf1e9d5,side:THREE.DoubleSide});
+    const surface=new THREE.Mesh(new THREE.PlaneGeometry(19,31),courtMat);
+    surface.rotation.x=-Math.PI/2;surface.position.y=.05;surface.receiveShadow=true;court.add(surface);
+    for(const x of [-9.1,9.1]){
+      const stripe=new THREE.Mesh(new THREE.PlaneGeometry(.17,30),lineMat);
+      stripe.rotation.x=-Math.PI/2;stripe.position.set(x,.075,0);court.add(stripe);
+    }
+    for(const z of [-15,15]){
+      const stripe=new THREE.Mesh(new THREE.PlaneGeometry(18.3,.17),lineMat);
+      stripe.rotation.x=-Math.PI/2;stripe.position.set(0,.075,z);court.add(stripe);
+    }
+    const midline=new THREE.Mesh(new THREE.PlaneGeometry(18.3,.15),lineMat);
+    midline.rotation.x=-Math.PI/2;midline.position.y=.078;court.add(midline);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(2.9,3.05,32),lineMat);
+    ring.rotation.x=-Math.PI/2;ring.position.y=.08;court.add(ring);
+    place(court,Math.floor(N*.88),-1,76,.2);
+
     for(let k=0;k<11;k++)boat(Math.floor(N*(k+.3)/11),1,74+8*(k%3),k%4===0);
     // Low coastal guard wall along the beach, broken into individual meshes.
     const wallGeo=new THREE.BoxGeometry(12,.5,.48);
