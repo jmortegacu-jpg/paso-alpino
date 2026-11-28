@@ -120,7 +120,7 @@ export function addCostaRicaScenery(THREE, world, def, points, tangents, normals
   // MOPT, 2 June 2025: Dominical–Uvita / Punta Mala resurfacing, edge/centre
   // markings and installation of reflectors. This is a stylized circuit,
   // not a surveyed reproduction of the exact real-world marker positions.
-  // https://www.mopt.go.cr/noticias/2025/35-km-de-costanera-sur-ya-cuentan-con-superficie-de-ruedo-nueva-entre-dominical-y
+  // Fuente: noticia del MOPT (mopt.go.cr, 2025) sobre 35-km-de-costanera-sur-ya-cuentan-con-superficie-de-ruedo-nueva-entre-dominical-y
   function roadReflectors(){
     const spacing=hi?15:quality==='media'?24:36,indices=[];
     let distance=0,next=spacing;
