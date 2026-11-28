@@ -280,7 +280,6 @@ export function buildFutureChassis(THREE, P, M, {high = true, player = false, pa
     const L=cockpitLayout||getCockpitLayout(M);
     box(Math.min(1.2,M.K.wb(L.dashZ)*1.65),.07,.30,material.carbon,0,L.roofY-.025,L.dashZ+.08);
     box(.17,.14,.88,material.carbon,0,seatY+.14,seatZ+.42);
-    for(const x of [-.46,.46])add(new THREE.TorusGeometry(.060,.012,6,16),material.trim,x,seatY+.38,z0-.08);
     // Aurora V12: raised instrument binnacle and two recessed gauges
     // visible through the windscreen in high detail. Entirely cosmetic.
     if(M.id==='aurora'){
